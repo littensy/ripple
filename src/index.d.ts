@@ -10,6 +10,23 @@ export = Ripple;
 export as namespace Ripple;
 
 declare namespace Ripple {
+	const config: {
+		readonly spring: {
+			readonly default: SpringOptions;
+			readonly gentle: SpringOptions;
+			readonly wobbly: SpringOptions;
+			readonly stiff: SpringOptions;
+			readonly slow: SpringOptions;
+			readonly molasses: SpringOptions;
+		};
+		readonly linear: {
+			readonly default: LinearOptions;
+		};
+		readonly tween: {
+			readonly default: TweenOptions;
+		};
+	};
+
 	interface Heartbeat {
 		Connect(callback: (deltaTime: number) => void): Disconnectable;
 	}
@@ -23,10 +40,9 @@ declare namespace Ripple {
 		readonly start?: boolean;
 	}
 
-	function createMotion<T = number>(
-		initialValue: T & MotionGoal,
-		options?: MotionOptions,
-	): Motion<T extends MotionGoal ? T : MotionGoal>;
+	function createMotion(initialValue: number, options?: MotionOptions): Motion<number>;
+
+	function createMotion<T extends MotionGoal>(initialValue: T, options?: MotionOptions): Motion<T>;
 
 	// Motion solvers
 
