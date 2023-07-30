@@ -115,8 +115,6 @@ declare namespace Ripple {
 		? {
 				[K in keyof T]: T[K] extends number ? U : T[K];
 		  }
-		: T extends number
-		? U
 		: U[]; // internal intermediate values for datatypes
 
 	type MotionGoal =
