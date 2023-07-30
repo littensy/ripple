@@ -12,7 +12,8 @@ type SpringOptions = {
 	impulse: number?,
 }
 
-local EPSILON = 1e-5
+local RESTING_VELOCITY = 0.01
+local RESTING_POSITION = 0.001
 local STEP = 1 -- milliseconds
 local MAX_PASS = 100
 
@@ -72,7 +73,7 @@ local function spring(motionGoal: types.MotionGoal, options: SpringOptions?): ty
 			position += velocity * STEP
 		end
 
-		if math.abs(velocity) < EPSILON and math.abs(position - goal) < EPSILON then
+		if math.abs(velocity) < RESTING_VELOCITY and math.abs(position - goal) < RESTING_POSITION then
 			state.complete = true
 			state.value = goal
 			state.velocity = 0
