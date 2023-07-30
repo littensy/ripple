@@ -61,6 +61,16 @@ local function createMotion<T>(initialValue: T, options: types.MotionOptions?): 
 		return intermediate.from(intermediates, valueType)
 	end
 
+	local function getVelocity()
+		local intermediates = {}
+
+		for key, state in motionState do
+			intermediates[key] = state.velocity or 0
+		end
+
+		return intermediate.from(intermediates, valueType)
+	end
+
 	local function set(_self, value)
 		local intermediates = intermediate.to(value)
 
@@ -232,6 +242,7 @@ local function createMotion<T>(initialValue: T, options: types.MotionOptions?): 
 		start = start,
 		stop = stop,
 		get = get,
+		getVelocity = getVelocity,
 		set = set,
 		patch = patch,
 		impulse = impulse,

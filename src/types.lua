@@ -15,6 +15,7 @@ export type Motion<T = number> = {
 	start: (self: Motion<T>) -> Cleanup,
 	stop: (self: Motion<T>) -> (),
 	get: (self: Motion<T>) -> T,
+	getVelocity: (self: Motion<T>) -> T,
 	set: (self: Motion<T>, value: T | { [any]: number }) -> (),
 	patch: (self: Motion<T>, patch: { [any]: Partial<MotionState> }) -> (),
 	impulse: (self: Motion<T>, impulse: T | { [any]: number }) -> (),
