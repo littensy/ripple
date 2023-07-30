@@ -1,6 +1,6 @@
 {
-  "name": "motion",
-  "tree": {
-    "$path": "src"
-  }
+	"name": "ripple",
+	"tree": {
+		"$path": "src"
+	}
 }

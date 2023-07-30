@@ -80,7 +80,7 @@ local function to(value: unknown): Intermediate
 	if intermediates[type] then
 		return intermediates[type].to(value)
 	else
-		error(`Motion received an unsupported value '{value}' of type '{type}'`)
+		error(`Ripple received an unsupported value '{value}' of type '{type}'`)
 	end
 end
 
@@ -88,7 +88,7 @@ local function from<T>(value: Intermediate, type: string): T
 	if intermediates[type] then
 		return intermediates[type].from(value)
 	else
-		error(`Motion received an unsupported value '{value}' of type '{type}'`)
+		error(`Ripple received an unsupported value '{value}' of type '{type}'`)
 	end
 end
 

@@ -1,5 +1,5 @@
 {
-	"name": "@rbxts/motion",
+	"name": "@rbxts/ripple",
 	"version": "0.1.0",
 	"description": "A motion library for Roblox",
 	"main": "src/init.lua",
@@ -17,10 +17,10 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/littensy/motion.git"
+		"url": "https://github.com/littensy/ripple.git"
 	},
 	"bugs": {
-		"url": "https://github.com/littensy/motion/issues"
+		"url": "https://github.com/littensy/ripple/issues"
 	},
 	"types": "src/index.d.ts",
 	"files": [

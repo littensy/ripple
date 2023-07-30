@@ -2,14 +2,14 @@ type Cleanup = () => void;
 
 type DeepPartial<T> = T extends object
 	? {
-			[P in keyof T]?: DeepPartial<T[P]>;
+			[K in keyof T]?: DeepPartial<T[K]>;
 	  }
 	: T;
 
-export = Motion;
-export as namespace Motion;
+export = Ripple;
+export as namespace Ripple;
 
-declare namespace Motion {
+declare namespace Ripple {
 	interface Heartbeat {
 		Connect(callback: (deltaTime: number) => void): Disconnectable;
 	}
@@ -63,7 +63,7 @@ declare namespace Motion {
 	function tween<T extends MotionGoal>(goal: T, options?: TweenOptions): MotionSolver<T>;
 }
 
-declare namespace Motion {
+declare namespace Ripple {
 	interface Motion<T extends MotionGoal = number> {
 		readonly state: MapGoalTo<T, MotionState>;
 		start(): Cleanup;

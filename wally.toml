@@ -1,5 +1,5 @@
 [package]
-name = "richerd/motion"
+name = "richerd/ripple"
 version = "0.1.0"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
