@@ -1,0 +1,19 @@
+# Dependencies
+/node_modules
+/Packages
+/DevPackages
+
+# Project output
+/out
+/include
+*.tsbuildinfo
+*.rbxl
+*.rbxm
+sourcemap.json
+roblox.d.lua
+types.d.lua
+
+# Misc
+/.vscode
+.DS_Store
+*.code-workspace

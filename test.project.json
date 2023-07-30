@@ -1,0 +1,27 @@
+{
+  "name": "motion",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "Packages": {
+        "$path": "Packages",
+        "Motion": {
+          "$path": "src"
+        }
+      },
+      "DevPackages": {
+        "$path": "DevPackages"
+      }
+    },
+    "TestService": {
+      "$properties": {
+        "ExecuteWithStudioRun": true
+      },
+      "$className": "TestService",
+      "Test": {
+        "$path": "scripts/run-tests.server.lua"
+      }
+    }
+  }
+}
