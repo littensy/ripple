@@ -86,9 +86,9 @@ declare namespace Ripple {
 		stop(): void;
 		get(): T;
 		getVelocity(): T;
-		set(value: Partial<T>): void;
-		impulse(velocity: Partial<T>): void;
-		to(solver: MotionSolver<T> | MapSolvers<T>): void;
+		set(value: PartialMotionGoal<T>): void;
+		impulse(velocity: PartialMotionGoal<T>): void;
+		to(solver: MotionSolver<T> | MapSolvers<PartialMotionGoal<T>>): void;
 		step(deltaTime: number): T;
 		isComplete(): boolean;
 		onComplete(callback: (value: T) => void): Cleanup;
@@ -97,13 +97,13 @@ declare namespace Ripple {
 		destroy(): void;
 	}
 
-	type MapSolvers<T extends MotionGoal> = T extends number[]
+	type MapSolvers<T extends PartialMotionGoal> = T extends number[]
 		? {
-				[K in keyof T]: T[K] extends number ? MotionSolver<T[K]> : T[K];
+				[K in keyof T]?: T[K] extends undefined | infer U extends number ? MotionSolver<U> : T[K];
 		  }
 		: T extends { [key: string | number]: number }
 		? {
-				[K in keyof T]: T[K] extends number ? MotionSolver<T[K]> : T[K];
+				[K in keyof T]?: T[K] extends number | undefined ? MotionSolver<T[K]> : T[K];
 		  }
 		: MotionSolver<T>;
 
@@ -115,6 +115,8 @@ declare namespace Ripple {
 		? {
 				[K in keyof T]: T[K] extends number ? U : T[K];
 		  }
+		: T extends number
+		? U
 		: U[]; // internal intermediate values for datatypes
 
 	type MotionGoal =
@@ -128,6 +130,10 @@ declare namespace Ripple {
 		| Color3
 		| CFrame;
 
+	type PartialMotionGoal<T extends MotionGoal = MotionGoal> = T extends number[] | { [key: string | number]: number }
+		? Partial<T>
+		: T;
+
 	interface MotionState {
 		value: number;
 		complete: boolean;
@@ -135,12 +141,12 @@ declare namespace Ripple {
 		destructor?: Cleanup;
 	}
 
-	type MotionSolver<T extends MotionGoal> = ((key: string, state: MotionState, deltaTime: number) => void) & {
+	type MotionSolver<T extends PartialMotionGoal> = ((key: string, state: MotionState, deltaTime: number) => void) & {
 		/**
 		 * @deprecated Reserved for internal use
 		 */
 		__type: T;
 	};
 
-	type MotionSolverFactory<T extends MotionGoal> = (goal: T, options?: unknown) => MotionSolver<T>;
+	type MotionSolverFactory<T extends PartialMotionGoal> = (goal: T, options?: unknown) => MotionSolver<T>;
 }
