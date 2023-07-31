@@ -147,6 +147,4 @@ declare namespace Ripple {
 		 */
 		__type: T;
 	};
-
-	type MotionSolverFactory<T extends PartialMotionGoal> = (goal: T, options?: unknown) => MotionSolver<T>;
 }
