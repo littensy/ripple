@@ -1,11 +1,5 @@
 type Cleanup = () => void;
 
-type DeepPartial<T> = T extends object
-	? {
-			[K in keyof T]?: DeepPartial<T[K]>;
-	  }
-	: T;
-
 export = Ripple;
 export as namespace Ripple;
 
@@ -93,17 +87,17 @@ declare namespace Ripple {
 		isComplete(): boolean;
 		onComplete(callback: (value: T) => void): Cleanup;
 		onStep(callback: (value: T, deltaTime: number) => void): Cleanup;
-		patch(source: DeepPartial<MapGoalTo<T, MotionState>>): void;
+		patch(source: Partial<MapGoalTo<T, Partial<MotionState>>>): void;
 		destroy(): void;
 	}
 
 	type MapSolvers<T extends PartialMotionGoal> = T extends number[]
 		? {
-				[K in keyof T]?: T[K] extends undefined | infer U extends number ? MotionSolver<U> : T[K];
+				[K in keyof T]?: T[K] extends number | undefined ? MotionSolver<number> : T[K];
 		  }
 		: T extends { [key: string | number]: number }
 		? {
-				[K in keyof T]?: T[K] extends number | undefined ? MotionSolver<T[K]> : T[K];
+				[K in keyof T]?: T[K] extends number | undefined ? MotionSolver<number> : T[K];
 		  }
 		: MotionSolver<T>;
 
@@ -115,8 +109,6 @@ declare namespace Ripple {
 		? {
 				[K in keyof T]: T[K] extends number ? U : T[K];
 		  }
-		: T extends number
-		? U
 		: U[]; // internal intermediate values for datatypes
 
 	type MotionGoal =
