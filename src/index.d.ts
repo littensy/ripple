@@ -83,6 +83,9 @@ declare namespace Ripple {
 		set(value: PartialMotionGoal<T>): void;
 		impulse(velocity: PartialMotionGoal<T>): void;
 		to(solver: MotionSolver<T> | MapSolvers<PartialMotionGoal<T>>): void;
+		linear(goal: PartialMotionGoal<T>, options?: LinearOptions): void;
+		spring(goal: PartialMotionGoal<T>, options?: SpringOptions): void;
+		tween(goal: PartialMotionGoal<T>, options?: TweenOptions): void;
 		step(deltaTime: number): T;
 		isComplete(): boolean;
 		onComplete(callback: (value: T) => void): Cleanup;

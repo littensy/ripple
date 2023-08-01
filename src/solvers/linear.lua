@@ -1,11 +1,7 @@
 local types = require(script.Parent.Parent.types)
 local intermediate = require(script.Parent.Parent.utils.intermediate)
 
-type LinearOptions = {
-	speed: number?,
-} | number?
-
-local function configure(options: LinearOptions)
+local function configure(options: types.LinearOptions)
 	local speed = if type(options) == "table" then options.speed else options
 
 	return {
@@ -13,7 +9,7 @@ local function configure(options: LinearOptions)
 	}
 end
 
-local function linear(motionGoal: types.MotionGoal, options: LinearOptions): types.MotionSolver
+local function linear(motionGoal: types.MotionGoal, options: types.LinearOptions): types.MotionSolver
 	local config = configure(options)
 	local goals = intermediate.to(motionGoal)
 
@@ -21,7 +17,7 @@ local function linear(motionGoal: types.MotionGoal, options: LinearOptions): typ
 		local goal = intermediate.index(goals, key)
 
 		if not goal then
-			return
+			return false
 		end
 
 		local velocity = config.speed * deltaTime * math.sign(goal - state.value)

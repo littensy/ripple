@@ -212,7 +212,8 @@ return function()
 		it("should accept complex solvers", function()
 			local motion = createMotion({ a = 0, b = 0 })
 
-			motion:to(linear({ a = 1, b = 1 }, { speed = 1 }))
+			motion:to(linear({ a = 1 }, { speed = 1 }))
+			motion:to(linear({ b = 1 }, { speed = 1 }))
 			motion:step(0.5)
 
 			expect(motion:get().a).to.equal(0.5)

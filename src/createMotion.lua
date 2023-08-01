@@ -1,6 +1,9 @@
 local RunService = game:GetService("RunService")
 
 local types = require(script.Parent.types)
+local linearSolver = require(script.Parent.solvers.linear)
+local springSolver = require(script.Parent.solvers.spring)
+local tweenSolver = require(script.Parent.solvers.tween)
 local intermediate = require(script.Parent.utils.intermediate)
 local assign = require(script.Parent.utils.assign)
 local merge = require(script.Parent.utils.merge)
@@ -134,8 +137,11 @@ local function createMotion<T>(initialValue: T, options: types.MotionOptions?): 
 				end
 
 				state.complete = false
-				motionSolvers[key] = solvers
-				solvers(key, state, 0)
+
+				if solvers(key, state, 0) ~= false then
+					-- only sets the solver if this key is part of the new goal
+					motionSolvers[key] = solvers
+				end
 			end
 
 			return
@@ -154,9 +160,24 @@ local function createMotion<T>(initialValue: T, options: types.MotionOptions?): 
 			end
 
 			state.complete = false
-			motionSolvers[key] = solver
-			solver(key, state, 0)
+
+			if solver(key, state, 0) ~= false then
+				-- only sets the solver if this key is part of the new goal
+				motionSolvers[key] = solver
+			end
 		end
+	end
+
+	local function linear(self, value, params)
+		self:to(linearSolver(value :: any, params))
+	end
+
+	local function spring(self, value, params)
+		self:to(springSolver(value :: any, params))
+	end
+
+	local function tween(self, value, params)
+		self:to(tweenSolver(value :: any, params))
 	end
 
 	local function step(self, deltaTime)
@@ -247,6 +268,9 @@ local function createMotion<T>(initialValue: T, options: types.MotionOptions?): 
 		patch = patch,
 		impulse = impulse,
 		to = to,
+		linear = linear,
+		spring = spring,
+		tween = tween,
 		step = step,
 		isComplete = isComplete,
 		onComplete = onComplete,

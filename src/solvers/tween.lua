@@ -4,16 +4,7 @@ local types = require(script.Parent.Parent.types)
 local intermediate = require(script.Parent.Parent.utils.intermediate)
 local merge = require(script.Parent.Parent.utils.merge)
 
-type TweenOptions = {
-	time: number,
-	style: Enum.EasingStyle,
-	direction: Enum.EasingDirection,
-	repeatCount: number,
-	reverses: boolean,
-	delayTime: number,
-}
-
-local defaults: TweenOptions = {
+local defaults = {
 	time = 1,
 	style = Enum.EasingStyle.Quad,
 	direction = Enum.EasingDirection.Out,
@@ -22,7 +13,7 @@ local defaults: TweenOptions = {
 	delayTime = 0,
 }
 
-local function createTween(from: number, to: number, options: TweenOptions): (NumberValue, Tween)
+local function createTween(from: number, to: number, options: types.TweenOptions): (NumberValue, Tween)
 	local tweenInfo = TweenInfo.new(
 		options.time,
 		options.style,
@@ -40,7 +31,7 @@ local function createTween(from: number, to: number, options: TweenOptions): (Nu
 	return value, tween
 end
 
-local function tween(motionGoal: types.MotionGoal, options: types.Partial<TweenOptions>?): types.MotionSolver
+local function tween(motionGoal: types.MotionGoal, options: types.TweenOptions?): types.MotionSolver
 	local config = merge(defaults, options or {})
 	local goals = intermediate.to(motionGoal)
 
@@ -51,7 +42,7 @@ local function tween(motionGoal: types.MotionGoal, options: types.Partial<TweenO
 		local goal = intermediate.index(goals, key)
 
 		if not goal then
-			return
+			return false
 		end
 
 		if not state.destructor then

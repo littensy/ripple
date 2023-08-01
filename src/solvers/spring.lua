@@ -1,23 +1,12 @@
 local types = require(script.Parent.Parent.types)
 local intermediate = require(script.Parent.Parent.utils.intermediate)
 
-type SpringOptions = {
-	damping: number?,
-	frequency: number?,
-	mass: number?,
-	tension: number?,
-	friction: number?,
-	position: number?,
-	velocity: number?,
-	impulse: number?,
-}
-
 local RESTING_VELOCITY = 0.01
 local RESTING_POSITION = 0.001
 local STEP = 1 -- milliseconds
 local MAX_PASS = 100
 
-local function configure(options: SpringOptions)
+local function configure(options: types.SpringOptions)
 	local mass = options.mass or 1
 	local tension = options.tension or 170
 	local friction = options.friction or 26
@@ -42,7 +31,7 @@ local function configure(options: SpringOptions)
 	}
 end
 
-local function spring(motionGoal: types.MotionGoal, options: SpringOptions?): types.MotionSolver
+local function spring(motionGoal: types.MotionGoal, options: types.SpringOptions?): types.MotionSolver
 	local config = configure(options or {})
 	local goals = intermediate.to(motionGoal)
 	local mounting = true
@@ -51,7 +40,7 @@ local function spring(motionGoal: types.MotionGoal, options: SpringOptions?): ty
 		local goal = intermediate.index(goals, key)
 
 		if not goal then
-			return
+			return false
 		end
 
 		if mounting then

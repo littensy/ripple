@@ -8,7 +8,7 @@ local function immediate(motionGoal: types.MotionGoal): types.MotionSolver
 		local goal = intermediate.index(goals, key)
 
 		if not goal then
-			return
+			return false
 		end
 
 		state.complete = true
