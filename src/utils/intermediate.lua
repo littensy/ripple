@@ -24,7 +24,7 @@ local intermediates = {
 			return { value.X.Scale, value.X.Offset, value.Y.Scale, value.Y.Offset }
 		end,
 		from = function(value: Intermediate): UDim2
-			return UDim2.new(table.unpack(value, 1, 4))
+			return UDim2.new(value[1], math.round(value[2]), value[3], math.round(value[4]))
 		end,
 	},
 
@@ -33,7 +33,7 @@ local intermediates = {
 			return { value.Scale, value.Offset }
 		end,
 		from = function(value: Intermediate)
-			return UDim.new(table.unpack(value, 1, 2))
+			return UDim.new(value[1], math.round(value[2]))
 		end,
 	},
 
