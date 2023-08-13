@@ -8,8 +8,8 @@ version = "4.0.0"
 dependencies = []
 
 [[package]]
-name = "richerd/ripple"
-version = "0.1.0"
+name = "littensy/ripple"
+version = "0.6.0"
 dependencies = [["Promise", "evaera/promise@4.0.0"], ["TestEZ", "roblox/testez@0.4.1"]]
 
 [[package]]
