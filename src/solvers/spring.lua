@@ -1,4 +1,5 @@
 local types = require(script.Parent.Parent.types)
+local config = require(script.Parent.Parent.config)
 local intermediate = require(script.Parent.Parent.utils.intermediate)
 
 local RESTING_VELOCITY = 0.01
@@ -8,8 +9,8 @@ local MAX_PASS = 100
 
 local function configure(options: types.SpringOptions)
 	local mass = options.mass or 1
-	local tension = options.tension or 170
-	local friction = options.friction or 26
+	local tension = options.tension or config.spring.default.tension
+	local friction = options.friction or config.spring.default.friction
 
 	if options.frequency or options.damping then
 		local frequency = options.frequency or 2
@@ -32,7 +33,7 @@ local function configure(options: types.SpringOptions)
 end
 
 local function spring(motionGoal: types.MotionGoal, options: types.SpringOptions?): types.MotionSolver
-	local config = configure(options or {})
+	local props = configure(options or {})
 	local goals = intermediate.to(motionGoal)
 	local mounting = true
 
@@ -45,8 +46,8 @@ local function spring(motionGoal: types.MotionGoal, options: types.SpringOptions
 
 		if mounting then
 			mounting = false
-			state.value = (config.position or state.value or 0)
-			state.velocity = (config.velocity or state.velocity or 0) + (config.impulse or 0)
+			state.value = (props.position or state.value or 0)
+			state.velocity = (props.velocity or state.velocity or 0) + (props.impulse or 0)
 		end
 
 		local position = state.value
@@ -54,9 +55,9 @@ local function spring(motionGoal: types.MotionGoal, options: types.SpringOptions
 		local passes = math.min(math.ceil((deltaTime * 1000) / STEP), MAX_PASS)
 
 		for _ = 1, passes do
-			local springForce = -config.tension * 0.000001 * (position - goal)
-			local dampingForce = -config.friction * 0.001 * velocity
-			local acceleration = (springForce + dampingForce) / config.mass
+			local springForce = -props.tension * 0.000001 * (position - goal)
+			local dampingForce = -props.friction * 0.001 * velocity
+			local acceleration = (springForce + dampingForce) / props.mass
 
 			velocity += acceleration * STEP
 			position += velocity * STEP

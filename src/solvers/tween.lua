@@ -1,17 +1,9 @@
 local TweenService = game:GetService("TweenService")
 
 local types = require(script.Parent.Parent.types)
+local config = require(script.Parent.Parent.config)
 local intermediate = require(script.Parent.Parent.utils.intermediate)
 local merge = require(script.Parent.Parent.utils.merge)
-
-local defaults = {
-	time = 1,
-	style = Enum.EasingStyle.Quad,
-	direction = Enum.EasingDirection.Out,
-	repeatCount = 0,
-	reverses = false,
-	delayTime = 0,
-}
 
 local function createTween(from: number, to: number, options: types.TweenOptions): (NumberValue, Tween)
 	local tweenInfo = TweenInfo.new(
@@ -32,7 +24,7 @@ local function createTween(from: number, to: number, options: types.TweenOptions
 end
 
 local function tween(motionGoal: types.MotionGoal, options: types.TweenOptions?): types.MotionSolver
-	local config = merge(defaults, options or {})
+	local props = merge(config.tween.default, options or {})
 	local goals = intermediate.to(motionGoal)
 
 	local complete = false
@@ -47,7 +39,7 @@ local function tween(motionGoal: types.MotionGoal, options: types.TweenOptions?)
 
 		if not state.destructor then
 			-- todo: this should update on step instead of running in the background
-			value, tweenInstance = createTween(state.value, goal, config)
+			value, tweenInstance = createTween(state.value, goal, props)
 
 			tweenInstance.Completed:Connect(function()
 				complete = true

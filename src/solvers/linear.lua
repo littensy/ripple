@@ -1,16 +1,17 @@
 local types = require(script.Parent.Parent.types)
+local config = require(script.Parent.Parent.config)
 local intermediate = require(script.Parent.Parent.utils.intermediate)
 
 local function configure(options: types.LinearOptions)
 	local speed = if type(options) == "table" then options.speed else options
 
 	return {
-		speed = speed or 1,
+		speed = speed or config.linear.default.speed,
 	}
 end
 
 local function linear(motionGoal: types.MotionGoal, options: types.LinearOptions): types.MotionSolver
-	local config = configure(options)
+	local props = configure(options)
 	local goals = intermediate.to(motionGoal)
 
 	return function(key, state, deltaTime)
@@ -20,7 +21,7 @@ local function linear(motionGoal: types.MotionGoal, options: types.LinearOptions
 			return false
 		end
 
-		local velocity = config.speed * deltaTime * math.sign(goal - state.value)
+		local velocity = props.speed * deltaTime * math.sign(goal - state.value)
 
 		if math.abs(velocity) >= math.abs(goal - state.value) then
 			state.complete = true
