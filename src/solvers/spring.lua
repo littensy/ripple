@@ -2,8 +2,6 @@ local types = require(script.Parent.Parent.types)
 local config = require(script.Parent.Parent.config)
 local intermediate = require(script.Parent.Parent.utils.intermediate)
 
-local RESTING_VELOCITY = 0.01
-local RESTING_POSITION = 0.001
 local STEP = 1 -- milliseconds
 local MAX_PASS = 100
 
@@ -29,6 +27,8 @@ local function configure(options: types.SpringOptions)
 		position = options.position,
 		velocity = options.velocity,
 		impulse = options.impulse,
+		restingVelocity = options.restingVelocity or 0.01,
+		restingPosition = options.restingPosition or 0.001,
 	}
 end
 
@@ -63,7 +63,7 @@ local function spring(motionGoal: types.MotionGoal, options: types.SpringOptions
 			position += velocity * STEP
 		end
 
-		if math.abs(velocity) < RESTING_VELOCITY and math.abs(position - goal) < RESTING_POSITION then
+		if math.abs(velocity) < props.restingVelocity and math.abs(position - goal) < props.restingPosition then
 			state.complete = true
 			state.value = goal
 			state.velocity = 0

@@ -57,6 +57,8 @@ declare namespace Ripple {
 		readonly position?: number;
 		readonly velocity?: number;
 		readonly impulse?: number;
+		readonly restingVelocity?: number;
+		readonly restingPosition?: number;
 	}
 
 	function spring<T extends MotionGoal>(goal: T, options?: SpringOptions): MotionSolver<T>;

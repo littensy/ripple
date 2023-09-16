@@ -19,6 +19,8 @@ export type SpringOptions = {
 	position: number?,
 	velocity: number?,
 	impulse: number?,
+	restingVelocity: number?,
+	restingPosition: number?,
 }
 
 export type LinearOptions = {
