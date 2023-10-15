@@ -60,7 +60,7 @@ local intermediates = {
 			return { value.R, value.G, value.B }
 		end,
 		from = function(value: Intermediate): Color3
-			return Color3.new(table.unpack(value, 1, 3))
+			return Color3.new(math.clamp(value[1], 0, 1), math.clamp(value[2], 0, 1), math.clamp(value[3], 0, 1))
 		end,
 	},
 
