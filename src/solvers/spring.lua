@@ -27,8 +27,8 @@ local function configure(options: types.SpringOptions)
 		position = options.position,
 		velocity = options.velocity,
 		impulse = options.impulse,
-		restingVelocity = options.restingVelocity or 0.01,
-		restingPosition = options.restingPosition or 0.001,
+		restingVelocity = options.restingVelocity or 0.001,
+		restingPosition = options.restingPosition or 0.0001,
 	}
 end
 
