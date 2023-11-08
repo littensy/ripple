@@ -14,10 +14,8 @@ local function configure(options: types.SpringOptions)
 		local frequency = options.frequency or 2
 		local damping = options.damping or 1
 
-		-- note: multiply frequency instead of dividing so that the
-		-- spring's speed increases as frequency increases
-		tension = ((2 * math.pi * frequency) ^ 2) * mass
-		friction = (4 * math.pi * damping * mass) * frequency
+		tension = ((2 * math.pi / frequency) ^ 2) * mass
+		friction = (4 * math.pi * damping * mass) / frequency
 	end
 
 	return {
