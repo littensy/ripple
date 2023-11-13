@@ -15,5 +15,59 @@ pnpm add @rbxts/ripple
 ```
 
 ## 📚 Documentation
+### ⚡ Quick Start
 
-TODO
+Call `createMotion` to create a motion object.
+
+Use the `linear` method to move your value. You can also use methods like `spring` or `tween`.
+
+Use the `onStep` binding to apply your value.
+
+```typescript
+import { createMotion, Motion, MotionGoal } from "@rbxts/ripple";
+
+const motion = createMotion(0, { start: true })
+motion.onStep(print);
+
+motion.linear(1)
+```
+
+You can also use
+
+### ⚛️ Usage with React
+
+You can use this hook to start using ripple in your React UI.
+
+```typescript
+import { createMotion, Motion, MotionGoal } from "@rbxts/ripple";
+import { Binding, useBinding, useEffect, useMemo } from "@rbxts/roact";
+
+export function useMotion(goal: number): LuaTuple<[Binding<number>, Motion<number>]>;
+
+export function useMotion<T extends MotionGoal>(goal: T): LuaTuple<[Binding<T>, Motion<T>]>;
+
+export function useMotion<T extends MotionGoal>(goal: T) {
+	const motion = useMemo(() => {
+		return createMotion(goal, { start: true });
+	}, []);
+
+	const [binding, setValue] = useBinding(motion.get());
+
+	useEffect(() => {
+		const disconnect = motion.onStep(setValue);
+
+		return () => {
+			disconnect();
+			motion.destroy();
+		};
+	}, []);
+
+	return $tuple(binding, motion);
+}
+```
+
+To see the hook in action, visit the `src/client` folder in the [example repository](https://github.com/littensy/rbxts-react-example) to see it in action.
+
+### 📝 License
+
+Ripple is licensed under the MIT License.
