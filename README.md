@@ -26,10 +26,10 @@ Use the `onStep` binding to apply your value.
 ```typescript
 import { createMotion, Motion, MotionGoal } from "@rbxts/ripple";
 
-const motion = createMotion(0)
+const motion = createMotion(0);
 motion.onStep(print);
 
-motion.linear(1)
+motion.linear(1);
 ```
 
 ### ⚛️ Usage with React
