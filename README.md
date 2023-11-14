@@ -15,41 +15,58 @@ pnpm add @rbxts/ripple
 ```
 
 ## 📚 Documentation
+
+To see Ripple in action, check out the [example repository](https://github.com/littensy/rbxts-react-example).
+
 ### ⚡ Quick Start
 
-Call `createMotion` to create a motion object.
+Call `createMotion` to create an animation.
 
-Use the `linear` method to move your value. You can also use methods like `spring` or `tween`.
-
-Use the `onStep` binding to apply your value.
+Use the `spring`, `linear`, `instant`, and `tween` methods to set the goal of your animation.
 
 ```typescript
-import { createMotion, Motion, MotionGoal } from "@rbxts/ripple";
+import { Motion, MotionGoal, config, createMotion } from "@rbxts/ripple";
 
-const motion = createMotion(0);
-motion.onStep(print);
+const motion = createMotion(Vector3.zero, { start: true });
 
-motion.linear(1);
+motion.spring(Vector3.one, config.spring.stiff);
+
+motion.onStep((value, deltaTime) => {
+	print(value, deltaTime);
+});
+
+print(motion.get());
 ```
 
 ### ⚛️ Usage with React
 
-You can use this hook to start using ripple in your React UI.
+#### `useMotion(initialValue, options?)`
+
+Creates a memoized Motion object set to the given initial value.
+
+Returns a binding that updates with the Motion, along with the Motion object.
 
 ```typescript
-import { createMotion, Motion, MotionGoal } from "@rbxts/ripple";
-import { Binding, useBinding, useEffect, useMemo } from "@rbxts/roact";
+function MyComponent() {
+	const [binding, motion] = useMotion(0);
+	// ...
+}
+```
 
-export function useMotion(goal: number): LuaTuple<[Binding<number>, Motion<number>]>;
+```typescript
+export function useMotion(initialValue: number, options?: MotionOptions): LuaTuple<[Binding<number>, Motion<number>]>;
 
-export function useMotion<T extends MotionGoal>(goal: T): LuaTuple<[Binding<T>, Motion<T>]>;
+export function useMotion<T extends MotionGoal>(
+	initialValue: T,
+	options?: MotionOptions,
+): LuaTuple<[Binding<T>, Motion<T>]>;
 
-export function useMotion<T extends MotionGoal>(goal: T) {
+export function useMotion<T extends MotionGoal>(initialValue: T, options: MotionOptions = { start: true }) {
 	const motion = useMemo(() => {
-		return createMotion(goal, { start: true });
+		return createMotion(initialValue, options);
 	}, []);
 
-	const [binding, setValue] = useBinding(motion.get());
+	const [binding, setValue] = useBinding(initialValue);
 
 	useEffect(() => {
 		const disconnect = motion.onStep(setValue);
@@ -64,7 +81,42 @@ export function useMotion<T extends MotionGoal>(goal: T) {
 }
 ```
 
-To see the hook in action, visit the `src/client` folder in the [example repository](https://github.com/littensy/rbxts-react-example) to see it in action.
+#### `useSpring(value, springConfig?)`
+
+Applies spring animations to the given value, and updates the goal with the latest value on every re-render.
+
+Returns a binding that updates with the Motion.
+
+```typescript
+function MyComponent({ someValue }: Props) {
+	const binding = useSpring(someValue);
+	// ...
+}
+```
+
+```typescript
+export function useSpring(goal: number | Binding<number>, options?: SpringOptions): Binding<number>;
+
+export function useSpring<T extends MotionGoal>(goal: T | Binding<T>, options?: SpringOptions): Binding<T>;
+
+export function useSpring(goal: MotionGoal | Binding<MotionGoal>, options?: SpringOptions) {
+	const [binding, motion] = useMotion(getBindingValue(goal), { start: false });
+	const previousValue = useRef(getBindingValue(goal));
+
+	useEventListener(RunService.Heartbeat, (delta) => {
+		const currentValue = getBindingValue(goal);
+
+		if (currentValue !== previousValue.current) {
+			previousValue.current = currentValue;
+			motion.spring(currentValue, options);
+		}
+
+		motion.step(delta);
+	});
+
+	return binding;
+}
+```
 
 ### 📝 License
 
