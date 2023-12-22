@@ -3,63 +3,39 @@ local TweenService = game:GetService("TweenService")
 local types = require(script.Parent.Parent.types)
 local config = require(script.Parent.Parent.config)
 local intermediate = require(script.Parent.Parent.utils.intermediate)
-local merge = require(script.Parent.Parent.utils.merge)
 
-local function createTween(from: number, to: number, options: types.TweenOptions): (NumberValue, Tween)
-	local tweenInfo = TweenInfo.new(
-		options.time,
-		options.style,
-		options.direction,
-		options.repeatCount,
-		options.reverses,
-		options.delayTime
-	)
+local function configure(options: types.TweenOptions?): types.TweenOptions
+	if not options then return config.tween.default end
 
-	local value = Instance.new("NumberValue")
-	local tween = TweenService:Create(value, tweenInfo, { Value = to })
+	options = table.clone(options)
+	for key, value in config.tween.default do
+		options[key] = options[key] or value
+	end
 
-	value.Value = from
-
-	return value, tween
+	return options
 end
 
 local function tween(motionGoal: types.MotionGoal, options: types.TweenOptions?): types.MotionSolver
-	local props = merge(config.tween.default, options or {})
+	local props = configure(options)
 	local goals = intermediate.to(motionGoal)
 
-	local complete = false
-	local value, tweenInstance
-
-	return function(key, state)
+	local progress = 0
+	return function(key, state, deltaTime)
 		local goal = intermediate.index(goals, key)
 
 		if not goal then
 			return false
 		end
 
-		if not state.destructor then
-			-- todo: this should update on step instead of running in the background
-			value, tweenInstance = createTween(state.value, goal, props)
+		local delta = deltaTime * props.speed
+		progress = math.clamp(progress + delta, 0, 1)
 
-			tweenInstance.Completed:Connect(function()
-				complete = true
-				value:Destroy()
-				tweenInstance:Destroy()
-			end)
-
-			tweenInstance:Play()
-
-			function state.destructor()
-				tweenInstance:Destroy()
-				value:Destroy()
-			end
-		end
-
-		if complete then
+		local alpha = TweenService:GetValue(progress, props.style, props.direction)
+		if progress == 1 then
 			state.complete = true
 			state.value = goal
 		else
-			state.value = value.Value
+			state.value = goal * alpha
 		end
 	end
 end
