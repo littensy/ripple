@@ -14,12 +14,9 @@ local config = {
 
 	tween = {
 		default = {
-			time = 1,
+			speed = 1,
 			style = Enum.EasingStyle.Quad,
 			direction = Enum.EasingDirection.Out,
-			repeatCount = 0,
-			reverses = false,
-			delayTime = 0,
 		},
 	},
 }
