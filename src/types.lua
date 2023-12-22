@@ -28,12 +28,9 @@ export type LinearOptions = {
 } | number?
 
 export type TweenOptions = {
-	time: number?,
+	speed: number?,
 	style: Enum.EasingStyle?,
 	direction: Enum.EasingDirection?,
-	repeatCount: number?,
-	reverses: boolean?,
-	delayTime: number?,
 }
 
 export type Motion<T = number> = {
