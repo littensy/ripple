@@ -40,7 +40,7 @@ print(motion.get());
 
 ### ⚛️ Usage with React
 
-#### `useMotion(initialValue, options?)`
+#### `useMotion(initialValue)`
 
 Creates a memoized Motion object set to the given initial value.
 
@@ -54,28 +54,24 @@ function MyComponent() {
 ```
 
 ```typescript
-export function useMotion(initialValue: number, options?: MotionOptions): LuaTuple<[Binding<number>, Motion<number>]>;
+export function useMotion(initialValue: number): LuaTuple<[Binding<number>, Motion]>;
 
-export function useMotion<T extends MotionGoal>(
-	initialValue: T,
-	options?: MotionOptions,
-): LuaTuple<[Binding<T>, Motion<T>]>;
+export function useMotion<T extends MotionGoal>(initialValue: T): LuaTuple<[Binding<T>, Motion<T>]>;
 
-export function useMotion<T extends MotionGoal>(initialValue: T, options: MotionOptions = { start: true }) {
+export function useMotion<T extends MotionGoal>(initialValue: T) {
 	const motion = useMemo(() => {
-		return createMotion(initialValue, options);
+		return createMotion(initialValue);
 	}, []);
 
 	const [binding, setValue] = useBinding(initialValue);
 
-	useEffect(() => {
-		const disconnect = motion.onStep(setValue);
+	useEventListener(RunService.Heartbeat, (delta) => {
+		const value = motion.step(delta);
 
-		return () => {
-			disconnect();
-			motion.destroy();
-		};
-	}, []);
+		if (value !== binding.getValue()) {
+			setValue(value);
+		}
+	});
 
 	return $tuple(binding, motion);
 }
@@ -100,18 +96,16 @@ export function useSpring(goal: number | Binding<number>, options?: SpringOption
 export function useSpring<T extends MotionGoal>(goal: T | Binding<T>, options?: SpringOptions): Binding<T>;
 
 export function useSpring(goal: MotionGoal | Binding<MotionGoal>, options?: SpringOptions) {
-	const [binding, motion] = useMotion(getBindingValue(goal), { start: false });
+	const [binding, motion] = useMotion(getBindingValue(goal));
 	const previousValue = useRef(getBindingValue(goal));
 
-	useEventListener(RunService.Heartbeat, (delta) => {
+	useEventListener(RunService.Heartbeat, () => {
 		const currentValue = getBindingValue(goal);
 
 		if (currentValue !== previousValue.current) {
 			previousValue.current = currentValue;
 			motion.spring(currentValue, options);
 		}
-
-		motion.step(delta);
 	});
 
 	return binding;
