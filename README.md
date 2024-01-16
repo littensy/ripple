@@ -22,7 +22,7 @@ To see Ripple in action, check out the [example repository](https://github.com/l
 
 Call `createMotion` to create an animation.
 
-Use the `spring`, `linear`, `instant`, and `tween` methods to set the goal of your animation.
+Use the `spring`, `linear`, `immediate`, and `tween` methods to set the goal of your animation.
 
 ```typescript
 import { Motion, MotionGoal, config, createMotion } from "@rbxts/ripple";
@@ -36,6 +36,17 @@ motion.onStep((value, deltaTime) => {
 });
 
 print(motion.get());
+```
+
+You can also apply different goal types to specific properties using the `to` method:
+
+```typescript
+const motion = createMotion({ x: 0, y: 0 });
+
+motion.to({
+	x: spring(100, config.spring.stiff),
+	y: linear(100),
+});
 ```
 
 ### ⚛️ Usage with React
