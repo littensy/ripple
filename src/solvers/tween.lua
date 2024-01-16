@@ -5,7 +5,13 @@ local config = require(script.Parent.Parent.config)
 local intermediate = require(script.Parent.Parent.utils.intermediate)
 local merge = require(script.Parent.Parent.utils.merge)
 
-local function createTween(from: number, to: number, options: types.TweenOptions): (NumberValue, Tween)
+type TweenEntry = {
+	value: NumberValue,
+	tween: Tween,
+	complete: boolean,
+}
+
+local function createTween(from: number, to: number, options: types.TweenOptions): TweenEntry
 	local tweenInfo = TweenInfo.new(
 		options.time,
 		options.style,
@@ -20,15 +26,17 @@ local function createTween(from: number, to: number, options: types.TweenOptions
 
 	value.Value = from
 
-	return value, tween
+	return {
+		value = value,
+		tween = tween,
+		complete = false,
+	}
 end
 
 local function tween(motionGoal: types.MotionGoal, options: types.TweenOptions?): types.MotionSolver
 	local props = merge(config.tween.default, options or {})
 	local goals = intermediate.to(motionGoal)
-
-	local complete = false
-	local value, tweenInstance
+	local entries: { [unknown]: TweenEntry? } = {}
 
 	return function(key, state)
 		local goal = intermediate.index(goals, key)
@@ -38,28 +46,34 @@ local function tween(motionGoal: types.MotionGoal, options: types.TweenOptions?)
 		end
 
 		if not state.destructor then
-			-- todo: this should update on step instead of running in the background
-			value, tweenInstance = createTween(state.value, goal, props)
+			local entry = createTween(state.value, goal, props)
 
-			tweenInstance.Completed:Connect(function()
-				complete = true
-				value:Destroy()
-				tweenInstance:Destroy()
+			entries[key] = entry
+
+			entry.tween.Completed:Connect(function()
+				entry.complete = true
+				entry.value:Destroy()
+				entry.tween:Destroy()
 			end)
 
-			tweenInstance:Play()
+			entry.tween:Play()
 
 			function state.destructor()
-				tweenInstance:Destroy()
-				value:Destroy()
+				entry.tween:Destroy()
+				entry.value:Destroy()
+				entries[key] = nil
 			end
 		end
 
-		if complete then
+		local entry = entries[key]
+
+		if not entry then
+			state.complete = true
+		elseif entry.complete then
 			state.complete = true
 			state.value = goal
 		else
-			state.value = value.Value
+			state.value = entry.value.Value
 		end
 	end
 end

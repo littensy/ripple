@@ -21,7 +21,7 @@ return function()
 	it("should animate multiple values", function()
 		local motion = createMotion({ x = 0, y = 0 })
 
-		motion:to(tween({ x = 1, y = 1 }, { time = 0.01 }))
+		motion:to(tween({ x = 1, y = 2 }, { time = 0.01 }))
 		motion:step(0)
 
 		expect(motion:get()).to.be.ok()
@@ -33,31 +33,31 @@ return function()
 
 		expect(motion:get()).to.be.ok()
 		expect(motion:get().x).to.equal(1)
-		expect(motion:get().y).to.equal(1)
+		expect(motion:get().y).to.equal(2)
 
 		motion:to({
 			x = tween(2, { time = 0.01 }),
-			y = tween(2, { time = 0.1 }),
+			y = tween(3, { time = 0.1 }),
 		})
 
 		motion:step(0)
 
 		expect(motion:get()).to.be.ok()
 		expect(motion:get().x).to.equal(1)
-		expect(motion:get().y).to.equal(1)
-
-		task.wait(0.05)
-		motion:step(0)
-
-		expect(motion:get()).to.be.ok()
-		expect(motion:get().x).to.equal(2)
-		expect(motion:get().y).to.never.equal(2)
-
-		task.wait(0.05)
-		motion:step(0)
-
-		expect(motion:get()).to.be.ok()
-		expect(motion:get().x).to.equal(2)
 		expect(motion:get().y).to.equal(2)
+
+		task.wait(0.05)
+		motion:step(0)
+
+		expect(motion:get()).to.be.ok()
+		expect(motion:get().x).to.equal(2)
+		expect(motion:get().y).to.never.equal(3)
+
+		task.wait(0.05)
+		motion:step(0)
+
+		expect(motion:get()).to.be.ok()
+		expect(motion:get().x).to.equal(2)
+		expect(motion:get().y).to.equal(3)
 	end)
 end
