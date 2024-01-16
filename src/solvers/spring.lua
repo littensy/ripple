@@ -11,10 +11,9 @@ local function configure(options: types.SpringOptions)
 	local friction = options.friction or config.spring.default.friction
 
 	if options.frequency or options.damping then
-		local frequency = options.frequency or 2
+		local frequency = options.frequency or 0.5
 		local damping = options.damping or 1
-
-		tension = ((2 * math.pi / frequency) ^ 2) * mass
+		tension = (2 * math.pi / frequency) ^ 2 * mass
 		friction = (4 * math.pi * damping * mass) / frequency
 	end
 
