@@ -14,6 +14,11 @@ yarn add @rbxts/ripple
 pnpm add @rbxts/ripple
 ```
 
+```toml
+# Wally
+Ripple = "littensy/ripple@0.8.0"
+```
+
 ## 📚 Documentation
 
 To see Ripple in action, check out the [example repository](https://github.com/littensy/rbxts-react-example).
