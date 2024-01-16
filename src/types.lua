@@ -46,6 +46,7 @@ export type Motion<T = number> = {
 	patch: (self: Motion<T>, patch: { [any]: Partial<MotionState> }) -> (),
 	impulse: (self: Motion<T>, impulse: T | { [any]: number }) -> (),
 	to: (self: Motion<T>, goal: MotionSolver | { [any]: MotionSolver }) -> (),
+	immediate: (self: Motion<T>, goal: T) -> (),
 	spring: (self: Motion<T>, goal: T, options: SpringOptions?) -> (),
 	linear: (self: Motion<T>, goal: T, options: LinearOptions?) -> (),
 	tween: (self: Motion<T>, goal: T, options: TweenOptions?) -> (),

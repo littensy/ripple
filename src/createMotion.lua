@@ -1,6 +1,7 @@
 local RunService = game:GetService("RunService")
 
 local types = require(script.Parent.types)
+local immediateSolver = require(script.Parent.solvers.immediate)
 local linearSolver = require(script.Parent.solvers.linear)
 local springSolver = require(script.Parent.solvers.spring)
 local tweenSolver = require(script.Parent.solvers.tween)
@@ -168,6 +169,10 @@ local function createMotion<T>(initialValue: T, options: types.MotionOptions?): 
 		end
 	end
 
+	local function immediate(self, value)
+		self:to(immediateSolver(value :: any))
+	end
+
 	local function linear(self, value, params)
 		self:to(linearSolver(value :: any, params))
 	end
@@ -268,6 +273,7 @@ local function createMotion<T>(initialValue: T, options: types.MotionOptions?): 
 		patch = patch,
 		impulse = impulse,
 		to = to,
+		immediate = immediate,
 		linear = linear,
 		spring = spring,
 		tween = tween,
