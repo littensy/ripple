@@ -32,16 +32,16 @@
 		"access": "public"
 	},
 	"devDependencies": {
-		"@rbxts/compiler-types": "2.1.0-types.1",
-		"@rbxts/types": "^1.0.704",
-		"@typescript-eslint/eslint-plugin": "^5.61.0",
-		"@typescript-eslint/parser": "^5.61.0",
-		"eslint": "^8.44.0",
-		"eslint-config-prettier": "^8.8.0",
+		"@rbxts/compiler-types": "2.3.0-types.1",
+		"@rbxts/types": "^1.0.789",
+		"@typescript-eslint/eslint-plugin": "^5.62.0",
+		"@typescript-eslint/parser": "^5.62.0",
+		"eslint": "^8.57.0",
+		"eslint-config-prettier": "^8.10.0",
 		"eslint-plugin-prettier": "^4.2.1",
 		"eslint-plugin-roblox-ts": "^0.0.35",
 		"prettier": "^2.8.8",
-		"roblox-ts": "^2.1.1",
-		"typescript": "^5.1.6"
+		"roblox-ts": "^2.3.0",
+		"typescript": "^5.5.3"
 	}
 }
