@@ -10,8 +10,8 @@
 *.rbxl
 *.rbxm
 sourcemap.json
-roblox.d.lua
-types.d.lua
+roblox.d.luau
+types.d.luau
 
 # Misc
 /.vscode
