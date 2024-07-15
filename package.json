@@ -2,7 +2,7 @@
 	"name": "@rbxts/ripple",
 	"version": "0.8.1",
 	"description": "A motion library for Roblox",
-	"main": "src/init.lua",
+	"main": "src/init.luau",
 	"scripts": {
 		"test": "sh scripts/test.sh",
 		"analyze": "sh scripts/analyze.sh"
@@ -26,7 +26,7 @@
 	"files": [
 		"src",
 		"!**/*.tsbuildinfo",
-		"!**/*.spec.lua"
+		"!**/*.spec.luau"
 	],
 	"publishConfig": {
 		"access": "public"
