@@ -81,8 +81,9 @@ declare namespace Ripple {
 		start(): Cleanup;
 		stop(): void;
 		get(): T;
-		getVelocity(): T;
 		set(value: PartialMotionGoal<T>): void;
+		getVelocity(): T;
+		setVelocity(velocity: PartialMotionGoal<T>): void;
 		impulse(velocity: PartialMotionGoal<T>): void;
 		to(solver: MotionSolver<T> | MapSolvers<PartialMotionGoal<T>>): void;
 		immediate(goal: PartialMotionGoal<T>): void;

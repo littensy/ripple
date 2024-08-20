@@ -107,7 +107,7 @@ local function createMotion<T>(initialValue: T, options: types.MotionOptions?): 
 				end
 
 				state.complete = false
-				state.velocity = state.velocity :: number + impulses
+				state.velocity += impulses
 			end
 
 			return
@@ -123,10 +123,23 @@ local function createMotion<T>(initialValue: T, options: types.MotionOptions?): 
 			end
 
 			state.complete = false
-			state.velocity = state.velocity :: number + amount
+			state.velocity += amount
 		end
+	end
 
-		return
+	local function setVelocity(_self, velocity)
+		local intermediates = intermediate.to(velocity)
+
+		for key, amount in intermediates do
+			local state = motionState[key]
+
+			if not state or not state.velocity then
+				continue
+			end
+
+			state.complete = false
+			state.velocity = amount
+		end
 	end
 
 	local function to(_self, solvers)
@@ -268,10 +281,11 @@ local function createMotion<T>(initialValue: T, options: types.MotionOptions?): 
 		start = start,
 		stop = stop,
 		get = get,
-		getVelocity = getVelocity,
 		set = set,
-		patch = patch,
+		getVelocity = getVelocity,
+		setVelocity = setVelocity,
 		impulse = impulse,
+		patch = patch,
 		to = to,
 		immediate = immediate,
 		linear = linear,
