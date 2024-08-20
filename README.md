@@ -16,7 +16,7 @@ pnpm add @rbxts/ripple
 
 ```toml
 # Wally
-Ripple = "littensy/ripple@0.8.1"
+Ripple = "littensy/ripple@0.9.0"
 ```
 
 ## 📚 Documentation
