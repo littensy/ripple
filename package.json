@@ -2,7 +2,7 @@
 	"name": "@rbxts/ripple",
 	"version": "0.9.0",
 	"description": "A motion library for Roblox",
-	"main": "src/init.lua",
+	"main": "src/init.luau",
 	"scripts": {
 		"test": "sh scripts/test.sh",
 		"analyze": "sh scripts/analyze.sh"
