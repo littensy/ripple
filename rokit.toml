@@ -1,7 +1,0 @@
-[tools]
-rojo = "rojo-rbx/rojo@7.4.1"
-wally = "UpliftGames/wally@0.3.2"
-stylua = "johnnymorganz/stylua@0.20.0"
-selene = "Kampfkarren/selene@0.27.1"
-luau-lsp = "johnnymorganz/luau-lsp@1.32.0"
-run-in-roblox = "rojo-rbx/run-in-roblox@0.3.0"
