@@ -1,0 +1,7 @@
+[package]
+name = "littensy/ripple"
+version = "0.10.0"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+
+[dependencies]

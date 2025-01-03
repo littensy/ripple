@@ -13,27 +13,17 @@ jobs:
   analyze:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
 
-      - name: Install Aftman
-        uses: ok-nick/setup-aftman@v0.4.2
+      - name: Install Rokit
+        uses: CompeyDev/setup-rokit@v0.1.2
 
       - name: Install dependencies
-        run: wally install
-
-      - name: Generate sourcemap.json
-        run: rojo sourcemap test.project.json -o sourcemap.json
-
-      - name: Download global Roblox types
-        run: curl -o scripts/roblox.d.luau https://raw.githubusercontent.com/JohnnyMorganz/luau-lsp/main/scripts/globalTypes.d.luau
-
-      - name: Analyze
-        run: luau-lsp analyze --settings=scripts/analyze-settings.json --defs=scripts/roblox.d.luau --defs=scripts/testez.d.luau --base-luaurc=.luaurc --sourcemap=sourcemap.json src
+        run: pnpm install
 
       - name: Check code quality
-        run: |
-          selene src
-          stylua --check src
+        run: pnpm check
 
-      - name: Build model
-        run: rojo build -o ripple.rbxm
+      - name: Build models
+        run: pnpm build

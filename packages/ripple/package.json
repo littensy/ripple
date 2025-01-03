@@ -1,0 +1,13 @@
+{
+	"name": "@rbxts/ripple",
+	"version": "0.10.0",
+	"description": "Spring-driven animations and more",
+	"repository": "littensy/ripple",
+	"license": "MIT",
+	"main": "src/init.luau",
+	"types": "src/index.d.ts",
+	"scripts": {
+		"prepare": "cp ../../LICENSE.md . && cp ../../README.md .",
+		"publish:wally": "wally publish"
+	}
+}

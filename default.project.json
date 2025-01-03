@@ -1,6 +1,21 @@
 {
-	"name": "ripple",
+	"name": "ripple-test",
 	"tree": {
-		"$path": "src"
+		"$className": "DataModel",
+		"ReplicatedStorage": {
+			"$className": "ReplicatedStorage",
+			"Packages": {
+				"$path": "packages",
+				"TestEZ": {
+					"$path": "node_modules/@rbxts/testez/src"
+				}
+			}
+		},
+		"ServerScriptService": {
+			"$className": "ServerScriptService",
+			"Tests": {
+				"$path": "tests"
+			}
+		}
 	}
 }

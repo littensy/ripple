@@ -1,0 +1,3 @@
+{
+	"luau-lsp.types.definitionFiles": ["bin/testez.d.luau"]
+}

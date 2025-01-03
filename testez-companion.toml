@@ -1,1 +1,1 @@
-roots = ["ReplicatedStorage/Packages/Ripple"]
+roots = ["ServerScriptService/Tests"]

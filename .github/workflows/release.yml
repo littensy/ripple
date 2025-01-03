@@ -2,31 +2,23 @@ name: Release
 
 on:
   release:
-    types:
-      - published
+    types: [published]
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
 
-      - name: Remove test files
-        run: rm -rf **/*.spec.luau
+      - name: Install Rokit
+        uses: CompeyDev/setup-rokit@v0.1.2
 
-      - name: Install Aftman
-        uses: ok-nick/setup-aftman@v0.4.2
+      - name: Build models
+        run: pnpm build
 
-      - name: Install packages
-        run: wally install
-
-      - name: Build model
-        run: rojo build -o ripple.rbxm
-
-      - name: Upload release
-        uses: softprops/action-gh-release@v1
-        if: ${{ github.event.release }}
+      - name: Upload release assets
+        uses: AButler/upload-release-assets@v3.0
         with:
-          files: ripple.rbxm
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          files: "build/*"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
