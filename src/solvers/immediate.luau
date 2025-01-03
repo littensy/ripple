@@ -4,7 +4,7 @@ local intermediate = require(script.Parent.Parent.utils.intermediate)
 local function immediate(motionGoal: types.MotionGoal): types.MotionSolver
 	local goals = intermediate.to(motionGoal)
 
-	return function(key, state, deltaTime)
+	return function(key, state)
 		local goal = intermediate.index(goals, key)
 
 		if not goal then
