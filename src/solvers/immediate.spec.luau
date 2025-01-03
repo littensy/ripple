@@ -54,9 +54,6 @@ return function()
 		end)
 
 		motion:immediate(0)
-
-		expect(motion:isComplete()).to.equal(false)
-
 		motion:step(1)
 
 		expect(motion:isComplete()).to.equal(true)

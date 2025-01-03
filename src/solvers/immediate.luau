@@ -11,10 +11,8 @@ local function immediate(motionGoal: types.MotionGoal): types.MotionSolver
 			return false
 		end
 
-		if deltaTime > 0 then
-			state.value = goal
-			state.complete = true
-		end
+		state.value = goal
+		state.complete = true
 	end
 end
 
