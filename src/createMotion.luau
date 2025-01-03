@@ -210,7 +210,7 @@ local function createMotion<T>(initialValue: T, options: types.MotionOptions?): 
 		local value = self:get()
 		local complete = self:isComplete()
 
-		if not wasComplete or not complete then
+		if not complete or not wasComplete or lastCompleteValue ~= value then
 			for _, listener in onStepListeners do
 				task.spawn(listener, value, deltaTime)
 			end
