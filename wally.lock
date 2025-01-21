@@ -9,7 +9,7 @@ dependencies = []
 
 [[package]]
 name = "littensy/ripple"
-version = "0.9.2"
+version = "0.9.3"
 dependencies = [["Promise", "evaera/promise@4.0.0"], ["TestEZ", "roblox/testez@0.4.1"]]
 
 [[package]]
