@@ -1,6 +1,7 @@
 local merge = require("./merge")
+local oklab = require("./oklab")
 
-export type Components = { vector | number }
+export type Components = { number | vector | Vector3 }
 
 export type Intermediate<T = any> = {
 	kind: string,
@@ -9,118 +10,56 @@ export type Intermediate<T = any> = {
 	dirty: boolean,
 }
 
-local valueToComponents = {
-	number = function(value: number): Components
+local function valueToComponents(value: any, kind: string): Components
+	if kind == "number" then
 		return { value }
-	end,
-
-	table = function(value: Components): Components
+	elseif kind == "table" then
 		return table.clone(value)
-	end,
-
-	vector = function(value: vector): Components
+	elseif kind == "vector" or kind == "Vector3" then
 		return { value }
-	end,
-
-	Vector2 = function(value: Vector2): Components
+	elseif kind == "Vector2" then
 		return { vector.create(value.X, value.Y, 0) }
-	end,
-
-	Vector3 = function(value: Vector3): Components
-		return { value } :: { any }
-	end,
-
-	CFrame = function(value: CFrame): Components
-		return { value.Position, value:ToAxisAngle() } :: { any }
-	end,
-
-	Color3 = function(value: Color3): Components
-		return { vector.create(value.R, value.G, value.B) }
-	end,
-
-	UDim = function(value: UDim): Components
+	elseif kind == "CFrame" then
+		return { value.Position, value:ToAxisAngle() }
+	elseif kind == "Color3" then
+		return { oklab.fromSRGB(value) }
+	elseif kind == "UDim" then
 		return { vector.create(value.Scale, value.Offset, 0) }
-	end,
-
-	UDim2 = function(value: UDim2): Components
+	elseif kind == "UDim2" then
 		return { vector.create(value.X.Scale, value.X.Offset, value.Y.Scale), value.Y.Offset }
-	end,
-
-	Rect = function(value: Rect): Components
+	elseif kind == "Rect" then
 		return { vector.create(value.Min.X, value.Min.Y, value.Max.X), value.Max.Y }
-	end,
-}
-
-local componentsToValue = {
-	number = function(components: { number }): number
-		return components[1]
-	end,
-
-	table = function(components: { number | vector }): Components
-		return table.clone(components)
-	end,
-
-	vector = function(components: { vector }): vector
-		return components[1]
-	end,
-
-	Vector2 = function(components: { vector }): Vector2
-		local vector = components[1]
-		return Vector2.new(vector.x, vector.y)
-	end,
-
-	Vector3 = function(components: { Vector3 }): Vector3
-		return components[1]
-	end,
-
-	CFrame = function(components: { number | Vector3 }): CFrame
-		local position = components[1] :: Vector3
-		local axis = components[2] :: Vector3
-		local angle = components[3] :: number
-		return CFrame.fromAxisAngle(axis, angle) + position
-	end,
-
-	Color3 = function(components: { vector }): Color3
-		local value = vector.max(vector.zero, components[1])
-		return Color3.new(value.x, value.y, value.z)
-	end,
-
-	UDim = function(components: { vector }): UDim
-		local vector = components[1]
-		return UDim.new(vector.x, math.round(vector.y))
-	end,
-
-	UDim2 = function(components: { number | Vector3 }): UDim2
-		local vector = components[1] :: Vector3
-		local number = components[2] :: number
-		return UDim2.new(vector.X, math.round(vector.Y), vector.Z, math.round(number))
-	end,
-
-	Rect = function(components: { number | Vector3 }): Rect
-		local vector = components[1] :: Vector3
-		local number = components[2] :: number
-		return Rect.new(Vector2.new(vector.X, vector.Y), Vector2.new(vector.Z, number))
-	end,
-}
-
-local function toComponents(value: any, kind: string): Components
-	local converter = valueToComponents[kind]
-
-	if not converter then
+	else
 		error(`Attempt to animate unsupported type (got {kind})`)
 	end
-
-	return converter(value)
 end
 
-local function fromComponents(components: Components, kind: string): any
-	local converter = componentsToValue[kind]
-
-	if not converter then
+local function componentsToValue(components: { any }, kind: string): any
+	if kind == "number" then
+		return components[1]
+	elseif kind == "table" then
+		return table.clone(components)
+	elseif kind == "vector" or kind == "Vector3" then
+		return components[1]
+	elseif kind == "Vector2" then
+		local xy: vector = components[1]
+		return Vector2.new(xy.x, xy.y)
+	elseif kind == "CFrame" then
+		return CFrame.fromAxisAngle(components[2], components[3]) + components[1]
+	elseif kind == "Color3" then
+		return oklab.toSRGB(components[1])
+	elseif kind == "UDim" then
+		local so: vector = components[1]
+		return UDim.new(so.x, math.round(so.y))
+	elseif kind == "UDim2" then
+		local xxy: vector = components[1]
+		return UDim2.new(xxy.x, math.round(xxy.y), xxy.z, math.round(components[2]))
+	elseif kind == "Rect" then
+		local xxy: vector = components[1]
+		return Rect.new(Vector2.new(xxy.x, xxy.y), Vector2.new(xxy.z, components[2]))
+	else
 		error(`Attempt to animate unsupported type (got {kind})`)
 	end
-
-	return converter(components)
 end
 
 local function create<T>(value: T): Intermediate<T>
@@ -128,7 +67,7 @@ local function create<T>(value: T): Intermediate<T>
 
 	return {
 		kind = kind,
-		components = toComponents(value, kind),
+		components = valueToComponents(value, kind),
 		value = value,
 		dirty = false,
 	}
@@ -138,15 +77,13 @@ local function zero<T>(intermediate: Intermediate<T>): Intermediate<T>
 	for key in intermediate.components do
 		intermediate.components[key] *= 0 :: any
 	end
-
 	intermediate.dirty = true
-
 	return intermediate
 end
 
 local function getValue<T>(intermediate: Intermediate<T>): T
 	if intermediate.dirty then
-		intermediate.value = fromComponents(intermediate.components, intermediate.kind) :: any
+		intermediate.value = componentsToValue(intermediate.components, intermediate.kind) :: any
 		intermediate.dirty = false
 	end
 	return intermediate.value
@@ -158,34 +95,32 @@ local function setValue<T>(intermediate: Intermediate<T>, value: T)
 	end
 	if intermediate.value ~= value then
 		intermediate.value = value
-		intermediate.components = toComponents(value, intermediate.kind)
+		intermediate.components = valueToComponents(value, intermediate.kind)
 	end
 	intermediate.dirty = false
 end
 
 local function addValue<T>(intermediate: Intermediate<T>, value: T)
-	local components = toComponents(value, intermediate.kind)
-
-	for key, component in components do
+	for key, component in valueToComponents(value, intermediate.kind) do
 		intermediate.components[key] += component :: any
 	end
-
 	intermediate.dirty = true
-
-	return intermediate
 end
 
 local function assign<T>(intermediate: Intermediate<T>, source: Intermediate<T>)
+	for key, component in source.components do
+		intermediate.components[key] = component :: any
+	end
 	intermediate.value = getValue(source)
-	intermediate.components = source.components
 	intermediate.dirty = false
 end
 
-local function lerp<T>(from: Intermediate<T>, to: Intermediate<T>, alpha: number)
+local function lerp<T>(intermediate: Intermediate<T>, from: Intermediate<T>, to: Intermediate<T>, alpha: number)
 	for key, b in to.components do
 		local a = from.components[key] :: any
-		from.components[key] = a + (b - a) * alpha
+		intermediate.components[key] = a + (b - a) * alpha
 	end
+	intermediate.dirty = true
 end
 
 return {
@@ -196,6 +131,4 @@ return {
 	getValue = getValue,
 	assign = assign,
 	lerp = lerp,
-	fromComponents = fromComponents,
-	toComponents = toComponents,
 }

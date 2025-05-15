@@ -1,14 +1,18 @@
 local config = require("./heartbeat")
 local createSpring = require("./animation/createSpring")
+local createTween = require("./animation/createTween")
 local heartbeat = require("./heartbeat")
 local types = require("./types")
 
 export type Animatable = types.Animatable
-export type Spring<T> = createSpring.Spring<T>
-export type SpringConfig<T> = createSpring.SpringConfig<T>
+export type Spring<T = any> = createSpring.Spring<T>
+export type SpringConfig<T = any> = createSpring.SpringConfig<T>
+export type Tween<T = any> = createTween.Tween<T>
+export type TweenConfig<T = any> = createTween.TweenConfig<T>
 
 return {
 	config = config,
 	heartbeat = heartbeat,
 	createSpring = createSpring,
+	createTween = createTween,
 }

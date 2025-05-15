@@ -4,10 +4,10 @@ local function run<T...>(thread: thread, fn: (T...) -> (), ...: T...): boolean
 	freeThread = nil
 	fn(...)
 	if freeThread then
-		return true
+		return false
 	else
 		freeThread = thread
-		return false
+		return true
 	end
 end
 

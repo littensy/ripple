@@ -1,9 +1,10 @@
-local function fuzzyEqual<T>(a: T, b: T, epsilon: number): boolean
-	if type(a) == "number" then
-		return math.abs(a - b) <= epsilon
-	elseif type(a) == "vector" then
-		local abs = vector.abs(a - b)
-		return abs.x <= epsilon and abs.y <= epsilon and abs.z <= epsilon
+local function fuzzyEqual(a: number | vector, b: number | vector, epsilon: number): boolean
+	local kind = type(a)
+	if kind == "number" then
+		return math.abs(a :: number - b :: number) <= epsilon
+	elseif kind == "vector" then
+		local abs = vector.abs(a :: vector - b :: vector)
+		return math.max(abs.x, abs.y, abs.z) <= epsilon
 	else
 		return a == b
 	end

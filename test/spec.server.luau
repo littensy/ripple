@@ -4,4 +4,4 @@ suite.describe("ripple", function()
 	require("../packages/ripple/src/__tests__/spec")
 end)
 
-suite.finish()
+suite.finish({ verbose = false })
