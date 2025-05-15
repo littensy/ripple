@@ -1,0 +1,4 @@
+std = "selene_defs"
+
+[lints]
+shadowing = "allow"
