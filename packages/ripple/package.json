@@ -6,6 +6,13 @@
 	"license": "MIT",
 	"main": "src/init.luau",
 	"types": "src/index.d.ts",
+	"files": [
+		"src",
+		"!wally.toml",
+		"!wally.lock",
+		"!default.project.json",
+		"!**/__tests__"
+	],
 	"scripts": {
 		"prepare": "cp ../../LICENSE.md . && cp ../../README.md .",
 		"publish:wally": "wally publish"

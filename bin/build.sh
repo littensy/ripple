@@ -1,2 +1,2 @@
 mkdir build
-rojo build src/ripple -o build/ripple.rbxm
+rojo build packages/ripple -o build/ripple.rbxm

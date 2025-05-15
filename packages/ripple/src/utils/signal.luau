@@ -1,31 +1,46 @@
-export type Signal<T...> = {
-	fire: (T...) -> (),
-	connect: ((T...) -> ()) -> () -> (),
+local spawn = require("./spawn")
+
+export type Signal<T> = {
+	connect: (T) -> () -> (),
+	fire: T,
 }
 
-local function create<T...>(): Signal<T...>
-	local listeners: { [(...any) -> ()]: true } = {}
+local function signal(): Signal<(...any) -> ()>
+	local currentListeners: { (...any) -> () } = {}
+	local nextListeners = currentListeners
+	local nextListenerId = 0
 
-	local function fire(...: T...)
-		for listener in listeners do
-			task.spawn(listener, ...)
+	local function ensureCanMutateNextListeners()
+		if nextListeners == currentListeners then
+			nextListeners = table.clone(currentListeners)
 		end
 	end
 
-	local function connect(listener: (T...) -> ()): () -> ()
-		listeners[listener] = true
+	local function connect(callback: (...any) -> ()): () -> ()
+		ensureCanMutateNextListeners()
+
+		local listenerId = nextListenerId
+		nextListenerId += 1
+		nextListeners[listenerId] = callback
 
 		return function()
-			listeners[listener] = nil
+			ensureCanMutateNextListeners()
+			nextListeners[listenerId] = nil
+		end
+	end
+
+	local function fire(...)
+		currentListeners = nextListeners
+
+		for _, listener in currentListeners do
+			spawn(listener, ...)
 		end
 	end
 
 	return {
-		fire = fire,
 		connect = connect,
+		fire = fire,
 	}
 end
 
-return {
-	create = create,
-}
+return signal

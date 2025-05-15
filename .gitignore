@@ -1,11 +1,11 @@
 # Dependencies
-/node_modules
+node_modules
 
 # Project files
-/packages/**/node_modules
 /packages/**/wally.lock
 /packages/*/README.md
 /packages/*/LICENSE.md
+build
 *.rbxl
 *.rbxm
 sourcemap.json
@@ -14,4 +14,3 @@ types.d.luau
 
 # Misc
 .DS_Store
-*.code-workspace

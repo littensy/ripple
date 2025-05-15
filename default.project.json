@@ -1,20 +1,19 @@
 {
 	"name": "ripple-test",
+	"globIgnorePaths": ["**/default.project.json"],
 	"tree": {
 		"$className": "DataModel",
-		"ReplicatedStorage": {
-			"$className": "ReplicatedStorage",
-			"Packages": {
-				"$path": "packages",
-				"TestEZ": {
-					"$path": "node_modules/@rbxts/testez/src"
-				}
-			}
-		},
 		"ServerScriptService": {
 			"$className": "ServerScriptService",
-			"Tests": {
-				"$path": "tests"
+			"packages": {
+				"$className": "Folder",
+				"ripple": {
+					"$className": "Folder",
+					"src": { "$path": "packages/ripple" }
+				}
+			},
+			"test": {
+				"$path": "test"
 			}
 		}
 	}

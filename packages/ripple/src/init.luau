@@ -1,12 +1,7 @@
-local config = require(script.config)
-local createSpring = require(script.createSpring)
-local convert = require(script.utils.convert)
+local lib = require(script.lib)
 
-export type Animatable = convert.Animatable
-export type SpringConfig<T> = createSpring.SpringConfig<T>
-export type Spring<T> = createSpring.Spring<T>
+export type Animatable = lib.Animatable
+export type Spring<T> = lib.Spring<T>
+export type SpringConfig<T> = lib.SpringConfig<T>
 
-return {
-	config = config,
-	createSpring = createSpring,
-}
+return lib
