@@ -67,39 +67,7 @@ local function toSRGB(lab: vector): vector
 	return vector.create(f(rgb.x), f(rgb.y), f(rgb.z))
 end
 
-local function _fromSRGB(srgb: vector): vector
-	-- convert sRGB to linear RGB
-	local r = fInv(srgb.x)
-	local g = fInv(srgb.y)
-	local b = fInv(srgb.z)
-
-	local lr = cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b)
-	local mr = cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b)
-	local sr = cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b)
-
-	return vector.create(
-		0.2104542553 * lr + 0.7936177850 * mr - 0.0040720468 * sr,
-		1.9779984951 * lr - 2.4285922050 * mr + 0.4505937099 * sr,
-		0.0259040371 * lr + 0.7827717662 * mr - 0.8086757660 * sr
-	)
-end
-
-local function _toSRGB(lab: vector): vector
-	local l = (lab.x + 0.3963377774 * lab.y + 0.2158037573 * lab.z) ^ 3
-	local m = (lab.x - 0.1055613458 * lab.y - 0.0638541728 * lab.z) ^ 3
-	local s = (lab.x - 0.0894841775 * lab.y - 1.2914855480 * lab.z) ^ 3
-
-	local r = 4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s
-	local g = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s
-	local b = -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s
-
-	-- convert linear RGB to sRGB
-	return vector.create(f(r), f(g), f(b))
-end
-
 return {
 	fromSRGB = fromSRGB,
 	toSRGB = toSRGB,
-	_fromSRGB = _fromSRGB,
-	_toSRGB = _toSRGB,
 }

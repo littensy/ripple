@@ -1,19 +1,22 @@
-type Listener = {
-	step: (self: Listener, deltaTime: number, elapsed: number) -> (),
-}
+type Listener = (deltaTime: number) -> ()
 
-local listeners: { [Listener]: number } = {}
+local listeners: { [number]: Listener } = {}
 local connection: RBXScriptConnection?
+local counter = 0
+
+local function id(): number
+	counter += 1
+	return counter
+end
 
 local function step(deltaTime: number)
-	local now = os.clock()
-	for listener, start in listeners do
-		listener:step(deltaTime, now - start)
+	for _, listener in listeners do
+		listener(deltaTime)
 	end
 end
 
-local function connect(listener: Listener)
-	listeners[listener] = os.clock()
+local function connect(id: number, listener: Listener)
+	listeners[id] = listener
 
 	if game and not connection then
 		connection = game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
@@ -29,8 +32,8 @@ local function connect(listener: Listener)
 	end
 end
 
-local function disconnect(listener: Listener)
-	listeners[listener] = nil
+local function disconnect(id: number)
+	listeners[id] = nil
 end
 
 local function count(): number
@@ -47,6 +50,7 @@ end
 
 return {
 	listeners = listeners,
+	id = id,
 	step = step,
 	connect = connect,
 	disconnect = disconnect,

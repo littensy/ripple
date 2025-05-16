@@ -1,4 +1,3 @@
-local fuzzyEqual = require("../../utils/fuzzyEqual")
 local oklab = require("../../utils/oklab")
 local suite = require("../../../../../test/suite")
 
@@ -14,27 +13,24 @@ local function testColors(callback: (vector) -> ())
 	end
 end
 
-test("fromSRGB should match normal implementation", function()
-	testColors(function(vec)
-		local actual = oklab.fromSRGB(vec)
-		local expected = oklab._fromSRGB(vec)
-		assert(fuzzyEqual(actual, expected, 1e-4), `expected {actual} to be equal to {expected}`)
-	end)
-end)
+local function fuzzyEqual(a: vector, b: vector): boolean
+	local abs = vector.abs(a - b)
+	return math.max(abs.x, abs.y, abs.z) < 1e-4
+end
 
-test("toSRGB should match normal implementation", function()
-	testColors(function(vec)
-		local actual = oklab.toSRGB(vec)
-		local expected = oklab._toSRGB(vec)
-		assert(fuzzyEqual(actual, expected, 1e-4), `expected {actual} to be equal to {expected}`)
-	end)
-end)
-
-test("should be reversible", function()
+test("should be reversible lab to rgb", function()
 	testColors(function(vec)
 		local lab = oklab.fromSRGB(vec)
 		local rgb = oklab.toSRGB(lab)
-		assert(fuzzyEqual(rgb, vec, 1e-4), `expected {rgb} to be equal to {vec}`)
+		assert(fuzzyEqual(rgb, vec), `expected {rgb} to be equal to {vec}`)
+	end)
+end)
+
+test("should be reversible rgb to lab", function()
+	testColors(function(vec)
+		local rgb = oklab.toSRGB(vec)
+		local lab = oklab.fromSRGB(rgb)
+		assert(fuzzyEqual(lab, vec), `expected {lab} to be equal to {vec}`)
 	end)
 end)
 

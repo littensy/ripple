@@ -48,11 +48,11 @@ test("should complete if goal is in reach", function()
 	local result
 	local spring = createSpring(vector.one, { precision = 0.5, restVelocity = 0.5 })
 
-	spring:onComplete(function(value)
+	spring.onComplete(function(value)
 		result = value
 	end)
 	spring.position = vector.zero
-	spring:step(0)
+	spring.step(0)
 
 	assert(not spring.complete, "invalid complete")
 	assert(not result, "invalid result")
@@ -61,7 +61,7 @@ test("should complete if goal is in reach", function()
 
 	spring.position = vector.one / 2
 	spring.velocity = vector.one / 2
-	spring:step(0)
+	spring.step(0)
 
 	assert(spring.complete, "invalid complete")
 	assert(result == vector.one, "invalid result")
@@ -82,24 +82,24 @@ test("should connect while active", function()
 		end
 		assert(heartbeat.count() == #springs, "connect on update")
 
-		heartbeat.step(0.1)
+		heartbeat.step(1)
 		assert(heartbeat.count() == #springs, "stay connected on partial step")
 
-		heartbeat.step(0.2)
+		heartbeat.step(1)
 		assert(heartbeat.count() == 0, "disconnect on complete")
 	end
 end)
 
 test("should wake after update on complete", function()
-	local steps = 0
+	local stepped = false
 	local completes = 0
-	local spring = createSpring(0, { precision = 0.1 })
 
+	local spring = createSpring(0, { precision = 0.1 })
 	spring.goal = 1
-	spring:onStep(function()
-		steps += 1
+	spring.onStep(function()
+		stepped = true
 	end)
-	spring:onComplete(function()
+	spring.onComplete(function()
 		completes += 1
 		if spring.goal ~= 0 then
 			spring.goal = 0
@@ -107,26 +107,26 @@ test("should wake after update on complete", function()
 		end
 	end)
 
-	spring:step(0.2)
-	assert(steps == 1, "did not step")
-	assert(completes == 0, "completed early")
-
-	spring:step(0.2)
-	assert(steps == 2, "did not step")
+	spring.step(2)
+	assert(stepped, "did not step")
 	assert(completes == 1, "did not complete")
+	assert(not spring.complete, "did not uncomplete")
 
-	spring:step(0.2)
-	assert(steps == 3, "did not step")
-	assert(completes == 1, "completed early")
+	stepped = false
+	spring.step(1)
+	assert(stepped, "did not step")
+	assert(completes == 1, "completed for wrong goal")
 
-	spring:step(0.2)
-	assert(steps == 4, "did not step")
+	stepped = false
+	spring.step(1)
+	assert(stepped, "did not step")
 	assert(completes == 2, "did not finally complete")
 	assert(spring.complete, "did not complete")
 
-	spring:step(0.2)
-	assert(steps == 4, "stepped after complete")
-	assert(completes == 2, "completed after complete")
+	stepped = false
+	spring.step(2)
+	assert(not stepped, "stepped after complete")
+	assert(completes == 2, "completed after completion")
 end)
 
 return {}

@@ -1,4 +1,3 @@
-local fuzzyEqual = require("../utils/fuzzyEqual")
 local heartbeat = require("../heartbeat")
 local intermediate = require("../utils/intermediate")
 local signal = require("../utils/signal")
@@ -10,11 +9,11 @@ type Signal<T> = signal.Signal<T>
 
 export type SpringConfig<T = any> = {
 	start: boolean?,
-	mass: number?,
 	tension: number?,
 	friction: number?,
+	mass: number?,
+	dampingRatio: number?,
 	frequency: number?,
-	damping: number?,
 	precision: number?,
 	restVelocity: number?,
 	position: T?,
@@ -22,251 +21,279 @@ export type SpringConfig<T = any> = {
 	impulse: T?,
 }
 
-export type SpringState<T = any> = {
-	position: Intermediate<T>,
-	velocity: Intermediate<T>,
-	goal: Intermediate<T>,
+type SpringApi<T = any> = {
+	onStep: (callback: (value: T, deltaTime: number) -> ()) -> () -> (),
+	onComplete: (callback: (value: T) -> ()) -> () -> (),
 
-	mass: number,
-	tension: number,
-	friction: number,
-	restPosition: number,
-	restVelocity: number,
+	step: (deltaTime: number) -> T,
+	to: (goal: T, config: SpringConfig?) -> (),
+	impulse: (amount: T) -> (),
+	configure: (config: SpringConfig) -> (),
 
-	started: boolean,
-	complete: boolean,
-
-	onStep: Signal<(value: T, deltaTime: number) -> ()>,
-	onComplete: Signal<(value: T) -> ()>,
+	start: () -> (),
+	stop: () -> (),
+	destroy: () -> (),
 }
 
-type SpringApi<T = any, U = any> = {
-	onStep: (self: U, callback: (value: T, deltaTime: number) -> ()) -> () -> (),
-	onComplete: (self: U, callback: (value: T) -> ()) -> () -> (),
-
-	step: (self: U, deltaTime: number) -> T,
-	to: (self: U, goal: T, config: SpringConfig<T>?) -> (),
-	impulse: (self: U, amount: T) -> (),
-	configure: (self: U, config: SpringConfig<T>) -> (),
-
-	start: (self: U) -> (),
-	stop: (self: U) -> (),
-	destroy: (self: U) -> (),
-}
-
-type SpringInternal<T = any> = SpringApi<T, SpringInternal<T>> & {
-	__state: SpringState<T>,
-}
-
-export type Spring<T = any> = SpringApi<T, Spring<T>> & {
+export type Spring<T = any> = SpringApi & {
 	position: T,
 	velocity: T,
 	goal: T,
 	complete: boolean,
 }
 
-local UPDATE_RATE = 1000
-local STEP = 1 / UPDATE_RATE
+local VELOCITY_THRESHOLD_MULTIPLIER = 0.1
 
-local Spring = {} :: SpringInternal
+--- @see https://github.com/Roblox/otter/blob/main/modules/otter/src/spring.lua
+local function computeSpring(
+	dt: number,
+	p0: number,
+	v0: number,
+	g: number,
+	d: number,
+	f: number,
+	decay: number
+): (number, number)
+	local offset = p0 - g
+	local p1, v1
+
+	if d == 1 then -- Critically damped
+		p1 = (v0 * dt + offset * (f * dt + 1)) * decay + g
+		v1 = (v0 - f * dt * (offset * f + v0)) * decay
+	elseif d < 1 then -- Underdamped
+		local c = math.sqrt(1 - d * d)
+
+		local i = math.cos(f * c * dt)
+		local j = math.sin(f * c * dt)
+
+		local z
+		if c > 1e-4 then
+			z = j / c
+		else
+			local a = dt * f
+			z = a + ((a * a) * (c * c) * (c * c) / 20 - c * c) * (a * a * a) / 6
+		end
+
+		local y
+		if f * c > 1e-4 then
+			y = j / (f * c)
+		else
+			local b = f * c
+			y = dt + ((dt * dt) * (b * b) * (b * b) / 20 - b * b) * (dt * dt * dt) / 6
+		end
+
+		p1 = (offset * (i + d * z) + v0 * y) * decay + g
+		v1 = (v0 * (i - z * d) - offset * (z * f)) * decay
+	else -- Overdamped
+		local c = math.sqrt(d * d - 1)
+
+		local r1 = -f * (d - c)
+		local r2 = -f * (d + c)
+
+		local co2 = (v0 - r1 * offset) / (2 * f * c)
+		local co1 = offset - co2
+
+		local e1 = co1 * math.exp(r1 * dt)
+		local e2 = co2 * math.exp(r2 * dt)
+
+		p1 = e1 + e2 + g
+		v1 = r1 * e1 + r2 * e2
+	end
+
+	return p1, v1
+end
+
+local function belowThreshold(value: number | vector, threshold: number): boolean
+	if type(value) == "number" then
+		return math.abs(value) <= threshold
+	else
+		local abs = vector.abs(value)
+		return math.max(abs.x, abs.y, abs.z) <= threshold
+	end
+end
 
 local function createSpring<T>(initialValue: T & Animatable, config: SpringConfig<T>?): Spring<T>
-	local config: SpringConfig<T> = config or {}
+	local config: SpringConfig = config or {}
 
-	local state: SpringState<T> = {
-		position = intermediate.create(config.position or initialValue),
-		velocity = intermediate.zero(intermediate.create(config.impulse or config.velocity or initialValue)),
-		goal = intermediate.create(config.position or initialValue),
+	local position = intermediate.create(config.position or initialValue)
+	local velocity = intermediate.zero(intermediate.create(config.impulse or config.velocity or initialValue))
+	local goal = intermediate.create(config.position or initialValue)
 
-		mass = 1,
-		tension = 170,
-		friction = 26,
-		restPosition = 0.001,
-		restVelocity = 0.0001,
+	local dampingRatio = 1
+	local frequency = 1
+	local restPosition = 1e-3
+	local restVelocity = restPosition * VELOCITY_THRESHOLD_MULTIPLIER
 
-		started = config.start or false,
-		complete = true,
+	local onStep = signal()
+	local onComplete = signal()
 
-		onStep = signal(),
-		onComplete = signal(),
+	local id = heartbeat.id()
+	local started = config.start or false
+	local complete = true
+
+	local function step(dt: number): T
+		if complete then
+			return intermediate.getValue(position)
+		end
+
+		local angularFrequency = frequency * 2 * math.pi
+		local decay = math.exp(-dt * dampingRatio * angularFrequency)
+		complete = true
+
+		for key, lastPosition in position.components :: { number } do
+			local lastVelocity = velocity.components[key] :: number
+			local target = goal.components[key] :: number
+			local currentPosition, currentVelocity =
+				computeSpring(dt, lastPosition, lastVelocity, target, dampingRatio, angularFrequency, decay)
+
+			position.components[key], position.dirty = currentPosition, true
+			velocity.components[key], velocity.dirty = currentVelocity, true
+
+			if complete then
+				complete = belowThreshold(currentPosition - target, restPosition)
+					and belowThreshold(currentVelocity, restVelocity)
+			end
+		end
+
+		local value = intermediate.getValue(if complete then goal else position)
+
+		onStep.fire(value, dt)
+
+		if complete then
+			heartbeat.disconnect(id)
+			intermediate.assign(position, goal)
+			intermediate.zero(velocity)
+			onComplete.fire(value)
+		end
+
+		return value
+	end
+
+	local function scheduleUpdate()
+		complete = false
+		if started then
+			heartbeat.connect(id, step)
+		end
+	end
+
+	local function setPosition(value: T)
+		intermediate.setValue(position, value)
+		scheduleUpdate()
+	end
+
+	local function setVelocity(value: T)
+		intermediate.setValue(velocity, value)
+		scheduleUpdate()
+	end
+
+	local function setGoal(value: T)
+		intermediate.setValue(goal, value)
+		scheduleUpdate()
+	end
+
+	local function impulse(value: T)
+		intermediate.addValue(velocity, value)
+		scheduleUpdate()
+	end
+
+	local function configure(config: SpringConfig)
+		restPosition = config.precision or restPosition
+		restVelocity = config.restVelocity or restPosition * VELOCITY_THRESHOLD_MULTIPLIER
+
+		if config.friction or config.tension or config.mass then
+			local tension = config.tension or 170
+			local friction = config.friction or 26
+			local mass = config.mass or 1
+
+			dampingRatio = friction / (2 * (mass * tension) ^ 0.5)
+			frequency = (tension / mass) ^ 0.5 / 2 / math.pi
+		else
+			dampingRatio = config.dampingRatio or dampingRatio
+			frequency = config.frequency or frequency
+		end
+
+		if config.position then
+			setPosition(config.position)
+		end
+
+		if config.velocity then
+			setVelocity(config.velocity)
+		end
+
+		if config.impulse then
+			impulse(config.impulse)
+		end
+	end
+
+	local function to(value: T, config: SpringConfig?)
+		if config then
+			configure(config)
+		end
+		setGoal(value)
+	end
+
+	local function stop()
+		started = false
+		heartbeat.disconnect(id)
+	end
+
+	local function start()
+		started = true
+		if not complete then
+			heartbeat.connect(id, step)
+		end
+	end
+
+	local function getter(_, key: any): any
+		if key == "position" then
+			return intermediate.getValue(position)
+		elseif key == "velocity" then
+			return intermediate.getValue(velocity)
+		elseif key == "goal" then
+			return intermediate.getValue(goal)
+		elseif key == "complete" then
+			return complete
+		else
+			return nil
+		end
+	end
+
+	local function setter(self: any, key: any, value: any)
+		if key == "position" then
+			setPosition(value)
+		elseif key == "velocity" then
+			setVelocity(value)
+		elseif key == "goal" then
+			setGoal(value)
+		elseif key == "complete" then
+			warn("Cannot set 'complete' property directly. Use 'stop()' to stop the spring.")
+		else
+			rawset(self, key, value)
+		end
+	end
+
+	local spring: SpringApi<T> = {
+		onStep = onStep.connect,
+		onComplete = onComplete.connect,
+		step = step,
+		to = to,
+		impulse = impulse,
+		configure = configure,
+		start = start,
+		stop = stop,
+		destroy = stop,
 	}
 
-	local self: Spring<T> = setmetatable({
-		__state = state,
-	}, Spring) :: any
+	configure(config)
 
-	self:configure(config)
-
-	return self
-end
-
-local function scheduleUpdate<T>(self: SpringInternal<T>)
-	self.__state.complete = false
-	if self.__state.started then
-		heartbeat.connect(self)
-	end
-end
-
-local function setPosition<T>(self: SpringInternal<T>, value: T)
-	intermediate.setValue(self.__state.position, value)
-	scheduleUpdate(self)
-end
-
-local function setVelocity<T>(self: SpringInternal<T>, value: T)
-	intermediate.setValue(self.__state.velocity, value)
-	scheduleUpdate(self)
-end
-
-local function setGoal<T>(self: SpringInternal<T>, value: T)
-	intermediate.setValue(self.__state.goal, value)
-	scheduleUpdate(self)
-end
-
-function Spring.step<T>(self: SpringInternal<T>, deltaTime: number): T
-	local state = self.__state
-
-	if state.complete then
-		return intermediate.getValue(state.position)
+	if config.start then
+		start()
 	end
 
-	local position = state.position
-	local velocity = state.velocity
-	local goal = state.goal
-
-	local mass = state.mass
-	local tension = state.tension
-	local friction = state.friction
-	local restPosition = state.restPosition
-	local restVelocity = state.restVelocity
-
-	local passes = math.min(math.ceil(deltaTime * UPDATE_RATE), 500)
-
-	state.complete = true
-
-	for key, pos in position.components :: { number } do
-		local vel = velocity.components[key] :: number
-		local to = goal.components[key] :: number
-
-		for _ = 1, passes do
-			local springForce = -(STEP ^ 2) * tension * (pos - to)
-			local dampingForce = -STEP * friction * vel
-			local acceleration = (springForce + dampingForce) / mass
-
-			vel += acceleration
-			pos += vel
-		end
-
-		position.components[key], position.dirty = pos, true
-		velocity.components[key], velocity.dirty = vel, true
-
-		if state.complete then
-			state.complete = fuzzyEqual(pos, to, restPosition) and fuzzyEqual(vel, vel * 0, restVelocity)
-		end
-	end
-
-	local value = intermediate.getValue(state.complete and state.goal or state.position)
-
-	state.onStep.fire(value, deltaTime)
-
-	if state.complete then
-		heartbeat.disconnect(self)
-		intermediate.assign(position, goal)
-		intermediate.zero(velocity)
-		state.onComplete.fire(value)
-	end
-
-	return value
-end
-
-function Spring.impulse<T>(self: SpringInternal<T>, value: T)
-	intermediate.addValue(self.__state.velocity, value)
-	scheduleUpdate(self)
-end
-
-function Spring.configure<T>(self: SpringInternal<T>, config: SpringConfig<T>)
-	local state = self.__state
-
-	state.mass = config.mass or state.mass
-	state.restPosition = config.precision or state.restPosition
-	state.restVelocity = config.restVelocity or state.restPosition / 10
-
-	if config.damping or config.frequency then
-		local frequency = config.frequency or 0.5
-		local damping = config.damping or 1
-
-		state.tension = (2 * math.pi / frequency) ^ 2 * state.mass
-		state.friction = (4 * math.pi * damping * state.mass) / frequency
-	else
-		state.tension = config.tension or state.tension
-		state.friction = config.friction or state.friction
-	end
-
-	if config.position then
-		setPosition(self, config.position)
-	end
-
-	if config.velocity then
-		setVelocity(self, config.velocity)
-	end
-
-	if config.impulse then
-		self:impulse(config.impulse)
-	end
-end
-
-function Spring.to<T>(self: SpringInternal<T>, value: T, config: SpringConfig<T>?)
-	if config then
-		self:configure(config)
-	end
-	setGoal(self, value)
-end
-
-function Spring.stop<T>(self: SpringInternal<T>)
-	self.__state.started = false
-	heartbeat.disconnect(self)
-end
-
-function Spring.start<T>(self: SpringInternal<T>)
-	self.__state.started = true
-	if not self.__state.complete then
-		heartbeat.connect(self)
-	end
-end
-
-function Spring.onStep<T>(self: SpringInternal<T>, callback: (value: T, deltaTime: number) -> ()): () -> ()
-	return self.__state.onStep.connect(callback)
-end
-
-function Spring.onComplete<T>(self: SpringInternal<T>, callback: (value: T) -> ()): () -> ()
-	return self.__state.onComplete.connect(callback)
-end
-
-(Spring :: any).__index = function(self: SpringInternal, key: any): any
-	if key == "position" then
-		return intermediate.getValue(self.__state.position)
-	elseif key == "velocity" then
-		return intermediate.getValue(self.__state.velocity)
-	elseif key == "goal" then
-		return intermediate.getValue(self.__state.goal)
-	elseif key == "complete" then
-		return self.__state.complete
-	else
-		return Spring[key]
-	end
-end
-
-(Spring :: any).__newindex = function(self: SpringInternal, key: any, value: any)
-	if key == "position" then
-		setPosition(self, value)
-	elseif key == "velocity" then
-		setVelocity(self, value)
-	elseif key == "goal" then
-		setGoal(self, value)
-	elseif key == "complete" then
-		warn("Cannot set 'complete' property directly. Use 'stop()' to stop the spring.")
-	else
-		rawset(self :: any, key, value)
-	end
+	return setmetatable(spring, {
+		__index = getter,
+		__newindex = setter,
+	}) :: any
 end
 
 return createSpring

@@ -3,6 +3,7 @@
 	"scripts": {
 		"build": "sh bin/build.sh",
 		"check": "sh bin/check.sh",
+		"bench": "sh bin/bench.sh",
 		"test": "lute test/spec.server.luau",
 		"publish:npm": "pnpm publish -r --access public",
 		"publish:wally": "pnpm -r --workspace-concurrency 1 publish:wally"

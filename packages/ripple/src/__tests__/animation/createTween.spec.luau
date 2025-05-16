@@ -47,18 +47,18 @@ test("should complete if duration passes", function()
 	local result
 	local tween = createTween(vector.one, { duration = 1 })
 
-	tween:onComplete(function(value)
+	tween.onComplete(function(value)
 		result = value
 	end)
 	tween.position = vector.zero
-	tween:step(0.5)
+	tween.step(0.5)
 
 	assert(not tween.complete, "invalid complete")
 	assert(not result, "invalid result")
 	assert(tween.position == vector.one / 2, "invalid position")
 	assert(tween.from == vector.zero, "invalid from")
 
-	tween:step(0.5)
+	tween.step(0.5)
 
 	assert(tween.complete, "invalid complete")
 	assert(result == vector.one, "invalid result")
@@ -70,13 +70,13 @@ test("should start from new position", function()
 	local result
 	local tween = createTween(vector.one, { duration = 1 })
 
-	tween:onComplete(function(value)
+	tween.onComplete(function(value)
 		result = value
 	end)
 
 	for _ = 1, 2 do
 		tween.position = vector.zero
-		tween:step(0.5)
+		tween.step(0.5)
 
 		assert(not tween.complete, "invalid complete")
 		assert(not result, "invalid result")
@@ -84,7 +84,7 @@ test("should start from new position", function()
 		assert(tween.from == vector.zero, "invalid from")
 	end
 
-	tween:step(0.5)
+	tween.step(0.5)
 
 	assert(tween.complete, "invalid complete")
 	assert(result == vector.one, "invalid result")
@@ -118,19 +118,18 @@ test("should repeat", function()
 		[3] = { 0.5, 0, 0.5, 0, 0.5, 1 },
 		[4] = { 0.5, 0, 0.5, 0, 0.5, 0, 0.5, 1 },
 	}
-
 	local result
 	local tween = createTween(vector.one, { duration = 1 })
 
-	tween:onComplete(function(value)
+	tween.onComplete(function(value)
 		result = value
 	end)
 
 	for repeats, case in cases do
-		tween:configure({ position = vector.zero, repeats = repeats })
+		tween.configure({ position = vector.zero, repeats = repeats })
 
 		for i = 1, repeats * 2 do
-			tween:step(0.5)
+			tween.step(0.5)
 			assert(tween.position == vector.one * case[i], `{repeats} expected {case[i]}, got {tween.position}`)
 		end
 
@@ -144,19 +143,18 @@ test("should repeat in reverse", function()
 		[3] = { 0.5, 1, 0.5, 0, 0.5, 1 },
 		[4] = { 0.5, 1, 0.5, 0, 0.5, 1, 0.5, 0 },
 	}
-
 	local result
 	local tween = createTween(vector.one, { duration = 1 })
 
-	tween:onComplete(function(value)
+	tween.onComplete(function(value)
 		result = value
 	end)
 
 	for repeats, case in cases do
-		tween:configure({ position = vector.zero, repeats = repeats, reverses = true })
+		tween.configure({ position = vector.zero, repeats = repeats, reverses = true })
 
 		for i = 1, repeats * 2 do
-			tween:step(0.5)
+			tween.step(0.5)
 			assert(tween.position == vector.one * case[i], `{repeats} expected {case[i]}, got {tween.position}`)
 		end
 
@@ -168,13 +166,13 @@ end)
 test("should wake after update on complete", function()
 	local steps = 0
 	local completes = 0
-	local tween = createTween(0, { duration = 1 })
 
+	local tween = createTween(0, { duration = 1 })
 	tween.goal = 1
-	tween:onStep(function()
+	tween.onStep(function()
 		steps += 1
 	end)
-	tween:onComplete(function()
+	tween.onComplete(function()
 		completes += 1
 		if tween.goal ~= 0 then
 			tween.goal = 0
@@ -182,24 +180,24 @@ test("should wake after update on complete", function()
 		end
 	end)
 
-	tween:step(0.5)
+	tween.step(0.5)
 	assert(steps == 1, "did not step")
 	assert(completes == 0, "completed early")
 
-	tween:step(0.5)
+	tween.step(0.5)
 	assert(steps == 2, "did not step")
 	assert(completes == 1, "did not complete")
 
-	tween:step(0.5)
+	tween.step(0.5)
 	assert(steps == 3, "did not step")
 	assert(completes == 1, "completed early")
 
-	tween:step(0.5)
+	tween.step(0.5)
 	assert(steps == 4, "did not step")
 	assert(completes == 2, "did not finally complete")
 	assert(tween.complete, "did not complete")
 
-	tween:step(0.5)
+	tween.step(0.5)
 	assert(steps == 4, "stepped after complete")
 	assert(completes == 2, "completed after complete")
 end)

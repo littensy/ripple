@@ -58,7 +58,7 @@ local function componentsToValue(components: { any }, kind: string): any
 		local xxy: vector = components[1]
 		return Rect.new(Vector2.new(xxy.x, xxy.y), Vector2.new(xxy.z, components[2]))
 	else
-		error(`Attempt to animate unsupported type (got {kind})`)
+		error(`Attempt to animate unsupported type: {kind}`)
 	end
 end
 

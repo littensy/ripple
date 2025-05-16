@@ -1,19 +1,14 @@
 local freeThread: thread?
 
-local function run<T...>(thread: thread, fn: (T...) -> (), ...: T...): boolean
+local function run<T...>(thread: thread, fn: (T...) -> (), ...: T...)
 	freeThread = nil
 	fn(...)
-	if freeThread then
-		return false
-	else
-		freeThread = thread
-		return true
-	end
+	freeThread = thread
 end
 
 local function runner()
-	while run(coroutine.yield()) do
-		continue
+	while true do
+		run(coroutine.yield())
 	end
 end
 
@@ -24,7 +19,7 @@ local function spawn<T...>(callback: (T...) -> (), ...: T...)
 
 	local thread = freeThread or task.spawn(runner)
 
-	coroutine.resume(thread, thread, callback, ...)
+	task.spawn(thread, thread, callback, ...)
 end
 
 return spawn
