@@ -14,10 +14,10 @@ end)
 
 test("should be within range", function()
 	for name, easingFunction in easing do
-		for alpha = 0.1, 0.9, 0.1 do
-			local x = easingFunction(0)
-			assert(x < 2, `{name}({alpha}) should be less than 2, got {x}`)
-			assert(x > -1, `{name}({alpha}) should be greater than -1, got {x}`)
+		for alpha = 0, 1, 0.1 do
+			local x = easingFunction(alpha)
+			assert(x < 1.5, `{name}({alpha}) should be less than 1.5, got {x}`)
+			assert(x > -0.5, `{name}({alpha}) should be greater than -0.5, got {x}`)
 		end
 	end
 end)
