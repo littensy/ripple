@@ -1,4 +1,5 @@
 local createTween = require("../../animation/createTween")
+local easing = require("../../utils/easing")
 local heartbeat = require("../../heartbeat")
 local suite = require("../../../../../test/suite")
 
@@ -200,6 +201,18 @@ test("should wake after update on complete", function()
 	tween.step(0.5)
 	assert(steps == 4, "stepped after complete")
 	assert(completes == 2, "completed after complete")
+end)
+
+test("should have correct start and end", function()
+	local tween = createTween(1)
+
+	for name: easing.Easing in easing do
+		tween.configure({ position = 0, easing = name })
+		local x0 = tween.step(0)
+		local x1 = tween.step(1)
+		assert(x0 == 0, `{name}(0) should be 0, got {x0}`)
+		assert(x1 == 1, `{name}(1) should be 1, got {x1}`)
+	end
 end)
 
 return {}

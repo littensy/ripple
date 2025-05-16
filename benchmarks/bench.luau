@@ -1,6 +1,6 @@
 local function bench(name: string, test: () -> ())
 	local start = os.clock()
-	local iter = 500
+	local iter = 1000
 	for _ = 1, iter do
 		test()
 	end

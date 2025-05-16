@@ -1,0 +1,25 @@
+local easing = require("../../utils/easing")
+local suite = require("../../../../../test/suite")
+
+local test = suite.test
+
+test("should have correct start and end", function()
+	for name, easingFunction in easing do
+		local x0 = easingFunction(0)
+		local x1 = easingFunction(1)
+		assert(math.abs(x0) < 1e-4, `{name}(0) should be near 0, got {x0}`)
+		assert(math.abs(1 - x1) < 1e-4, `{name}(1) should be near 1, got {x1}`)
+	end
+end)
+
+test("should be within range", function()
+	for name, easingFunction in easing do
+		for alpha = 0.1, 0.9, 0.1 do
+			local x = easingFunction(0)
+			assert(x < 2, `{name}({alpha}) should be less than 2, got {x}`)
+			assert(x > -1, `{name}({alpha}) should be greater than -1, got {x}`)
+		end
+	end
+end)
+
+return {}

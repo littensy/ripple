@@ -1,24 +1,24 @@
-local ease = require("../utils/ease")
+local easing = require("../utils/easing")
 local heartbeat = require("../heartbeat")
 local intermediate = require("../utils/intermediate")
 local signal = require("../utils/signal")
 local types = require("../types")
 
+type Easing = easing.Easing
 type Animatable = types.Animatable
 type Intermediate<T> = intermediate.Intermediate<T>
 type Signal<T> = signal.Signal<T>
 
-export type TweenConfig<T = any> = {
+export type TweenConfig<T> = {
 	start: boolean?,
+	easing: Easing?,
 	duration: number?,
-	easing: Enum.EasingStyle?,
-	direction: Enum.EasingDirection?,
 	repeats: number?,
 	reverses: boolean?,
 	position: T?,
 }
 
-type TweenApi<T = any> = {
+type TweenApi<T> = {
 	onStep: (callback: (value: T, deltaTime: number) -> ()) -> () -> (),
 	onComplete: (callback: (value: T) -> ()) -> () -> (),
 
@@ -38,6 +38,18 @@ export type Tween<T = any> = TweenApi<T> & {
 	complete: boolean,
 }
 
+local function getAlpha(progress: number, repeats: number, reverses: boolean): number
+	if repeats > 1 and progress >= 1 then
+		if reverses then
+			return math.abs((progress - 1) % 2 - 1)
+		elseif progress < repeats then
+			return progress % 1
+		end
+		return 1
+	end
+	return progress
+end
+
 local function createTween<T>(initialValue: T & Animatable, config: TweenConfig<T>?): Tween<T>
 	local config: TweenConfig<T> = config or {}
 
@@ -45,8 +57,7 @@ local function createTween<T>(initialValue: T & Animatable, config: TweenConfig<
 	local from = intermediate.create(config.position or initialValue)
 	local goal = intermediate.create(config.position or initialValue)
 
-	local easing = config.easing
-	local direction = config.direction
+	local easingFunction = easing[config.easing :: Easing] or easing["linear" :: "linear"]
 	local duration = config.duration or 1
 	local repeats = config.repeats or 1
 	local reverses = config.reverses or false
@@ -67,7 +78,8 @@ local function createTween<T>(initialValue: T & Animatable, config: TweenConfig<
 		elapsed += deltaTime
 
 		local progress = math.clamp(elapsed / duration, 0, repeats)
-		local alpha = ease(progress, easing, direction, repeats, reverses)
+		local alpha = getAlpha(progress, repeats, reverses)
+		local value = if alpha > 0 and alpha < 1 then easingFunction(alpha) else alpha
 
 		complete = progress == repeats
 
@@ -75,7 +87,7 @@ local function createTween<T>(initialValue: T & Animatable, config: TweenConfig<
 		local from = from
 		local goal = goal
 
-		intermediate.lerp(position, from, goal, alpha)
+		intermediate.lerp(position, from, goal, value)
 
 		local value = intermediate.getValue(position)
 
@@ -109,9 +121,8 @@ local function createTween<T>(initialValue: T & Animatable, config: TweenConfig<
 	end
 
 	local function configure(config: TweenConfig<T>)
+		easingFunction = easing[config.easing :: Easing] or easingFunction
 		duration = config.duration or duration
-		easing = config.easing or easing
-		direction = config.direction or direction
 		repeats = config.repeats or repeats
 		reverses = config.reverses or reverses
 
@@ -137,7 +148,6 @@ local function createTween<T>(initialValue: T & Animatable, config: TweenConfig<
 	local function start()
 		started = true
 		if not complete then
-			print("starting incomplete")
 			heartbeat.connect(id, step)
 		end
 	end

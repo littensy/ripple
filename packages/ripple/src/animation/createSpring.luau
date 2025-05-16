@@ -7,7 +7,7 @@ type Animatable = types.Animatable
 type Intermediate<T> = intermediate.Intermediate<T>
 type Signal<T> = signal.Signal<T>
 
-export type SpringConfig<T = any> = {
+export type SpringConfig<T> = {
 	start: boolean?,
 	tension: number?,
 	friction: number?,
@@ -21,21 +21,21 @@ export type SpringConfig<T = any> = {
 	impulse: T?,
 }
 
-type SpringApi<T = any> = {
+type SpringApi<T> = {
 	onStep: (callback: (value: T, deltaTime: number) -> ()) -> () -> (),
 	onComplete: (callback: (value: T) -> ()) -> () -> (),
 
 	step: (deltaTime: number) -> T,
-	to: (goal: T, config: SpringConfig?) -> (),
+	to: (goal: T, config: SpringConfig<T>?) -> (),
 	impulse: (amount: T) -> (),
-	configure: (config: SpringConfig) -> (),
+	configure: (config: SpringConfig<T>) -> (),
 
 	start: () -> (),
 	stop: () -> (),
 	destroy: () -> (),
 }
 
-export type Spring<T = any> = SpringApi & {
+export type Spring<T = any> = SpringApi<T> & {
 	position: T,
 	velocity: T,
 	goal: T,
@@ -44,7 +44,8 @@ export type Spring<T = any> = SpringApi & {
 
 local VELOCITY_THRESHOLD_MULTIPLIER = 0.1
 
---- @see https://github.com/Roblox/otter/blob/main/modules/otter/src/spring.lua
+--- Spring function borrowed from Otter:
+--- https://github.com/Roblox/otter/blob/main/modules/otter/src/spring.lua
 local function computeSpring(
 	dt: number,
 	p0: number,
@@ -113,7 +114,7 @@ local function belowThreshold(value: number | vector, threshold: number): boolea
 end
 
 local function createSpring<T>(initialValue: T & Animatable, config: SpringConfig<T>?): Spring<T>
-	local config: SpringConfig = config or {}
+	local config: SpringConfig<T> = config or {}
 
 	local position = intermediate.create(config.position or initialValue)
 	local velocity = intermediate.zero(intermediate.create(config.impulse or config.velocity or initialValue))
@@ -196,7 +197,7 @@ local function createSpring<T>(initialValue: T & Animatable, config: SpringConfi
 		scheduleUpdate()
 	end
 
-	local function configure(config: SpringConfig)
+	local function configure(config: SpringConfig<T>)
 		restPosition = config.precision or restPosition
 		restVelocity = config.restVelocity or restPosition * VELOCITY_THRESHOLD_MULTIPLIER
 
@@ -225,7 +226,7 @@ local function createSpring<T>(initialValue: T & Animatable, config: SpringConfi
 		end
 	end
 
-	local function to(value: T, config: SpringConfig?)
+	local function to(value: T, config: SpringConfig<T>?)
 		if config then
 			configure(config)
 		end
