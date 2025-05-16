@@ -7,7 +7,7 @@ type Animatable = types.Animatable
 type Intermediate<T> = intermediate.Intermediate<T>
 type Signal<T> = signal.Signal<T>
 
-export type SpringConfig<T> = {
+export type SpringConfig<T = any> = {
 	start: boolean?,
 	tension: number?,
 	friction: number?,

@@ -9,7 +9,7 @@ type Animatable = types.Animatable
 type Intermediate<T> = intermediate.Intermediate<T>
 type Signal<T> = signal.Signal<T>
 
-export type TweenConfig<T> = {
+export type TweenConfig<T = any> = {
 	start: boolean?,
 	easing: Easing?,
 	duration: number?,
