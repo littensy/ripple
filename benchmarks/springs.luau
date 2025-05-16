@@ -7,7 +7,7 @@ do
 	local createSpring = require("../packages/ripple/src/animation/createSpring")
 	local heartbeat = require("../packages/ripple/src/heartbeat")
 
-	local config = { start = true, stiffness = 1000, damping = 50 }
+	local config = { start = true, frequency = 1 / 50 }
 
 	bench("ripple", function()
 		local springs = table.create(SPRINGS)
