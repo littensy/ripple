@@ -82,10 +82,10 @@ test("should connect while active", function()
 		end
 		assert(heartbeat.count() == #springs, "connect on update")
 
-		heartbeat.step(1)
+		heartbeat.step(0.5)
 		assert(heartbeat.count() == #springs, "stay connected on partial step")
 
-		heartbeat.step(1)
+		heartbeat.step(0.5)
 		assert(heartbeat.count() == 0, "disconnect on complete")
 	end
 end)
@@ -107,24 +107,24 @@ test("should wake after update on complete", function()
 		end
 	end)
 
-	spring.step(2)
+	spring.step(1)
 	assert(stepped, "did not step")
 	assert(completes == 1, "did not complete")
 	assert(not spring.complete, "did not uncomplete")
 
 	stepped = false
-	spring.step(1)
+	spring.step(0.5)
 	assert(stepped, "did not step")
 	assert(completes == 1, "completed for wrong goal")
 
 	stepped = false
-	spring.step(1)
+	spring.step(0.5)
 	assert(stepped, "did not step")
 	assert(completes == 2, "did not finally complete")
 	assert(spring.complete, "did not complete")
 
 	stepped = false
-	spring.step(2)
+	spring.step(1)
 	assert(not stepped, "stepped after complete")
 	assert(completes == 2, "completed after completion")
 end)

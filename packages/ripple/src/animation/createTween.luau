@@ -4,10 +4,11 @@ local intermediate = require("../utils/intermediate")
 local signal = require("../utils/signal")
 local types = require("../types")
 
-type Easing = easing.Easing
 type Animatable = types.Animatable
 type Intermediate<T> = intermediate.Intermediate<T>
 type Signal<T> = signal.Signal<T>
+
+export type Easing = easing.Easing
 
 export type TweenConfig<T = any> = {
 	start: boolean?,

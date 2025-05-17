@@ -42,7 +42,7 @@ export type Spring<T = any> = SpringApi<T> & {
 	complete: boolean,
 }
 
-local VELOCITY_THRESHOLD_MULTIPLIER = 0.1
+local VELOCITY_THRESHOLD_MULTIPLIER = 1000 / 16
 
 --- Spring function borrowed from Otter:
 --- https://github.com/Roblox/otter/blob/main/modules/otter/src/spring.lua

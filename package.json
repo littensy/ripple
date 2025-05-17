@@ -9,6 +9,8 @@
 		"publish:wally": "pnpm -r --workspace-concurrency 1 publish:wally"
 	},
 	"devDependencies": {
+		"@rbxts-js/react": "17.1.20-ts.1",
+		"@rbxts-js/react-roblox": "17.1.20-ts.1",
 		"@rbxts/compiler-types": "3.0.0-types.0",
 		"@rbxts/types": "^1.0.852",
 		"@typescript-eslint/eslint-plugin": "^7.18.0",
@@ -21,5 +23,5 @@
 		"roblox-ts": "^3.0.0",
 		"typescript": "^5.8.3"
 	},
-	"packageManager": "pnpm@9.14.4"
+	"packageManager": "pnpm@10.11.0"
 }

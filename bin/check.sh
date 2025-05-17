@@ -7,11 +7,11 @@ luau-lsp analyze \
 	--flag:LuauFixIndexerSubtypingOrdering=true \
 	--flag:LuauInstantiateInSubtyping=true \
 	--sourcemap=sourcemap.json \
-	--ignore="**/_Index/**" \
-	packages test
+	--ignore="**/node_modules/**" \
+	packages test stories
 
-selene packages test
+selene packages test stories
 
-stylua --check packages test
+stylua --check packages test stories
 
 rm bin/roblox.d.luau

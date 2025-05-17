@@ -47,7 +47,7 @@ local function componentsToValue(components: { any }, kind: string): any
 	elseif kind == "CFrame" then
 		return CFrame.fromAxisAngle(components[2], components[3]) + components[1]
 	elseif kind == "Color3" then
-		return oklab.toSRGB(components[1])
+		return vector.max(oklab.toSRGB(components[1]), vector.zero)
 	elseif kind == "UDim" then
 		local so: vector = components[1]
 		return UDim.new(so.x, math.round(so.y))
