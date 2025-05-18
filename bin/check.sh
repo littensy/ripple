@@ -8,10 +8,10 @@ luau-lsp analyze \
 	--flag:LuauInstantiateInSubtyping=true \
 	--sourcemap=sourcemap.json \
 	--ignore="**/node_modules/**" \
-	packages test stories
+	packages test stories benchmarks
 
-selene packages test stories
+selene packages test stories benchmarks
 
-stylua --check packages test stories
+stylua --check packages test stories benchmarks
 
 rm bin/roblox.d.luau

@@ -91,13 +91,13 @@ test("should connect while active", function()
 end)
 
 test("should wake after update on complete", function()
-	local stepped = false
+	local changed = false
 	local completes = 0
 
 	local spring = createSpring(0, { precision = 0.1 })
 	spring.goal = 1
-	spring.onStep(function()
-		stepped = true
+	spring.onChange(function()
+		changed = true
 	end)
 	spring.onComplete(function()
 		completes += 1
@@ -108,24 +108,24 @@ test("should wake after update on complete", function()
 	end)
 
 	spring.step(1)
-	assert(stepped, "did not step")
+	assert(changed, "did not step")
 	assert(completes == 1, "did not complete")
 	assert(not spring.complete, "did not uncomplete")
 
-	stepped = false
+	changed = false
 	spring.step(0.5)
-	assert(stepped, "did not step")
+	assert(changed, "did not step")
 	assert(completes == 1, "completed for wrong goal")
 
-	stepped = false
+	changed = false
 	spring.step(0.5)
-	assert(stepped, "did not step")
+	assert(changed, "did not step")
 	assert(completes == 2, "did not finally complete")
 	assert(spring.complete, "did not complete")
 
-	stepped = false
+	changed = false
 	spring.step(1)
-	assert(not stepped, "stepped after complete")
+	assert(not changed, "stepped after complete")
 	assert(completes == 2, "completed after completion")
 end)
 

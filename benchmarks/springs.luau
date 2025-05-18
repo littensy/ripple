@@ -11,13 +11,13 @@ do
 	local createSpring = require("../packages/ripple/src/animation/createSpring")
 	local heartbeat = require("../packages/ripple/src/heartbeat")
 
-	local config = { start = true, frequency = 1 / 10 }
+	local config: createSpring.SpringConfig = { start = true, frequency = 1 / 10 }
 
 	bench("ripple", function()
 		local spring = createSpring(0, config)
 
 		spring.to(1)
-		spring.onStep(function(value)
+		spring.onChange(function(value)
 			object.property = value
 		end)
 
@@ -26,6 +26,29 @@ do
 		end
 
 		heartbeat.clear()
+	end)
+end
+
+do
+	local AnimationStepSignal = require("./otter/AnimationStepSignal")
+	local createSingleMotor = require("./otter/createSingleMotor")
+	local spring = require("./otter/spring")
+
+	local config: spring.SpringOptions = { frequency = 1 / 10 }
+
+	bench("otter", function()
+		local motor = createSingleMotor(0)
+
+		motor:setGoal(spring(1, config))
+		motor:onStep(function(value)
+			object.property = value
+		end)
+
+		for _ = 1, ITERATIONS do
+			AnimationStepSignal:Fire(1 / ITERATIONS)
+		end
+
+		AnimationStepSignal:Clear()
 	end)
 end
 
@@ -54,29 +77,6 @@ do
 			cleanup()
 			clear()
 		end)
-	end)
-end
-
-do
-	local AnimationStepSignal = require("./otter/AnimationStepSignal")
-	local createSingleMotor = require("./otter/createSingleMotor")
-	local spring = require("./otter/spring")
-
-	local config = { frequency = 1 / 10 }
-
-	bench("otter", function()
-		local motor = createSingleMotor(0)
-
-		motor:setGoal(spring(1, config))
-		motor:onStep(function(value)
-			object.property = value
-		end)
-
-		for _ = 1, ITERATIONS do
-			AnimationStepSignal:Fire(1 / ITERATIONS)
-		end
-
-		AnimationStepSignal:Clear()
 	end)
 end
 

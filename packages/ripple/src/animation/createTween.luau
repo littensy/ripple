@@ -6,7 +6,8 @@ local types = require("../types")
 
 type Animatable = types.Animatable
 type Intermediate<T> = intermediate.Intermediate<T>
-type Signal<T> = signal.Signal<T>
+type FireSignal<T...> = signal.FireSignal<T...>
+type SubscribeSignal<T...> = signal.SubscribeSignal<T...>
 
 export type Easing = easing.Easing
 
@@ -20,7 +21,7 @@ export type TweenConfig<T = any> = {
 }
 
 type TweenApi<T> = {
-	onStep: (callback: (value: T, deltaTime: number) -> ()) -> () -> (),
+	onChange: (callback: (value: T, deltaTime: number) -> ()) -> () -> (),
 	onComplete: (callback: (value: T) -> ()) -> () -> (),
 
 	step: (deltaTime: number) -> T,
@@ -68,8 +69,8 @@ local function createTween<T>(initialValue: T & Animatable, config: TweenConfig<
 	local started = config.start or false
 	local complete = true
 
-	local onStep = signal()
-	local onComplete = signal()
+	local onChange: SubscribeSignal<(T, number)>, fireChange: FireSignal<(T, number)> = signal()
+	local onComplete: SubscribeSignal<T>, fireComplete: FireSignal<T> = signal()
 
 	local function step(deltaTime: number): T
 		if complete then
@@ -92,11 +93,11 @@ local function createTween<T>(initialValue: T & Animatable, config: TweenConfig<
 
 		local value = intermediate.getValue(position)
 
-		onStep.fire(value, deltaTime)
+		fireChange(value, deltaTime)
 
 		if complete then
 			heartbeat.disconnect(id)
-			onComplete.fire(value)
+			fireComplete(value)
 		end
 
 		return value
@@ -112,13 +113,16 @@ local function createTween<T>(initialValue: T & Animatable, config: TweenConfig<
 	end
 
 	local function setPosition(value: T)
-		intermediate.setValue(position, value)
-		resumeFromCurrentPosition()
+		if intermediate.setValue(position, value) then
+			resumeFromCurrentPosition()
+			fireChange(value, 0)
+		end
 	end
 
 	local function setGoal(value: T)
-		intermediate.setValue(goal, value)
-		resumeFromCurrentPosition()
+		if intermediate.setValue(goal, value) then
+			resumeFromCurrentPosition()
+		end
 	end
 
 	local function configure(config: TweenConfig<T>)
@@ -180,8 +184,8 @@ local function createTween<T>(initialValue: T & Animatable, config: TweenConfig<
 	end
 
 	local tween: TweenApi<T> = {
-		onStep = onStep.connect,
-		onComplete = onComplete.connect,
+		onChange = onChange,
+		onComplete = onComplete,
 		step = step,
 		to = to,
 		configure = configure,

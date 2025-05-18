@@ -1,11 +1,9 @@
 local spawn = require("./spawn")
 
-export type Signal<T> = {
-	connect: (T) -> () -> (),
-	fire: T,
-}
+export type FireSignal<T...> = (T...) -> ()
+export type SubscribeSignal<T...> = (callback: FireSignal<T...>) -> () -> ()
 
-local function signal(): Signal<(...any) -> ()>
+local function signal<T...>(): (SubscribeSignal<T...>, FireSignal<T...>)
 	local currentListeners: { (...any) -> () } = {}
 	local nextListeners = currentListeners
 	local nextListenerId = 0
@@ -16,7 +14,7 @@ local function signal(): Signal<(...any) -> ()>
 		end
 	end
 
-	local function connect(callback: (...any) -> ()): () -> ()
+	local function subscribe(callback: (T...) -> ()): () -> ()
 		ensureCanMutateNextListeners()
 
 		local listenerId = nextListenerId
@@ -29,7 +27,7 @@ local function signal(): Signal<(...any) -> ()>
 		end
 	end
 
-	local function fire(...)
+	local function fire(...: T...)
 		currentListeners = nextListeners
 
 		for _, listener in currentListeners do
@@ -37,10 +35,7 @@ local function signal(): Signal<(...any) -> ()>
 		end
 	end
 
-	return {
-		connect = connect,
-		fire = fire,
-	}
+	return subscribe, fire
 end
 
 return signal

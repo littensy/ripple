@@ -1,27 +1,51 @@
 local bench = require("./bench")
-local createTween = require("../packages/ripple/src/animation/createTween")
-local heartbeat = require("../packages/ripple/src/heartbeat")
 
-local FPS = 60
-local TWEENS = 100
+local ITERATIONS = 10000
 
-local config = { start = true, duration = 2, easing = "quartOut" :: "quartOut" }
+-- selene: allow(unused_variable)
+local object = {
+	property = 0,
+}
 
-bench("ripple", function()
-	local tweens = table.create(TWEENS)
+do
+	local createTween = require("../packages/ripple/src/animation/createTween")
+	local heartbeat = require("../packages/ripple/src/heartbeat")
 
-	for index = 1, TWEENS do
+	local config: createTween.TweenConfig = { start = true }
+
+	bench("ripple", function()
 		local tween = createTween(0, config)
+
 		tween.to(1)
-		tweens[index] = tween
-	end
+		tween.onChange(function(value)
+			object.property = value
+		end)
 
-	for _ = 1, FPS do
-		heartbeat.step(1 / FPS)
-		for _, tween in tweens do
-			local _ = tween.position
+		for _ = 1, ITERATIONS do
+			heartbeat.step(1 / ITERATIONS)
 		end
-	end
 
-	heartbeat.clear()
-end)
+		heartbeat.clear()
+	end)
+end
+
+do
+	local AnimationStepSignal = require("./otter/AnimationStepSignal")
+	local createSingleMotor = require("./otter/createSingleMotor")
+	local ease = require("./otter/ease")
+
+	bench("otter", function()
+		local motor = createSingleMotor(0)
+
+		motor:setGoal(ease(1))
+		motor:onStep(function(value)
+			object.property = value
+		end)
+
+		for _ = 1, ITERATIONS do
+			AnimationStepSignal:Fire(1 / ITERATIONS)
+		end
+
+		AnimationStepSignal:Clear()
+	end)
+end

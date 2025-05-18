@@ -165,13 +165,13 @@ test("should repeat in reverse", function()
 end)
 
 test("should wake after update on complete", function()
-	local steps = 0
+	local changes = 0
 	local completes = 0
 
 	local tween = createTween(0, { duration = 1 })
 	tween.goal = 1
-	tween.onStep(function()
-		steps += 1
+	tween.onChange(function()
+		changes += 1
 	end)
 	tween.onComplete(function()
 		completes += 1
@@ -182,24 +182,24 @@ test("should wake after update on complete", function()
 	end)
 
 	tween.step(0.5)
-	assert(steps == 1, "did not step")
+	assert(changes == 1, "did not step")
 	assert(completes == 0, "completed early")
 
 	tween.step(0.5)
-	assert(steps == 2, "did not step")
+	assert(changes == 2, "did not step")
 	assert(completes == 1, "did not complete")
 
 	tween.step(0.5)
-	assert(steps == 3, "did not step")
+	assert(changes == 3, "did not step")
 	assert(completes == 1, "completed early")
 
 	tween.step(0.5)
-	assert(steps == 4, "did not step")
+	assert(changes == 4, "did not step")
 	assert(completes == 2, "did not finally complete")
 	assert(tween.complete, "did not complete")
 
 	tween.step(0.5)
-	assert(steps == 4, "stepped after complete")
+	assert(changes == 4, "stepped after complete")
 	assert(completes == 2, "completed after complete")
 end)
 

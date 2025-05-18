@@ -85,15 +85,20 @@ local function getValue<T>(intermediate: Intermediate<T>): T
 	return intermediate.value
 end
 
-local function setValue<T>(intermediate: Intermediate<T>, value: T)
+local function setValue<T>(intermediate: Intermediate<T>, value: T): boolean
 	if intermediate.kind == "table" then
 		value = merge(getValue(intermediate), value)
 	end
+
+	intermediate.dirty = false
+
 	if intermediate.value ~= value then
 		intermediate.value = value
 		intermediate.components = valueToComponents(value, intermediate.kind)
+		return true
+	else
+		return false
 	end
-	intermediate.dirty = false
 end
 
 local function addValue<T>(intermediate: Intermediate<T>, value: T)

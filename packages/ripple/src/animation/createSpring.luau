@@ -5,7 +5,8 @@ local types = require("../types")
 
 type Animatable = types.Animatable
 type Intermediate<T> = intermediate.Intermediate<T>
-type Signal<T> = signal.Signal<T>
+type FireSignal<T...> = signal.FireSignal<T...>
+type SubscribeSignal<T...> = signal.SubscribeSignal<T...>
 
 export type SpringConfig<T = any> = {
 	start: boolean?,
@@ -22,7 +23,7 @@ export type SpringConfig<T = any> = {
 }
 
 type SpringApi<T> = {
-	onStep: (callback: (value: T, deltaTime: number) -> ()) -> () -> (),
+	onChange: (callback: (value: T, deltaTime: number) -> ()) -> () -> (),
 	onComplete: (callback: (value: T) -> ()) -> () -> (),
 
 	step: (deltaTime: number) -> T,
@@ -65,8 +66,8 @@ local function createSpring<T>(initialValue: T & Animatable, config: SpringConfi
 	local restPosition = 1e-3
 	local restVelocity = restPosition * VELOCITY_THRESHOLD_MULTIPLIER
 
-	local onStep = signal()
-	local onComplete = signal()
+	local onChange: SubscribeSignal<(T, number)>, fireChange: FireSignal<(T, number)> = signal()
+	local onComplete: SubscribeSignal<T>, fireComplete: FireSignal<T> = signal()
 
 	local id = heartbeat.id()
 	local started = config.start or false
@@ -150,13 +151,13 @@ local function createSpring<T>(initialValue: T & Animatable, config: SpringConfi
 
 		local value = intermediate.getValue(if complete then goal else position)
 
-		onStep.fire(value, dt)
+		fireChange(value, dt)
 
 		if complete then
 			heartbeat.disconnect(id)
 			intermediate.assign(position, goal)
 			intermediate.zero(velocity)
-			onComplete.fire(value)
+			fireComplete(value)
 		end
 
 		return value
@@ -170,18 +171,22 @@ local function createSpring<T>(initialValue: T & Animatable, config: SpringConfi
 	end
 
 	local function setPosition(value: T)
-		intermediate.setValue(position, value)
-		scheduleUpdate()
+		if intermediate.setValue(position, value) then
+			scheduleUpdate()
+			fireChange(intermediate.getValue(position), 0)
+		end
 	end
 
 	local function setVelocity(value: T)
-		intermediate.setValue(velocity, value)
-		scheduleUpdate()
+		if intermediate.setValue(velocity, value) then
+			scheduleUpdate()
+		end
 	end
 
 	local function setGoal(value: T)
-		intermediate.setValue(goal, value)
-		scheduleUpdate()
+		if intermediate.setValue(goal, value) then
+			scheduleUpdate()
+		end
 	end
 
 	local function impulse(value: T)
@@ -266,8 +271,8 @@ local function createSpring<T>(initialValue: T & Animatable, config: SpringConfi
 	end
 
 	local spring: SpringApi<T> = {
-		onStep = onStep.connect,
-		onComplete = onComplete.connect,
+		onChange = onChange,
+		onComplete = onComplete,
 		step = step,
 		to = to,
 		impulse = impulse,
