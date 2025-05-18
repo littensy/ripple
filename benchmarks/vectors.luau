@@ -4,7 +4,7 @@ local ITERATIONS = 10000
 
 -- selene: allow(unused_variable)
 local object = {
-	property = 0,
+	property = vector.zero,
 }
 
 do
@@ -14,9 +14,9 @@ do
 	local config = { start = true, frequency = 1 / 10 }
 
 	bench("ripple", function()
-		local spring = createSpring(0, config)
+		local spring = createSpring(vector.zero, config)
 
-		spring.to(1)
+		spring.to(vector.one)
 		spring.onStep(function(value)
 			object.property = value
 		end)
@@ -34,13 +34,13 @@ do
 	local spring, step, clear = require("./vide/spring")()
 
 	local function goal()
-		return 1
+		return vector.one
 	end
 
 	bench("vide", function()
 		root(function(cleanup)
 			local spring = spring(goal, 10)
-			spring(0)
+			spring(vector.zero)
 
 			for _ = 1, ITERATIONS do
 				-- This step function runs at a variable frequency instead of
@@ -59,17 +59,22 @@ end
 
 do
 	local AnimationStepSignal = require("./otter/AnimationStepSignal")
-	local createSingleMotor = require("./otter/createSingleMotor")
+	local createGroupMotor = require("./otter/createGroupMotor")
 	local spring = require("./otter/spring")
 
 	local config = { frequency = 1 / 10 }
 
 	bench("otter", function()
-		local motor = createSingleMotor(0)
+		local motor = createGroupMotor({ x = 0, y = 0, z = 0 })
 
-		motor:setGoal(spring(1, config))
+		motor:setGoal({
+			x = spring(1, config),
+			y = spring(1, config),
+			z = spring(1, config),
+		})
+
 		motor:onStep(function(value)
-			object.property = value
+			object.property = vector.create(value.x, value.y, value.z)
 		end)
 
 		for _ = 1, ITERATIONS do
@@ -84,9 +89,9 @@ do
 	local SpringValue = require("./react-flow/SpringValue")
 
 	bench("react-flow", function()
-		local spring = SpringValue.new(0, 1 / 10)
+		local spring = SpringValue.new(vector.zero, 1 / 10)
 
-		spring:SetGoal(1)
+		spring:SetGoal(vector.one)
 		spring:Run()
 		spring:SetUpdater(function(value)
 			object.property = value

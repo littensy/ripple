@@ -77,6 +77,10 @@ local type_to_vec6 = {
 		return vector.create(v, 0, 0), vector.zero
 	end :: TypeToVec6<number>,
 
+	vector = function(v)
+		return v, vector.zero
+	end :: TypeToVec6<vector>,
+
 	CFrame = function(v)
 		return v.Position, vector.create(v:ToEulerAnglesXYZ())
 	end :: TypeToVec6<CFrame>,
@@ -111,6 +115,10 @@ local vec6_to_type = {
 	number = function(a, b)
 		return a.X
 	end :: Vec6ToType<number>,
+
+	vector = function(v)
+		return v
+	end :: Vec6ToType<vector>,
 
 	CFrame = function(a, b)
 		return CFrame.new(a) * CFrame.fromEulerAnglesXYZ(b.X, b.Y, b.Z)
@@ -315,17 +323,10 @@ local function update_spring_sources()
 end
 
 return function()
-	local time_elapsed = 0
-
 	return spring,
 		function(dt: number)
-			time_elapsed += dt
-
-			while time_elapsed > 1 / UPDATE_RATE do
-				time_elapsed -= 1 / UPDATE_RATE
-				step_springs(1 / UPDATE_RATE)
-			end
-
+			-- deviation: remove fixed time step for benchmarks
+			step_springs(dt)
 			update_spring_sources()
 		end,
 		function()

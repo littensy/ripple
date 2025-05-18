@@ -1,7 +1,7 @@
 local merge = require("./merge")
 local oklab = require("./oklab")
 
-export type Components = { number | vector | Vector3 }
+export type Components = { number | vector }
 
 export type Intermediate<T = any> = {
 	kind: string,
@@ -11,12 +11,10 @@ export type Intermediate<T = any> = {
 }
 
 local function valueToComponents(value: any, kind: string): Components
-	if kind == "number" then
+	if kind == "number" or kind == "vector" or kind == "Vector3" then
 		return { value }
 	elseif kind == "table" then
 		return table.clone(value)
-	elseif kind == "vector" or kind == "Vector3" then
-		return { value }
 	elseif kind == "Vector2" then
 		return { vector.create(value.X, value.Y, 0) }
 	elseif kind == "CFrame" then
@@ -35,12 +33,10 @@ local function valueToComponents(value: any, kind: string): Components
 end
 
 local function componentsToValue(components: { any }, kind: string): any
-	if kind == "number" then
+	if kind == "number" or kind == "vector" or kind == "Vector3" then
 		return components[1]
 	elseif kind == "table" then
 		return table.clone(components)
-	elseif kind == "vector" or kind == "Vector3" then
-		return components[1]
 	elseif kind == "Vector2" then
 		local xy: vector = components[1]
 		return Vector2.new(xy.x, xy.y)

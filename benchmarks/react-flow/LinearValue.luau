@@ -28,6 +28,7 @@ local LinearValue = {}
 
 export type LinearValueType =
 	number
+	| vector
 	| UDim2
 	| UDim
 	| Vector2
@@ -49,6 +50,8 @@ function LinearValue.fromValue(value: any)
 
 	if typeString == "number" then
 		return LinearValue.new(nil, value)
+	elseif typeString == "vector" then
+		return LinearValue.new(vector.create, value.x, value.y, value.z)
 	elseif typeString == "UDim2" then
 		return LinearValue.new(UDim2.new, value.X.Scale, value.X.Offset, value.Y.Scale, value.Y.Offset)
 	elseif typeString == "UDim" then

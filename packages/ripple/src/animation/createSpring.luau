@@ -44,72 +44,12 @@ export type Spring<T = any> = SpringApi<T> & {
 
 local VELOCITY_THRESHOLD_MULTIPLIER = 1000 / 16
 
---- Spring function borrowed from Otter:
---- https://github.com/Roblox/otter/blob/main/modules/otter/src/spring.lua
-local function computeSpring(
-	dt: number,
-	p0: number,
-	v0: number,
-	g: number,
-	d: number,
-	f: number,
-	decay: number
-): (number, number)
-	local offset = p0 - g
-	local p1, v1
-
-	if d == 1 then -- Critically damped
-		p1 = (v0 * dt + offset * (f * dt + 1)) * decay + g
-		v1 = (v0 - f * dt * (offset * f + v0)) * decay
-	elseif d < 1 then -- Underdamped
-		local c = math.sqrt(1 - d * d)
-
-		local i = math.cos(f * c * dt)
-		local j = math.sin(f * c * dt)
-
-		local z
-		if c > 1e-4 then
-			z = j / c
-		else
-			local a = dt * f
-			z = a + ((a * a) * (c * c) * (c * c) / 20 - c * c) * (a * a * a) / 6
-		end
-
-		local y
-		if f * c > 1e-4 then
-			y = j / (f * c)
-		else
-			local b = f * c
-			y = dt + ((dt * dt) * (b * b) * (b * b) / 20 - b * b) * (dt * dt * dt) / 6
-		end
-
-		p1 = (offset * (i + d * z) + v0 * y) * decay + g
-		v1 = (v0 * (i - z * d) - offset * (z * f)) * decay
-	else -- Overdamped
-		local c = math.sqrt(d * d - 1)
-
-		local r1 = -f * (d - c)
-		local r2 = -f * (d + c)
-
-		local co2 = (v0 - r1 * offset) / (2 * f * c)
-		local co1 = offset - co2
-
-		local e1 = co1 * math.exp(r1 * dt)
-		local e2 = co2 * math.exp(r2 * dt)
-
-		p1 = e1 + e2 + g
-		v1 = r1 * e1 + r2 * e2
-	end
-
-	return p1, v1
-end
-
 local function belowThreshold(value: number | vector, threshold: number): boolean
 	if type(value) == "number" then
 		return math.abs(value) <= threshold
 	else
-		local abs = vector.abs(value)
-		return math.max(abs.x, abs.y, abs.z) <= threshold
+		local max = vector.create(threshold, threshold, threshold)
+		return vector.max(vector.abs(value), max) == max
 	end
 end
 
@@ -137,23 +77,75 @@ local function createSpring<T>(initialValue: T & Animatable, config: SpringConfi
 			return intermediate.getValue(position)
 		end
 
-		local angularFrequency = frequency * 2 * math.pi
-		local decay = math.exp(-dt * dampingRatio * angularFrequency)
+		local d = dampingRatio
+		local f = frequency * 2 * math.pi
+		local decay = math.exp(-dt * dampingRatio * f)
+
 		complete = true
 
-		for key, lastPosition in position.components :: { number } do
-			local lastVelocity = velocity.components[key] :: number
-			local target = goal.components[key] :: number
-			local currentPosition, currentVelocity =
-				computeSpring(dt, lastPosition, lastVelocity, target, dampingRatio, angularFrequency, decay)
+		for key, p0 in position.components :: { number } do
+			local v0 = velocity.components[key] :: number
+			local g = goal.components[key] :: number
 
-			position.components[key], position.dirty = currentPosition, true
-			velocity.components[key], velocity.dirty = currentVelocity, true
+			local offset = p0 - g
+			local p1, v1
+
+			-- Spring calculation from Otter:
+			-- https://github.com/Roblox/otter/blob/main/modules/otter/src/spring.lua
+			if d == 1 then -- Critically damped
+				p1 = (v0 * dt + offset * (f * dt + 1)) * decay + g
+				v1 = (v0 - f * dt * (offset * f + v0)) * decay
+			elseif d < 1 then -- Underdamped
+				local c = math.sqrt(1 - d * d)
+
+				local i = math.cos(f * c * dt)
+				local j = math.sin(f * c * dt)
+
+				local z
+				if c > 1e-4 then
+					z = j / c
+				else
+					local a = dt * f
+					z = a + ((a * a) * (c * c) * (c * c) / 20 - c * c) * (a * a * a) / 6
+				end
+
+				local y
+				if f * c > 1e-4 then
+					y = j / (f * c)
+				else
+					local b = f * c
+					y = dt + ((dt * dt) * (b * b) * (b * b) / 20 - b * b) * (dt * dt * dt) / 6
+				end
+
+				p1 = (offset * (i + d * z) + v0 * y) * decay + g
+				v1 = (v0 * (i - z * d) - offset * (z * f)) * decay
+			else -- Overdamped
+				local c = math.sqrt(d * d - 1)
+
+				local r1 = -f * (d - c)
+				local r2 = -f * (d + c)
+
+				local co2 = (v0 - r1 * offset) / (2 * f * c)
+				local co1 = offset - co2
+
+				local e1 = co1 * math.exp(r1 * dt)
+				local e2 = co2 * math.exp(r2 * dt)
+
+				p1 = e1 + e2 + g
+				v1 = r1 * e1 + r2 * e2
+			end
 
 			if complete then
-				complete = belowThreshold(currentPosition - target, restPosition)
-					and belowThreshold(currentVelocity, restVelocity)
+				if belowThreshold(p1 - g, restPosition) and belowThreshold(v1, restVelocity) then
+					p1 = g
+					v1 *= 0
+				else
+					complete = false
+				end
 			end
+
+			position.components[key], position.dirty = p1, true
+			velocity.components[key], velocity.dirty = v1, true
 		end
 
 		local value = intermediate.getValue(if complete then goal else position)
@@ -213,16 +205,16 @@ local function createSpring<T>(initialValue: T & Animatable, config: SpringConfi
 			frequency = config.frequency or frequency
 		end
 
-		if config.position then
-			setPosition(config.position)
-		end
-
 		if config.velocity then
 			setVelocity(config.velocity)
 		end
 
 		if config.impulse then
 			impulse(config.impulse)
+		end
+
+		if config.position then
+			setPosition(config.position)
 		end
 	end
 
