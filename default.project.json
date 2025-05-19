@@ -15,8 +15,8 @@
 			"test": {
 				"$path": "test"
 			},
-			"stories": {
-				"$path": "stories"
+			"storybook": {
+				"$path": "storybook"
 			},
 			"node_modules": {
 				"$path": "node_modules/@rbxts-js"

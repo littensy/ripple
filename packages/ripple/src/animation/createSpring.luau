@@ -198,16 +198,16 @@ local function createSpring<T>(initialValue: T & Animatable, config: SpringConfi
 		restPosition = config.precision or restPosition
 		restVelocity = config.restVelocity or restPosition * VELOCITY_THRESHOLD_MULTIPLIER
 
-		if config.friction or config.tension or config.mass then
+		if config.dampingRatio or config.frequency then
+			dampingRatio = config.dampingRatio or dampingRatio
+			frequency = config.frequency or frequency
+		else
 			local tension = config.tension or 170
 			local friction = config.friction or 26
 			local mass = config.mass or 1
 
 			dampingRatio = friction / (2 * (mass * tension) ^ 0.5)
 			frequency = (tension / mass) ^ 0.5 / 2 / math.pi
-		else
-			dampingRatio = config.dampingRatio or dampingRatio
-			frequency = config.frequency or frequency
 		end
 
 		if config.velocity then

@@ -7,12 +7,14 @@ type GraphProps = {
 	precision: number,
 	step: (dt: number) -> number,
 	completed: () -> boolean,
+	showRuntime: boolean?,
 }
 
 local MAX_POINTS = 50
 
 local function Graph(props: GraphProps)
 	local pathRef = React.useRef((nil :: any) :: Path2D)
+	local runtime, setRuntime = React.useState(0)
 
 	React.useEffect(function()
 		local path = pathRef.current
@@ -37,6 +39,10 @@ local function Graph(props: GraphProps)
 		end
 
 		path:SetControlPoints(controlPoints)
+
+		if props.showRuntime then
+			setRuntime(#samples * props.precision)
+		end
 	end, { props.step })
 
 	return React.createElement("Frame", {
@@ -51,8 +57,8 @@ local function Graph(props: GraphProps)
 			PaddingRight = UDim.new(0, 8),
 		}),
 		Text = React.createElement("TextLabel", {
-			Text = props.name,
-			TextSize = 8,
+			Text = if runtime > 0 then `{props.name} ({string.format("%.2f", runtime)}s)` else props.name,
+			TextSize = 7,
 			TextColor3 = Color3.fromRGB(255, 255, 255),
 			TextXAlignment = Enum.TextXAlignment.Center,
 			TextYAlignment = Enum.TextYAlignment.Bottom,

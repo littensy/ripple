@@ -1,6 +1,6 @@
 local ServerScriptService = game:GetService("ServerScriptService")
 
-local Graph = require(script.Parent.components.Graph)
+local Graph = require(script.Parent.Parent.components.Graph)
 local React = require(ServerScriptService.node_modules.React)
 local ReactRoblox = require(ServerScriptService.node_modules.ReactRoblox)
 local Ripple = require(ServerScriptService.packages.ripple.src)
@@ -12,6 +12,7 @@ type SpringFunctionProps = {
 
 local configs: { [string]: Ripple.SpringConfig } = table.clone(Ripple.config)
 
+configs.empty = {}
 configs.figmaGentle = { tension = 100, friction = 15 }
 configs.figmaQuick = { tension = 300, friction = 20 }
 configs.figmaBouncy = { tension = 600, friction = 15 }
@@ -27,6 +28,7 @@ local function SpringFunction(props: SpringFunctionProps)
 	return React.createElement(Graph, {
 		name = props.name,
 		precision = 0.001,
+		showRuntime = true,
 		step = spring.step,
 		completed = function()
 			return spring.complete
@@ -34,30 +36,33 @@ local function SpringFunction(props: SpringFunctionProps)
 	})
 end
 
+local function SpringFunctions()
+	local children: { [string]: React.ReactNode } = {}
+
+	for name, config in configs do
+		children[name] = React.createElement(SpringFunction, {
+			name = name,
+			config = config,
+		})
+	end
+
+	return React.createElement("Frame", {
+		BackgroundTransparency = 1,
+		Size = UDim2.new(1, 0, 1, 0),
+	}, {
+		GridLayout = React.createElement("UIGridLayout", {
+			CellSize = UDim2.new(1 / 3, -8 * 3, 1 / 4, -8 * 4),
+			CellPadding = UDim2.fromOffset(8, 8),
+			HorizontalAlignment = Enum.HorizontalAlignment.Center,
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+			FillDirection = Enum.FillDirection.Horizontal,
+		}),
+	}, children)
+end
+
 return {
+	name = "Spring Functions",
+	story = SpringFunctions,
 	react = React,
 	reactRoblox = ReactRoblox,
-	story = function()
-		local children: { [string]: React.ReactNode } = {}
-
-		for name, config in configs do
-			children[name] = React.createElement(SpringFunction, {
-				name = name,
-				config = config,
-			})
-		end
-
-		return React.createElement("Frame", {
-			BackgroundTransparency = 1,
-			Size = UDim2.new(1, 0, 1, 0),
-		}, {
-			GridLayout = React.createElement("UIGridLayout", {
-				CellSize = UDim2.new(1 / 3, -8 * 3, 1 / 4, -8 * 4),
-				CellPadding = UDim2.fromOffset(8, 8),
-				HorizontalAlignment = Enum.HorizontalAlignment.Center,
-				VerticalAlignment = Enum.VerticalAlignment.Center,
-				FillDirection = Enum.FillDirection.Horizontal,
-			}),
-		}, children)
-	end,
 }
