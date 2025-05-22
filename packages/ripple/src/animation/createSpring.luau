@@ -66,12 +66,12 @@ local function createSpring<T>(initialValue: T & Animatable, config: SpringConfi
 	local restPosition = 1e-3
 	local restVelocity = restPosition * VELOCITY_THRESHOLD_MULTIPLIER
 
-	local onChange: SubscribeSignal<(T, number)>, fireChange: FireSignal<(T, number)> = signal()
-	local onComplete: SubscribeSignal<T>, fireComplete: FireSignal<T> = signal()
-
 	local id = heartbeat.id()
 	local started = config.start or false
 	local complete = true
+
+	local onChange: SubscribeSignal<(T, number)>, fireChange: FireSignal<(T, number)> = signal()
+	local onComplete: SubscribeSignal<T>, fireComplete: FireSignal<T> = signal()
 
 	local function step(dt: number): T
 		if complete then
