@@ -175,9 +175,9 @@ local function createSequence<T>(initialValue: T & Animatable, keypoints: { Sequ
 		elseif key == "time" then
 			setTime(value)
 		elseif key == "goal" then
-			warn("Cannot set 'goal' directly. Use 'to()' to set the goal.")
+			warn(debug.traceback("Cannot set 'goal' in a sequence.", 2))
 		elseif key == "complete" then
-			warn("Cannot set 'complete' property directly. Use 'stop()' to stop the sequence.")
+			warn(debug.traceback("Cannot set 'complete' property directly. Use 'stop()' to stop the sequence.", 2))
 		else
 			rawset(self, key, value)
 		end

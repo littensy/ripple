@@ -264,7 +264,7 @@ local function createSpring<T>(initialValue: T & Animatable, config: SpringConfi
 		elseif key == "goal" then
 			setGoal(value)
 		elseif key == "complete" then
-			warn("Cannot set 'complete' property directly. Use 'stop()' to stop the spring.")
+			warn(debug.traceback("Cannot set 'complete' property directly. Use 'stop()' to stop the spring.", 2))
 		else
 			rawset(self, key, value)
 		end

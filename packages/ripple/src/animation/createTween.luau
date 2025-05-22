@@ -177,7 +177,7 @@ local function createTween<T>(initialValue: T & Animatable, config: TweenConfig<
 		elseif key == "goal" then
 			setGoal(value)
 		elseif key == "complete" then
-			warn("Cannot set 'complete' property directly. Use 'stop()' to stop the tween.")
+			warn(debug.traceback("Cannot set 'complete' property directly. Use 'stop()' to stop the tween.", 2))
 		else
 			rawset(self, key, value)
 		end
