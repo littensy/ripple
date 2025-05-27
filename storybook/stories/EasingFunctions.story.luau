@@ -1,10 +1,9 @@
-local ServerScriptService = game:GetService("ServerScriptService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Graph = require(script.Parent.Parent.components.Graph)
-local React = require(ServerScriptService.node_modules.React)
-local ReactRoblox = require(ServerScriptService.node_modules.ReactRoblox)
-local Ripple = require(ServerScriptService.packages.ripple.src)
-local easing = require(ServerScriptService.packages.ripple.src.utils.easing)
+local React = require(ReplicatedStorage.node_modules.React)
+local ReactRoblox = require(ReplicatedStorage.node_modules.ReactRoblox)
+local Ripple = require(ReplicatedStorage.packages.ripple.src)
 
 type EasingFunctionProps = {
 	easing: Ripple.Easing,
@@ -33,7 +32,7 @@ end
 local function EasingFunctions()
 	local children: { [string]: React.ReactNode } = {}
 
-	for name: Ripple.Easing in easing do
+	for name: Ripple.Easing in pairs(Ripple.easing) do
 		children[name] = React.createElement(EasingFunction, {
 			easing = name,
 			duration = 1,

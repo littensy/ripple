@@ -1,0 +1,18 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local React = require(ReplicatedStorage.node_modules.React)
+local ReactRoblox = require(ReplicatedStorage.node_modules.ReactRoblox)
+local easingFunctions = require(ReplicatedStorage.storybook.stories["EasingFunctions.story"])
+local springFunctions = require(ReplicatedStorage.storybook.stories["SpringFunctions.story"])
+
+local root = ReactRoblox.createRoot(Instance.new("Folder"))
+
+root:render(ReactRoblox.createPortal({
+	easing = React.createElement("ScreenGui", {}, {
+		React.createElement(easingFunctions.story),
+	}),
+	spring = React.createElement("ScreenGui", { Enabled = false }, {
+		React.createElement(springFunctions.story),
+	}),
+}, Players.LocalPlayer.PlayerGui, "storybook"))

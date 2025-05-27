@@ -1,6 +1,6 @@
-local ServerScriptService = game:GetService("ServerScriptService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local React = require(ServerScriptService.node_modules.React)
+local React = require(ReplicatedStorage.node_modules.React)
 
 type GraphProps = {
 	name: string,

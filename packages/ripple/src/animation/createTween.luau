@@ -1,15 +1,14 @@
-local easing = require("../utils/easing")
+local easing = require("..//easing")
 local heartbeat = require("../heartbeat")
 local intermediate = require("../utils/intermediate")
 local signal = require("../utils/signal")
 local types = require("../types")
 
+type Easing = easing.Easing
 type Animatable = types.Animatable
 type Intermediate<T> = intermediate.Intermediate<T>
 type FireSignal<T...> = signal.FireSignal<T...>
 type SubscribeSignal<T...> = signal.SubscribeSignal<T...>
-
-export type Easing = easing.Easing
 
 export type TweenConfig<T = any> = {
 	start: boolean?,
@@ -59,14 +58,14 @@ local function createTween<T>(initialValue: T & Animatable, config: TweenConfig<
 	local from = intermediate.create(config.position or initialValue)
 	local goal = intermediate.create(config.position or initialValue)
 
-	local easingFunction = easing[config.easing :: Easing] or easing["linear" :: "linear"]
-	local duration = config.duration or 1
-	local repeats = config.repeats or 1
-	local reverses = config.reverses or false
+	local easingFunction = easing["linear" :: "linear"]
+	local duration = 1
+	local repeats = 1
+	local reverses = false
 
 	local id = heartbeat.id()
 	local elapsed = 0
-	local started = config.start or false
+	local started = false
 	local complete = true
 
 	local onChange: SubscribeSignal<(T, number)>, fireChange: FireSignal<(T, number)> = signal()
@@ -125,26 +124,6 @@ local function createTween<T>(initialValue: T & Animatable, config: TweenConfig<
 		end
 	end
 
-	local function configure(config: TweenConfig<T>)
-		easingFunction = easing[config.easing :: Easing] or easingFunction
-		duration = config.duration or duration
-		repeats = config.repeats or repeats
-		reverses = config.reverses or reverses
-
-		if config.position then
-			setPosition(config.position)
-		else
-			resumeFromCurrentPosition()
-		end
-	end
-
-	local function to(value: T, config: TweenConfig<T>?)
-		if config then
-			configure(config)
-		end
-		setGoal(value)
-	end
-
 	local function stop()
 		started = false
 		heartbeat.disconnect(id)
@@ -155,6 +134,28 @@ local function createTween<T>(initialValue: T & Animatable, config: TweenConfig<
 		if not complete then
 			heartbeat.connect(id, step)
 		end
+	end
+
+	local function configure(config: TweenConfig<T>)
+		easingFunction = easing[config.easing :: Easing] or easingFunction
+		duration = config.duration or duration
+		repeats = config.repeats or repeats
+		reverses = config.reverses or reverses
+
+		if config.position then
+			setPosition(config.position)
+		end
+
+		if not complete and elapsed ~= 0 then
+			resumeFromCurrentPosition()
+		end
+	end
+
+	local function to(value: T, config: TweenConfig<T>?)
+		if config then
+			configure(config)
+		end
+		setGoal(value)
 	end
 
 	local function getter(_: any, key: any): any
@@ -193,6 +194,8 @@ local function createTween<T>(initialValue: T & Animatable, config: TweenConfig<
 		stop = stop,
 		destroy = stop,
 	}
+
+	configure(config)
 
 	if config.start then
 		start()

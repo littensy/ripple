@@ -24,7 +24,6 @@
 
 --# selene: allow(unused_variable)
 --# selene: allow(incorrect_standard_library_use)
---# selene: allow(multiple_statements)
 
 local flags = require("./flags")
 

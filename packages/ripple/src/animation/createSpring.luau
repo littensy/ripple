@@ -67,7 +67,7 @@ local function createSpring<T>(initialValue: T & Animatable, config: SpringConfi
 	local restVelocity = restPosition * VELOCITY_THRESHOLD_MULTIPLIER
 
 	local id = heartbeat.id()
-	local started = config.start or false
+	local started = false
 	local complete = true
 
 	local onChange: SubscribeSignal<(T, number)>, fireChange: FireSignal<(T, number)> = signal()
@@ -173,7 +173,7 @@ local function createSpring<T>(initialValue: T & Animatable, config: SpringConfi
 	local function setPosition(value: T)
 		if intermediate.setValue(position, value) then
 			scheduleUpdate()
-			fireChange(intermediate.getValue(position), 0)
+			fireChange(value, 0)
 		end
 	end
 
@@ -192,6 +192,18 @@ local function createSpring<T>(initialValue: T & Animatable, config: SpringConfi
 	local function impulse(value: T)
 		intermediate.addValue(velocity, value)
 		scheduleUpdate()
+	end
+
+	local function stop()
+		started = false
+		heartbeat.disconnect(id)
+	end
+
+	local function start()
+		started = true
+		if not complete then
+			heartbeat.connect(id, step)
+		end
 	end
 
 	local function configure(config: SpringConfig<T>)
@@ -228,18 +240,6 @@ local function createSpring<T>(initialValue: T & Animatable, config: SpringConfi
 			configure(config)
 		end
 		setGoal(value)
-	end
-
-	local function stop()
-		started = false
-		heartbeat.disconnect(id)
-	end
-
-	local function start()
-		started = true
-		if not complete then
-			heartbeat.connect(id, step)
-		end
 	end
 
 	local function getter(_, key: any): any

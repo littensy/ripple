@@ -1,5 +1,5 @@
 local createTween = require("../../animation/createTween")
-local easing = require("../../utils/easing")
+local easing = require("../../easing")
 local heartbeat = require("../../heartbeat")
 local suite = require("../../../../../test/suite")
 
@@ -206,7 +206,7 @@ end)
 test("should have correct start and end", function()
 	local tween = createTween(1)
 
-	for name: easing.Easing in easing do
+	for name in pairs(easing) do
 		tween.configure({ position = 0, easing = name })
 		local x0 = tween.step(0)
 		local x1 = tween.step(1)

@@ -1,10 +1,11 @@
 {
 	"name": "ripple-test",
 	"globIgnorePaths": ["**/default.project.json"],
+	"emitLegacyScripts": false,
 	"tree": {
 		"$className": "DataModel",
-		"ServerScriptService": {
-			"$className": "ServerScriptService",
+		"ReplicatedStorage": {
+			"$className": "ReplicatedStorage",
 			"packages": {
 				"$className": "Folder",
 				"ripple": {

@@ -1,3 +1,13 @@
+--[[
+	Each benchmark runs a prolonged spring animation that updates a property
+	a specified number of times, measuring the performance of stepping through
+	the animation and converting the internal values to and from vectors.
+
+	For libraries that do not natively support vectors, the goal will be a
+	table with x, y, and z properties, and the vector will be derived from
+	these values.
+]]
+
 local bench = require("./bench")
 
 local ITERATIONS = 10000

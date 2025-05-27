@@ -13,4 +13,8 @@ suite.describe("utils", function()
 	require("./utils/spec")
 end)
 
+suite.describe("easing", function()
+	require("./easing.spec")
+end)
+
 return {}

@@ -1,25 +1,25 @@
+--[[
+	Each benchmark runs a prolonged spring animation that updates a property
+	a specified number of times, measuring the performance of stepping through
+	the animation.
+]]
+
 local bench = require("./bench")
 
 local ITERATIONS = 10000
-
--- selene: allow(unused_variable)
-local object = {
-	property = 0,
-}
 
 do
 	local createSpring = require("../packages/ripple/src/animation/createSpring")
 	local heartbeat = require("../packages/ripple/src/heartbeat")
 
-	local config: createSpring.SpringConfig = { start = true, frequency = 1 / 10 }
+	local config: createSpring.SpringConfig = {
+		start = true,
+		frequency = 1 / 10,
+	}
 
 	bench("ripple", function()
 		local spring = createSpring(0, config)
-
 		spring.to(1)
-		spring.onChange(function(value)
-			object.property = value
-		end)
 
 		for _ = 1, ITERATIONS do
 			heartbeat.step(1 / ITERATIONS)
@@ -38,11 +38,7 @@ do
 
 	bench("otter", function()
 		local motor = createSingleMotor(0)
-
 		motor:setGoal(spring(1, config))
-		motor:onStep(function(value)
-			object.property = value
-		end)
 
 		for _ = 1, ITERATIONS do
 			AnimationStepSignal:Fire(1 / ITERATIONS)
@@ -53,8 +49,8 @@ do
 end
 
 do
-	local root = require("./vide/root")
 	local spring, step, clear = require("./vide/spring")()
+	local root = require("./vide/root")
 
 	local function goal()
 		return 1
@@ -62,20 +58,17 @@ do
 
 	bench("vide", function()
 		root(function(cleanup)
-			local spring = spring(goal, 10)
-			spring(0)
+			local source = spring(goal, 10)
+			source(0)
 
 			for _ = 1, ITERATIONS do
 				-- This step function runs at a variable frequency instead of
 				-- the 120hz fixed frequency normally used in Vide
 				step(1 / ITERATIONS)
-				-- Realistically, this should be in an effect, but including
-				-- Vide's reactive graph is not the point of this benchmark
-				object.property = spring()
 			end
 
-			cleanup()
 			clear()
+			cleanup()
 		end)
 	end)
 end
@@ -85,12 +78,8 @@ do
 
 	bench("react-flow", function()
 		local spring = SpringValue.new(0, 1 / 10)
-
 		spring:SetGoal(1)
 		spring:Run()
-		spring:SetUpdater(function(value)
-			object.property = value
-		end)
 
 		for _ = 1, ITERATIONS do
 			SpringValue.step(1 / ITERATIONS)

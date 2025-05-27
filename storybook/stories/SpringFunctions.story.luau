@@ -1,9 +1,9 @@
-local ServerScriptService = game:GetService("ServerScriptService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Graph = require(script.Parent.Parent.components.Graph)
-local React = require(ServerScriptService.node_modules.React)
-local ReactRoblox = require(ServerScriptService.node_modules.ReactRoblox)
-local Ripple = require(ServerScriptService.packages.ripple.src)
+local React = require(ReplicatedStorage.node_modules.React)
+local ReactRoblox = require(ReplicatedStorage.node_modules.ReactRoblox)
+local Ripple = require(ReplicatedStorage.packages.ripple.src)
 
 type SpringFunctionProps = {
 	name: string,

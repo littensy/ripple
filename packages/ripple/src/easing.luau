@@ -30,6 +30,8 @@ export type Easing =
 	| "cubicIn"
 	| "cubicOut"
 	| "cubicInOut"
+	| "smoothstep"
+	| "instant"
 
 --[[
 	Easing functions borrowed from easings.net:
@@ -65,7 +67,7 @@ local function bounceOut(x: number): number
 	end
 end
 
-local easing: { [Easing]: (number) -> number } = {
+local easing = {
 	linear = function(x: number): number
 		return x
 	end,
@@ -166,6 +168,12 @@ local easing: { [Easing]: (number) -> number } = {
 	bounceOut = bounceOut,
 	bounceInOut = function(x: number): number
 		return if x < 0.5 then (1 - bounceOut(1 - 2 * x)) / 2 else (1 + bounceOut(2 * x - 1)) / 2
+	end,
+	smoothstep = function(x: number): number
+		return x * x * (3 - 2 * x)
+	end,
+	instant = function(x: number): number
+		return if x == 0 then 0 else 1
 	end,
 }
 

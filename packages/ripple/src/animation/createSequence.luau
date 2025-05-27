@@ -1,3 +1,4 @@
+local createMotion = require("./createMotion")
 local createSpring = require("./createSpring")
 local createTween = require("./createTween")
 local heartbeat = require("../heartbeat")
@@ -5,16 +6,15 @@ local signal = require("../utils/signal")
 local types = require("../types")
 
 type Animatable = types.Animatable
-type Spring<T = any> = createSpring.Spring<T>
-type SpringConfig<T = any> = createSpring.SpringConfig<T>
-type Tween<T = any> = createTween.Tween<T>
-type TweenConfig<T = any> = createTween.TweenConfig<T>
+type MotionConfig<T> = createMotion.MotionConfig<T>
+type SpringConfig<T> = createSpring.SpringConfig<T>
+type TweenConfig<T> = createTween.TweenConfig<T>
 type FireSignal<T...> = signal.FireSignal<T...>
 type SubscribeSignal<T...> = signal.SubscribeSignal<T...>
 
 export type SequenceKeypoint<T = any> = {
 	time: number,
-	value: T,
+	goal: T,
 	spring: SpringConfig<T>?,
 	tween: TweenConfig<T>?,
 }
@@ -23,6 +23,7 @@ type SequenceApi<T> = {
 	onChange: (callback: (value: T, deltaTime: number) -> ()) -> () -> (),
 	onComplete: (callback: (value: T) -> ()) -> () -> (),
 	step: (deltaTime: number) -> T,
+	loop: () -> (),
 	start: () -> (),
 	stop: () -> (),
 	destroy: () -> (),
@@ -45,12 +46,12 @@ type MotionLike<T> = {
 }
 
 local function createSequence<T>(initialValue: T & Animatable, keypoints: { SequenceKeypoint<T> }): Sequence<T>
-	local spring: Spring<T> = createSpring(initialValue :: any)
-	local tween: Tween<T> = createTween(initialValue :: any)
-	local current: MotionLike<T>?
+	local motion = createMotion(initialValue :: Animatable)
 
 	local id = heartbeat.id()
 	local elapsed = 0
+	local current: SequenceKeypoint<T>?
+
 	local looped = false
 	local started = false
 	local complete = false
@@ -58,47 +59,49 @@ local function createSequence<T>(initialValue: T & Animatable, keypoints: { Sequ
 	local onChange: SubscribeSignal<(T, number)>, fireChange: FireSignal<(T, number)> = signal()
 	local onComplete: SubscribeSignal<T>, fireComplete: FireSignal<T> = signal()
 
-	local function getKeypoint(): (SequenceKeypoint<T>, boolean)
+	local function getNextKeypoint(dt: number): (SequenceKeypoint<T>, boolean)
 		local previous = keypoints[1]
+		elapsed += dt
+
 		for _, keypoint in keypoints do
 			if keypoint.time > elapsed then
 				return previous, false
 			end
 			previous = keypoint
 		end
+
 		return previous, true
+	end
+
+	local function updateKeypoint(keypoint: SequenceKeypoint<T>)
+		if keypoint.spring then
+			motion.spring(keypoint.goal, keypoint.spring)
+		elseif keypoint.tween then
+			motion.tween(keypoint.goal, keypoint.tween)
+		else
+			motion.goal = keypoint.goal
+		end
+
+		current = keypoint
 	end
 
 	local function step(dt: number): T
 		if complete then
-			return if current then current.position else initialValue
+			return motion.position
 		end
 
-		elapsed += dt
+		local keypoint, isLastKeypoint = getNextKeypoint(dt)
+		local position = motion.step(dt)
 
-		local keypoint, isLastKeypoint = getKeypoint()
-
-		if keypoint.spring and current ~= spring then
-			spring.position = tween.position
-			spring.goal = keypoint.value
-			spring.configure(keypoint.spring)
-			current = spring
-		elseif keypoint.tween and current ~= tween then
-			tween.position = spring.position
-			tween.goal = keypoint.value
-			tween.configure(keypoint.tween)
-			current = tween
+		if keypoint ~= current then
+			updateKeypoint(keypoint)
+			dt = elapsed - keypoint.time
+			position = motion.step(dt)
 		end
-
-		if not current then
-			return keypoint.value
-		end
-
-		local position = current.step(dt)
 
 		fireChange(position, dt)
 
-		if isLastKeypoint and current.complete then
+		if isLastKeypoint and motion.complete then
 			if looped then
 				elapsed = 0
 			else
@@ -120,16 +123,20 @@ local function createSequence<T>(initialValue: T & Animatable, keypoints: { Sequ
 	end
 
 	local function setPosition(value: T)
-		if current and current.position ~= value then
-			current.position = value
+		if motion.position ~= value then
+			motion.position = value
 			resumeFromCurrentTime()
 			fireChange(value, 0)
 		end
 	end
 
 	local function setVelocity(value: T)
-		if current == spring and spring.velocity ~= value then
-			spring.velocity = value
+		if current and current.tween then
+			return
+		end
+
+		if motion.velocity ~= value then
+			motion.velocity = value
 			resumeFromCurrentTime()
 		end
 	end
@@ -151,19 +158,19 @@ local function createSequence<T>(initialValue: T & Animatable, keypoints: { Sequ
 		end
 	end
 
+	local function loop()
+		looped = true
+		start()
+		resumeFromCurrentTime()
+	end
+
 	local function getter(_, key: any): any
-		if key == "position" then
-			return if current then current.position else initialValue
-		elseif key == "velocity" then
-			return spring.velocity
-		elseif key == "goal" then
-			return if current then current.goal else initialValue
-		elseif key == "complete" then
+		if key == "complete" then
 			return complete
 		elseif key == "time" then
 			return elapsed
 		else
-			return nil
+			return motion[key]
 		end
 	end
 
@@ -187,6 +194,7 @@ local function createSequence<T>(initialValue: T & Animatable, keypoints: { Sequ
 		onChange = onChange,
 		onComplete = onComplete,
 		step = step,
+		loop = loop,
 		start = start,
 		stop = stop,
 		destroy = stop,

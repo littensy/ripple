@@ -22,43 +22,34 @@
 	SOFTWARE.
 ]]
 
---# selene: allow(unused_variable)
---# selene: allow(mismatched_arg_count)
-
 local graph = require("./graph")
 type Node<T> = graph.Node<T>
-local create_node = graph.create_node
-local push_scope = graph.push_scope
-local pop_scope = graph.pop_scope
-local destroy = graph.destroy
+local create_source_node = graph.create_source_node
+local push_child_to_scope = graph.push_child_to_scope
+local update_descendants = graph.update_descendants
 
-local refs = {}
+export type Source<T> = (() -> T) & ((value: T) -> T)
 
-local function root<T...>(fn: (destroy: () -> ()) -> T...): (() -> (), T...)
-	local node = create_node(false, false, false)
+local function source<T>(initial_value: T): Source<T>
+	local node = create_source_node(initial_value)
 
-	refs[node] = true -- prevent gc of root node
-
-	local destroy = function()
-		if not refs[node] then
-			error("root already destroyed")
+	local function update_source(...): T
+		if select("#", ...) == 0 then -- no args were given
+			push_child_to_scope(node)
+			return node.cache
 		end
-		refs[node] = nil
-		destroy(node)
+
+		local v = ... :: T
+		if node.cache == v and (type(v) ~= "table" or table.isfrozen(v)) then
+			return v
+		end
+
+		node.cache = v
+		update_descendants(node)
+		return v
 	end
 
-	push_scope(node)
-
-	local result = { xpcall(fn, debug.traceback, destroy) }
-
-	pop_scope()
-
-	if not result[1] then
-		destroy()
-		error(`error while running root():\n\n{result[2]}`, 0)
-	end
-
-	return destroy, unpack(result :: any, 2)
+	return update_source
 end
 
-return root :: <T...>(fn: (destroy: () -> ()) -> T...) -> (() -> (), T...)
+return source :: (<T>(initial_value: T) -> Source<T>) & (<T>() -> Source<T>)
