@@ -8,9 +8,16 @@
 			"$className": "ReplicatedStorage",
 			"packages": {
 				"$className": "Folder",
+				"$path": "node_modules/@rbxts-js",
 				"ripple": {
 					"$className": "Folder",
-					"src": { "$path": "packages/ripple" }
+					"src": { "$path": "packages/ripple/src" }
+				},
+				"react-ripple": {
+					"$className": "Folder",
+					"src": { "$path": "packages/react-ripple/src" },
+					"React": { "$path": "packages/react-ripple/React.luau" },
+					"Ripple": { "$path": "packages/react-ripple/Ripple.luau" }
 				}
 			},
 			"test": {
@@ -18,9 +25,6 @@
 			},
 			"storybook": {
 				"$path": "storybook"
-			},
-			"node_modules": {
-				"$path": "node_modules/@rbxts-js"
 			}
 		}
 	}

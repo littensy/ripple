@@ -1,9 +1,7 @@
 local heartbeat = require("../heartbeat")
 local intermediate = require("../utils/intermediate")
 local signal = require("../utils/signal")
-local types = require("../types")
 
-type Animatable = types.Animatable
 type Intermediate<T> = intermediate.Intermediate<T>
 type FireSignal<T...> = signal.FireSignal<T...>
 type SubscribeSignal<T...> = signal.SubscribeSignal<T...>
@@ -55,7 +53,7 @@ local function belowThreshold(value: number | vector, threshold: number): boolea
 	end
 end
 
-local function createSpring<T>(initialValue: T & Animatable, config: SpringConfig<T>?): Spring<T>
+local function createSpring<T>(initialValue: T, config: SpringConfig<T>?): Spring<T>
 	local config: SpringConfig<T> = config or {}
 
 	local position = intermediate.create(config.position or initialValue)

@@ -3,9 +3,7 @@ local createSpring = require("./createSpring")
 local createTween = require("./createTween")
 local heartbeat = require("../heartbeat")
 local signal = require("../utils/signal")
-local types = require("../types")
 
-type Animatable = types.Animatable
 type MotionConfig<T> = createMotion.MotionConfig<T>
 type SpringConfig<T> = createSpring.SpringConfig<T>
 type TweenConfig<T> = createTween.TweenConfig<T>
@@ -40,8 +38,8 @@ export type Sequence<T = any> = SequenceApi<T> & {
 	goal: T,
 }
 
-local function createSequence<T>(initialValue: T & Animatable, keypoints: { SequenceKeypoint<T> }): Sequence<T>
-	local motion = createMotion(initialValue :: Animatable)
+local function createSequence<T>(initialValue: T, keypoints: { SequenceKeypoint<T> }): Sequence<T>
+	local motion = createMotion(initialValue)
 
 	local id = heartbeat.id()
 	local elapsed = 0

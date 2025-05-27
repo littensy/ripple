@@ -1,8 +1,8 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local React = require(ReplicatedStorage.node_modules.React)
-local ReactRoblox = require(ReplicatedStorage.node_modules.ReactRoblox)
+local React = require(ReplicatedStorage.packages.React)
+local ReactRoblox = require(ReplicatedStorage.packages.ReactRoblox)
 local easingFunctions = require(ReplicatedStorage.storybook.stories["EasingFunctions.story"])
 local springFunctions = require(ReplicatedStorage.storybook.stories["SpringFunctions.story"])
 

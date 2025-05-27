@@ -3,10 +3,8 @@ local createTween = require("./createTween")
 local easing = require("../easing")
 local heartbeat = require("../heartbeat")
 local signal = require("../utils/signal")
-local types = require("../types")
 
 type Easing = easing.Easing
-type Animatable = types.Animatable
 type Spring<T = any> = createSpring.Spring<T>
 type SpringConfig<T = any> = createSpring.SpringConfig<T>
 type Tween<T = any> = createTween.Tween<T>
@@ -59,11 +57,11 @@ local function omitStartOption<T>(config: T): T
 	end
 end
 
-local function createMotion<T>(initialValue: T & Animatable, config: MotionConfig<T>?): Motion<T>
+local function createMotion<T>(initialValue: T, config: MotionConfig<T>?): Motion<T>
 	local config: MotionConfig<T> = config or {}
 
-	local spring: Spring<T> = createSpring(initialValue :: Animatable, omitStartOption(config.spring))
-	local tween: Tween<T> = createTween(initialValue :: Animatable, omitStartOption(config.tween))
+	local spring: Spring<T> = createSpring(initialValue, omitStartOption(config.spring))
+	local tween: Tween<T> = createTween(initialValue, omitStartOption(config.tween))
 	local current: MotionLike<T> = if not config.tween then spring else tween
 
 	local id = heartbeat.id()

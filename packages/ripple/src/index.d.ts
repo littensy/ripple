@@ -3,17 +3,11 @@ export = Ripple;
 type Key = string | number | symbol;
 
 declare namespace Ripple {
-	type Animatable =
-		| number
-		| vector
-		| Vector2
-		| Vector3
-		| CFrame
-		| Color3
-		| UDim
-		| UDim2
-		| Rect
-		| Record<Key, number | vector | Vector3>;
+	type AnimatableType = number | vector | Vector2 | Vector3 | CFrame | Color3 | UDim | UDim2 | Rect;
+
+	type Animatable = AnimatableType | Record<Key, number | vector | Vector3>;
+
+	type PartialGoal<T extends Animatable> = T extends AnimatableType ? T : Partial<T>;
 
 	type Easing =
 		| "linear"
@@ -65,16 +59,19 @@ declare namespace Ripple {
 	}
 
 	interface Spring<T extends Animatable> {
-		position: T;
-		velocity: T;
-		goal: T;
+		get position(): T;
+		set position(value: PartialGoal<T>);
+		get velocity(): T;
+		set velocity(value: PartialGoal<T>);
+		get goal(): T;
+		set goal(value: PartialGoal<T>);
 
 		onChange: (callback: (value: T, deltaTime: number) => void) => () => void;
 		onComplete: (callback: (value: T) => void) => () => void;
 
 		step: (deltaTime: number) => T;
-		to: (goal: T, config?: SpringConfig<T>) => void;
-		impulse: (amount: T) => void;
+		to: (goal: PartialGoal<T>, config?: SpringConfig<T>) => void;
+		impulse: (amount: PartialGoal<T>) => void;
 		halt: () => void;
 		idle: () => boolean;
 		configure: (config: SpringConfig<T>) => void;
@@ -94,15 +91,18 @@ declare namespace Ripple {
 	}
 
 	interface Tween<T extends Animatable> {
-		position: T;
-		from: T;
-		goal: T;
+		get position(): T;
+		set position(value: PartialGoal<T>);
+		get from(): T;
+		set from(value: PartialGoal<T>);
+		get goal(): T;
+		set goal(value: PartialGoal<T>);
 
 		onChange: (callback: (value: T, deltaTime: number) => void) => () => void;
 		onComplete: (callback: (value: T) => void) => () => void;
 
 		step: (deltaTime: number) => T;
-		to: (goal: T, config?: TweenConfig<T>) => void;
+		to: (goal: PartialGoal<T>, config?: TweenConfig<T>) => void;
 		idle: () => boolean;
 		configure: (config: TweenConfig<T>) => void;
 
@@ -118,16 +118,19 @@ declare namespace Ripple {
 	}
 
 	interface Motion<T extends Animatable> {
-		position: T;
-		velocity: T;
-		goal: T;
+		get position(): T;
+		set position(value: PartialGoal<T>);
+		get velocity(): T;
+		set velocity(value: PartialGoal<T>);
+		get goal(): T;
+		set goal(value: PartialGoal<T>);
 
 		onChange: (callback: (value: T, deltaTime: number) => void) => () => void;
 		onComplete: (callback: (value: T) => void) => () => void;
 
 		step: (deltaTime: number) => T;
-		spring: (goal: T, config?: SpringConfig<T>) => void;
-		tween: (goal: T, config?: TweenConfig<T>) => void;
+		spring: (goal: PartialGoal<T>, config?: SpringConfig<T>) => void;
+		tween: (goal: PartialGoal<T>, config?: TweenConfig<T>) => void;
 		idle: () => boolean;
 		configure: (config: MotionConfig<T>) => void;
 
@@ -144,10 +147,13 @@ declare namespace Ripple {
 	}
 
 	interface Sequence<T extends Animatable> {
-		time: number;
-		position: T;
-		velocity: T;
 		readonly goal: T;
+		time: number;
+
+		get position(): T;
+		set position(value: PartialGoal<T>);
+		get velocity(): T;
+		set velocity(value: PartialGoal<T>);
 
 		onChange: (callback: (value: T, deltaTime: number) => void) => () => void;
 		onComplete: (callback: (value: T) => void) => () => void;
@@ -170,16 +176,16 @@ declare namespace Ripple {
 	function createSequence<T extends Animatable>(initialValue: T, keypoints: SequenceKeypoint<T>[]): Sequence<T>;
 
 	const config: {
-		readonly default: Readonly<SpringConfig<any>>;
-		readonly gentle: Readonly<SpringConfig<any>>;
-		readonly wobbly: Readonly<SpringConfig<any>>;
-		readonly stiff: Readonly<SpringConfig<any>>;
-		readonly slow: Readonly<SpringConfig<any>>;
-		readonly molasses: Readonly<SpringConfig<any>>;
+		default: SpringConfig<any>;
+		gentle: SpringConfig<any>;
+		wobbly: SpringConfig<any>;
+		stiff: SpringConfig<any>;
+		slow: SpringConfig<any>;
+		molasses: SpringConfig<any>;
 	};
 
 	const easing: {
-		readonly [K in Easing]: (x: number) => number;
+		[K in Easing]: (x: number) => number;
 	};
 
 	namespace heartbeat {

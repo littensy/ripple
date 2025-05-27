@@ -2,10 +2,8 @@ local easing = require("..//easing")
 local heartbeat = require("../heartbeat")
 local intermediate = require("../utils/intermediate")
 local signal = require("../utils/signal")
-local types = require("../types")
 
 type Easing = easing.Easing
-type Animatable = types.Animatable
 type Intermediate<T> = intermediate.Intermediate<T>
 type FireSignal<T...> = signal.FireSignal<T...>
 type SubscribeSignal<T...> = signal.SubscribeSignal<T...>
@@ -51,14 +49,14 @@ local function getAlpha(progress: number, repeats: number, reverses: boolean): n
 	return progress
 end
 
-local function createTween<T>(initialValue: T & Animatable, config: TweenConfig<T>?): Tween<T>
+local function createTween<T>(initialValue: T, config: TweenConfig<T>?): Tween<T>
 	local config: TweenConfig<T> = config or {}
 
 	local position = intermediate.create(config.position or initialValue)
 	local from = intermediate.create(config.position or initialValue)
 	local goal = intermediate.create(config.position or initialValue)
 
-	local easingFunction = easing["linear" :: "linear"]
+	local easingFunction = easing.linear
 	local duration = 1
 	local repeats = 1
 	local reverses = false
