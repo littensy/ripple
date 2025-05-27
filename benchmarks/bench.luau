@@ -1,11 +1,16 @@
 local function bench(name: string, test: () -> ())
 	local start = os.clock()
-	local iter = 1000
-	for _ = 1, iter do
+	local iterations = 0
+
+	while os.clock() - start < 3 do
+		iterations += 1
 		test()
 	end
+
 	local elapsed = os.clock() - start
-	print(`{name}: {string.format("%.2f", elapsed / iter * 1000 * 1000)} us/iter`)
+	local micros = string.format("%.2f", elapsed / iterations * 1000 * 1000)
+
+	print(`{name}: {micros} µs/iter`)
 end
 
 return bench
