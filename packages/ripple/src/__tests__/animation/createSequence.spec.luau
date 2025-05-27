@@ -15,7 +15,7 @@ test("should swap between spring and tween", function()
 		completions += 1
 	end)
 	sequence.step(0.1)
-	assert(sequence.position ~= vector.one, "position should start keypoint 3")
+	assert(sequence.position ~= vector.one, "position should start at keypoint 1")
 	assert(sequence.velocity ~= vector.zero, "velocity should not be zero")
 
 	sequence.step(0.9)
@@ -31,7 +31,7 @@ test("should swap between spring and tween", function()
 	assert(sequence.velocity == vector.zero, "velocity should be zero after completion")
 
 	sequence.step(0.1)
-	assert(sequence.position ~= vector.one, "position should start keypoint 3")
+	assert(sequence.position ~= vector.one, "position should start at keypoint 3")
 	assert(sequence.velocity ~= vector.zero, "velocity should not be zero")
 
 	sequence.step(0.9)

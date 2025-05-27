@@ -88,13 +88,13 @@ do
 
 	bench("vide", function()
 		root(function(cleanup)
-			local spring = spring(goal, 10)
+			local src = spring(goal, 10)
 
 			effect(function()
-				object.property = spring()
+				object.property = src()
 			end)
 
-			spring(0)
+			src(0)
 
 			for _ = 1, ITERATIONS do
 				-- This step function runs at a variable frequency instead of

@@ -69,6 +69,12 @@ local function create<T>(value: T): Intermediate<T>
 	}
 end
 
+local function copy<T>(intermediate: Intermediate<T>): Intermediate<T>
+	local result = table.clone(intermediate)
+	result.components = table.clone(intermediate.components)
+	return result
+end
+
 local function zero<T>(intermediate: Intermediate<T>): Intermediate<T>
 	for key in intermediate.components do
 		intermediate.components[key] *= 0 :: any
@@ -126,6 +132,7 @@ end
 
 return {
 	create = create,
+	copy = copy,
 	zero = zero,
 	setValue = setValue,
 	addValue = addValue,

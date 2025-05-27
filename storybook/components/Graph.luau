@@ -1,6 +1,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local React = require(ReplicatedStorage.packages.React)
+local React = require(ReplicatedStorage["@rbxts-js"].React)
 
 type GraphProps = {
 	name: string,

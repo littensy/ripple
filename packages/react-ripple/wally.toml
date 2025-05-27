@@ -1,5 +1,5 @@
 [package]
-name = "littensy/ripple"
+name = "littensy/react-ripple"
 version = "0.10.0"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
@@ -13,4 +13,5 @@ exclude = [
 ]
 
 [dependencies]
+React = "jsdotlua/react@^17"
 Ripple = "littensy/ripple@^0.10"

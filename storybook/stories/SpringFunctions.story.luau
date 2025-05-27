@@ -1,8 +1,8 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Graph = require(script.Parent.Parent.components.Graph)
-local React = require(ReplicatedStorage.packages.React)
-local ReactRoblox = require(ReplicatedStorage.packages.ReactRoblox)
+local React = require(ReplicatedStorage["@rbxts-js"].React)
+local ReactRoblox = require(ReplicatedStorage["@rbxts-js"].ReactRoblox)
 local Ripple = require(ReplicatedStorage.packages.ripple.src)
 
 type SpringFunctionProps = {
@@ -20,9 +20,9 @@ configs.figmaSlow = { tension = 80, friction = 20 }
 
 local function SpringFunction(props: SpringFunctionProps)
 	local spring = React.useMemo(function()
-		local spring = Ripple.createSpring(1, props.config)
-		spring.goal = 0
-		return spring
+		local source = Ripple.createSpring(1, props.config)
+		source.goal = 0
+		return source
 	end, { props.config })
 
 	return React.createElement(Graph, {

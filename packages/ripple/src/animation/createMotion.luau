@@ -47,24 +47,24 @@ type MotionLike<T> = {
 }
 
 local function omitStartOption<T>(config: T): T
-	local config: any = config
-	if config == nil or config.start ~= true then
-		return config
+	local options: any = config
+	if options == nil or options.start ~= true then
+		return options
 	else
-		local result: any = table.clone(config)
+		local result: any = table.clone(options)
 		result.start = nil
 		return result
 	end
 end
 
-local function createMotion<T>(initialValue: T, config: MotionConfig<T>?): Motion<T>
-	local config: MotionConfig<T> = config or {}
+local function createMotion<T>(initialValue: T, inputConfig: MotionConfig<T>?): Motion<T>
+	local config: MotionConfig<T> = inputConfig or {}
 
 	local spring: Spring<T> = createSpring(initialValue, omitStartOption(config.spring))
 	local tween: Tween<T> = createTween(initialValue, omitStartOption(config.tween))
 	local current: MotionLike<T> = if not config.tween then spring else tween
 
-	local id = heartbeat.id()
+	local id = heartbeat.nextId()
 	local started = false
 	local complete = true
 
@@ -149,25 +149,25 @@ local function createMotion<T>(initialValue: T, config: MotionConfig<T>?): Motio
 		end
 	end
 
-	local function configure(config: MotionConfig<T>)
-		if config.spring then
-			spring.configure(omitStartOption(config.spring))
+	local function configure(motionConfig: MotionConfig<T>)
+		if motionConfig.spring then
+			spring.configure(motionConfig.spring)
 		end
 
-		if config.tween then
-			tween.configure(omitStartOption(config.tween))
+		if motionConfig.tween then
+			tween.configure(motionConfig.tween)
 		end
 
-		if config.spring or config.tween then
+		if motionConfig.spring or motionConfig.tween then
 			scheduleUpdate()
 		end
 	end
 
-	local function springTo(goal: T, config: SpringConfig<T>?)
+	local function springTo(goal: T, springConfig: SpringConfig<T>?)
 		initSpring()
 
-		if config then
-			spring.to(goal, omitStartOption(config))
+		if springConfig then
+			spring.to(goal, springConfig)
 			scheduleUpdate()
 		elseif spring.goal ~= goal then
 			spring.goal = goal
@@ -175,11 +175,11 @@ local function createMotion<T>(initialValue: T, config: MotionConfig<T>?): Motio
 		end
 	end
 
-	local function tweenTo(goal: T, config: TweenConfig<T>?)
+	local function tweenTo(goal: T, tweenConfig: TweenConfig<T>?)
 		initTween()
 
-		if config then
-			tween.to(goal, omitStartOption(config))
+		if tweenConfig then
+			tween.to(goal, tweenConfig)
 			scheduleUpdate()
 		elseif tween.goal ~= goal then
 			tween.goal = goal

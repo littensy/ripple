@@ -189,7 +189,7 @@ declare namespace Ripple {
 	};
 
 	namespace heartbeat {
-		function id(): number;
+		function nextId(): number;
 		function step(dt: number): void;
 		function connect(id: number, callback: (dt: number) => void): void;
 		function disconnect(id: number): void;

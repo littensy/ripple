@@ -1,8 +1,8 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Graph = require(script.Parent.Parent.components.Graph)
-local React = require(ReplicatedStorage.packages.React)
-local ReactRoblox = require(ReplicatedStorage.packages.ReactRoblox)
+local React = require(ReplicatedStorage["@rbxts-js"].React)
+local ReactRoblox = require(ReplicatedStorage["@rbxts-js"].ReactRoblox)
 local Ripple = require(ReplicatedStorage.packages.ripple.src)
 
 type EasingFunctionProps = {
@@ -11,12 +11,9 @@ type EasingFunctionProps = {
 
 local function EasingFunction(props: EasingFunctionProps)
 	local tween = React.useMemo(function()
-		local tween = Ripple.createTween(1, {
-			duration = 1,
-			easing = props.easing,
-		})
-		tween.goal = 0
-		return tween
+		local source = Ripple.createTween(1, { duration = 1, easing = props.easing })
+		source.goal = 0
+		return source
 	end, { props.easing })
 
 	return React.createElement(Graph, {

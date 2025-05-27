@@ -53,19 +53,19 @@ local function belowThreshold(value: number | vector, threshold: number): boolea
 	end
 end
 
-local function createSpring<T>(initialValue: T, config: SpringConfig<T>?): Spring<T>
-	local config: SpringConfig<T> = config or {}
+local function createSpring<T>(initialValue: T, inputConfig: SpringConfig<T>?): Spring<T>
+	local config: SpringConfig<T> = inputConfig or {}
 
 	local position = intermediate.create(config.position or initialValue)
-	local velocity = intermediate.zero(intermediate.create(config.impulse or config.velocity or initialValue))
-	local goal = intermediate.create(config.position or initialValue)
+	local velocity = intermediate.zero(intermediate.copy(position))
+	local goal = intermediate.copy(position)
 
 	local dampingRatio = 1
 	local frequency = 1
 	local restPosition = 1e-3
 	local restVelocity = restPosition * VELOCITY_THRESHOLD_MULTIPLIER
 
-	local id = heartbeat.id()
+	local id = heartbeat.nextId()
 	local started = false
 	local complete = true
 
@@ -213,38 +213,38 @@ local function createSpring<T>(initialValue: T, config: SpringConfig<T>?): Sprin
 		end
 	end
 
-	local function configure(config: SpringConfig<T>)
-		restPosition = config.precision or restPosition
-		restVelocity = config.restVelocity or restPosition * VELOCITY_THRESHOLD_MULTIPLIER
+	local function configure(options: SpringConfig<T>)
+		restPosition = options.precision or restPosition
+		restVelocity = options.restVelocity or restPosition * VELOCITY_THRESHOLD_MULTIPLIER
 
-		if config.dampingRatio or config.frequency then
-			dampingRatio = config.dampingRatio or dampingRatio
-			frequency = config.frequency or frequency
+		if options.dampingRatio or options.frequency then
+			dampingRatio = options.dampingRatio or dampingRatio
+			frequency = options.frequency or frequency
 		else
-			local tension = config.tension or 170
-			local friction = config.friction or 26
-			local mass = config.mass or 1
+			local tension = options.tension or 170
+			local friction = options.friction or 26
+			local mass = options.mass or 1
 
 			dampingRatio = friction / (2 * (mass * tension) ^ 0.5)
 			frequency = (tension / mass) ^ 0.5 / 2 / math.pi
 		end
 
-		if config.velocity then
-			setVelocity(config.velocity)
+		if options.velocity then
+			setVelocity(options.velocity)
 		end
 
-		if config.impulse then
-			impulse(config.impulse)
+		if options.impulse then
+			impulse(options.impulse)
 		end
 
-		if config.position then
-			setPosition(config.position)
+		if options.position then
+			setPosition(options.position)
 		end
 	end
 
-	local function to(value: T, config: SpringConfig<T>?)
-		if config then
-			configure(config)
+	local function to(value: T, options: SpringConfig<T>?)
+		if options then
+			configure(options)
 		end
 		setGoal(value)
 	end

@@ -17,6 +17,12 @@ importers:
       '@rbxts/compiler-types':
         specifier: 3.0.0-types.0
         version: 3.0.0-types.0
+      '@rbxts/react':
+        specifier: 17.3.0-alpha.1
+        version: 17.3.0-alpha.1
+      '@rbxts/react-roblox':
+        specifier: 17.3.0-alpha.1
+        version: 17.3.0-alpha.1(@rbxts/react@17.3.0-alpha.1)
       '@rbxts/types':
         specifier: ^1.0.854
         version: 1.0.854
@@ -49,7 +55,10 @@ importers:
         version: 5.8.3
 
   packages/react-ripple:
-    devDependencies:
+    dependencies:
+      '@rbxts/react':
+        specifier: '*'
+        version: 17.2.3
       '@rbxts/ripple':
         specifier: workspace:*
         version: link:../ripple
@@ -161,6 +170,20 @@ packages:
 
   '@rbxts/compiler-types@3.0.0-types.0':
     resolution: {integrity: sha512-VGOHJPoL7+56NTatMGqQj3K7xWuzEV+aP4QD5vZiHu+bcff3kiTmtoadaF6NkJrmwfFAvbsd4Dg764ZjWNceag==}
+
+  '@rbxts/react-roblox@17.3.0-alpha.1':
+    resolution: {integrity: sha512-P6vL3+LFC7YZxFGfx3hpVdd4bPBqOkJkDpr0aRpHmVj0OVoVCPiaPXe1qCPp5MciBRb4MQXauJCeiVVs4CvwJg==}
+    peerDependencies:
+      '@rbxts/react': ^17.3.0-alpha.1
+
+  '@rbxts/react-vendor@17.2.3':
+    resolution: {integrity: sha512-dWCiVelvTK6h920geaFH/OQ5zoWHyhyqyfH51hKx2/iVZ6OiiyNVJ5UqEIkJMG4HsJ8JnkTORizV3+MtQ41BtA==}
+
+  '@rbxts/react@17.2.3':
+    resolution: {integrity: sha512-IoOB8e2W8MxT0MKWFf0Ls0vT61ImYL6ctHQgz5+oazma6z8bqFtJjgPxOuy6jmMSuyfBe7rYp/muou0kIjZT+Q==}
+
+  '@rbxts/react@17.3.0-alpha.1':
+    resolution: {integrity: sha512-l2KYYxSj5pOKA2/QelbQRiqQjbI6SRMv8mrmIjc7xpAzuw728aumJ6V6Ol0lrQO/Qt5LVQ8En2L+6C6Lt4sLqA==}
 
   '@rbxts/types@1.0.854':
     resolution: {integrity: sha512-BEmIyfhfz+UM3I3Ah5PW7czJmMZCGA5k0wlg7wtJljlZtWmyxoBRP5moLsuVZ2hkP0XnkyGNEnhi5FUmYEkHcg==}
@@ -1018,6 +1041,21 @@ snapshots:
       '@rbxts-js/collections': 1.2.3-ts.1
 
   '@rbxts/compiler-types@3.0.0-types.0': {}
+
+  '@rbxts/react-roblox@17.3.0-alpha.1(@rbxts/react@17.3.0-alpha.1)':
+    dependencies:
+      '@rbxts-js/react-roblox': 17.1.20-ts.1
+      '@rbxts/react': 17.3.0-alpha.1
+
+  '@rbxts/react-vendor@17.2.3': {}
+
+  '@rbxts/react@17.2.3':
+    dependencies:
+      '@rbxts/react-vendor': 17.2.3
+
+  '@rbxts/react@17.3.0-alpha.1':
+    dependencies:
+      '@rbxts-js/react': 17.1.20-ts.1
 
   '@rbxts/types@1.0.854': {}
 

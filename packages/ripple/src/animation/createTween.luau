@@ -1,4 +1,4 @@
-local easing = require("..//easing")
+local easing = require("../easing")
 local heartbeat = require("../heartbeat")
 local intermediate = require("../utils/intermediate")
 local signal = require("../utils/signal")
@@ -49,19 +49,19 @@ local function getAlpha(progress: number, repeats: number, reverses: boolean): n
 	return progress
 end
 
-local function createTween<T>(initialValue: T, config: TweenConfig<T>?): Tween<T>
-	local config: TweenConfig<T> = config or {}
+local function createTween<T>(initialValue: T, inputConfig: TweenConfig<T>?): Tween<T>
+	local config: TweenConfig<T> = inputConfig or {}
 
 	local position = intermediate.create(config.position or initialValue)
-	local from = intermediate.create(config.position or initialValue)
-	local goal = intermediate.create(config.position or initialValue)
+	local from = intermediate.copy(position)
+	local goal = intermediate.copy(position)
 
 	local easingFunction = easing.linear
 	local duration = 1
 	local repeats = 1
 	local reverses = false
 
-	local id = heartbeat.id()
+	local id = heartbeat.nextId()
 	local elapsed = 0
 	local started = false
 	local complete = true
@@ -78,21 +78,16 @@ local function createTween<T>(initialValue: T, config: TweenConfig<T>?): Tween<T
 
 		local progress = math.clamp(elapsed / duration, 0, repeats)
 		local alpha = getAlpha(progress, repeats, reverses)
-		local value = if alpha > 0 and alpha < 1 then easingFunction(alpha) else alpha
+		local eased = if alpha > 0 and alpha < 1 then easingFunction(alpha) else alpha
 
-		complete = progress == repeats
-
-		local position = position
-		local from = from
-		local goal = goal
-
-		intermediate.lerp(position, from, goal, value)
+		intermediate.lerp(position, from, goal, eased)
 
 		local value = intermediate.getValue(position)
 
 		fireChange(value, deltaTime)
 
-		if complete then
+		if progress == repeats then
+			complete = true
 			heartbeat.disconnect(id)
 			fireComplete(value)
 		end
@@ -138,14 +133,14 @@ local function createTween<T>(initialValue: T, config: TweenConfig<T>?): Tween<T
 		end
 	end
 
-	local function configure(config: TweenConfig<T>)
-		easingFunction = easing[config.easing :: Easing] or easingFunction
-		duration = config.duration or duration
-		repeats = config.repeats or repeats
-		reverses = config.reverses or reverses
+	local function configure(options: TweenConfig<T>)
+		easingFunction = easing[options.easing :: Easing] or easingFunction
+		duration = options.duration or duration
+		repeats = options.repeats or repeats
+		reverses = options.reverses or reverses
 
-		if config.position then
-			setPosition(config.position)
+		if options.position then
+			setPosition(options.position)
 		end
 
 		if not complete and elapsed ~= 0 then
@@ -153,9 +148,9 @@ local function createTween<T>(initialValue: T, config: TweenConfig<T>?): Tween<T
 		end
 	end
 
-	local function to(value: T, config: TweenConfig<T>?)
-		if config then
-			configure(config)
+	local function to(value: T, options: TweenConfig<T>?)
+		if options then
+			configure(options)
 		end
 		setGoal(value)
 	end

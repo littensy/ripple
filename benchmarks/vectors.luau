@@ -77,8 +77,8 @@ do
 
 	bench("vide", function()
 		root(function(cleanup)
-			local spring = spring(goal, 10)
-			spring(vector.zero)
+			local src = spring(goal, 10)
+			src(vector.zero)
 
 			for _ = 1, ITERATIONS do
 				-- This step function runs at a variable frequency instead of
@@ -86,7 +86,7 @@ do
 				step(1 / ITERATIONS)
 				-- Realistically, this should be in an effect, but including
 				-- Vide's reactive graph is not the point of this benchmark
-				object.property = spring()
+				object.property = src()
 			end
 
 			cleanup()

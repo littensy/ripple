@@ -21,10 +21,10 @@
 		"prepare": "cp ../../LICENSE.md . && cp ../../README.md .",
 		"publish:wally": "wally publish"
 	},
-	"devDependencies": {
+	"dependencies": {
 		"@rbxts/ripple": "workspace:*"
 	},
 	"peerDependencies": {
-		"@rbxts/ripple": "workspace:*"
+		"@rbxts/react": "*"
 	}
 }

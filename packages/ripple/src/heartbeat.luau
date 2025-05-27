@@ -5,7 +5,7 @@ local nextListeners: { Listener } = currentListeners
 local nextListenerId = 0
 local connection: RBXScriptConnection?
 
-local function id(): number
+local function nextId(): number
 	nextListenerId += 1
 	return nextListenerId
 end
@@ -57,11 +57,11 @@ local function disconnect(id: number)
 end
 
 local function count(): number
-	local count = 0
+	local listenerCount = 0
 	for _ in nextListeners do
-		count += 1
+		listenerCount += 1
 	end
-	return count
+	return listenerCount
 end
 
 local function clear()
@@ -70,7 +70,7 @@ local function clear()
 end
 
 return {
-	id = id,
+	nextId = nextId,
 	step = step,
 	connect = connect,
 	disconnect = disconnect,

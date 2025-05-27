@@ -41,7 +41,7 @@ export type Sequence<T = any> = SequenceApi<T> & {
 local function createSequence<T>(initialValue: T, keypoints: { SequenceKeypoint<T> }): Sequence<T>
 	local motion = createMotion(initialValue)
 
-	local id = heartbeat.id()
+	local id = heartbeat.nextId()
 	local elapsed = 0
 	local current: SequenceKeypoint<T>?
 

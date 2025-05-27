@@ -24,6 +24,7 @@
 
 --# selene: allow(unused_variable)
 --# selene: allow(mismatched_arg_count)
+--# selene: allow(shadowing)
 
 local graph = require("./graph")
 type Node<T> = graph.Node<T>
