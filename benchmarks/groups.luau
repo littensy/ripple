@@ -6,7 +6,6 @@
 
 local bench = require("./bench")
 
-local GROUPS = 3
 local ITERATIONS = 10000
 
 do
@@ -19,9 +18,9 @@ do
 	}
 
 	bench("ripple", function()
-		for _ = 1, GROUPS do
-			createSpring(0, config).to(1)
-		end
+		createSpring(0, config).to(1)
+		createSpring(0, config).to(1)
+		createSpring(0, config).to(1)
 
 		for _ = 1, ITERATIONS do
 			heartbeat.step(1 / ITERATIONS)
@@ -37,17 +36,15 @@ do
 	local spring = require("./otter/spring")
 
 	local config: spring.SpringOptions = { frequency = 1 / 10 }
-	local initialState: { [any]: number } = table.create(GROUPS, 0)
 
 	bench("otter group", function()
-		local motor = createGroupMotor(initialState)
-		local goals = table.create(GROUPS)
+		local motor = createGroupMotor({ 0, 0, 0 } :: { [any]: number })
 
-		for i = 1, GROUPS do
-			goals[i] = spring(1, config)
-		end
-
-		motor:setGoal(goals :: { [any]: any })
+		motor:setGoal({
+			[1] = spring(1, config),
+			[2] = spring(1, config),
+			[3] = spring(1, config),
+		} :: { [any]: any })
 
 		for _ = 1, ITERATIONS do
 			AnimationStepSignal:Fire(1 / ITERATIONS)
@@ -64,10 +61,10 @@ do
 
 	local config: spring.SpringOptions = { frequency = 1 / 10 }
 
-	bench("otter singles", function()
-		for _ = 1, GROUPS do
-			createSingleMotor(0):setGoal(spring(1, config))
-		end
+	bench("otter single", function()
+		createSingleMotor(0):setGoal(spring(1, config))
+		createSingleMotor(0):setGoal(spring(1, config))
+		createSingleMotor(0):setGoal(spring(1, config))
 
 		for _ = 1, ITERATIONS do
 			AnimationStepSignal:Fire(1 / ITERATIONS)
@@ -87,9 +84,9 @@ do
 
 	bench("vide", function()
 		root(function(cleanup)
-			for _ = 1, GROUPS do
-				spring(goal, 10)(0)
-			end
+			spring(goal, 10)(0)
+			spring(goal, 10)(0)
+			spring(goal, 10)(0)
 
 			for _ = 1, ITERATIONS do
 				-- This step function runs at a variable frequency instead of
