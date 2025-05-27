@@ -15,7 +15,7 @@
 	],
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/littensy/react.git"
+		"url": "git+https://github.com/littensy/ripple.git"
 	},
 	"scripts": {
 		"prepare": "cp ../../LICENSE.md . && cp ../../README.md .",

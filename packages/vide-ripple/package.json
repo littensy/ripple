@@ -1,12 +1,13 @@
 {
-	"name": "@rbxts/ripple",
+	"name": "@rbxts/vide-ripple",
 	"version": "0.10.0",
-	"description": "Spring-driven animations and more",
+	"description": "Vide bindings for Ripple spring animation",
 	"license": "MIT",
 	"main": "src/init.luau",
 	"types": "src/index.d.ts",
 	"files": [
 		"src",
+		"*.luau",
 		"!wally.toml",
 		"!wally.lock",
 		"!default.project.json",
@@ -19,5 +20,11 @@
 	"scripts": {
 		"prepare": "cp ../../LICENSE.md . && cp ../../README.md .",
 		"publish:wally": "wally publish"
+	},
+	"dependencies": {
+		"@rbxts/ripple": "workspace:*"
+	},
+	"peerDependencies": {
+		"@rbxts/vide": "*"
 	}
 }

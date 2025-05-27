@@ -17,6 +17,12 @@
 					"src": { "$path": "packages/react-ripple/src" },
 					"React": { "$path": "packages/react-ripple/React.luau" },
 					"Ripple": { "$path": "packages/react-ripple/Ripple.luau" }
+				},
+				"vide-ripple": {
+					"$className": "Folder",
+					"src": { "$path": "packages/vide-ripple/src" },
+					"Vide": { "$path": "packages/vide-ripple/Vide.luau" },
+					"Ripple": { "$path": "packages/vide-ripple/Ripple.luau" }
 				}
 			},
 			"@rbxts-js": {

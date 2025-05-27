@@ -1,5 +1,3 @@
-local React = require(script.Parent.Parent.react)
-
 type CoreReactBinding<T> = {
 	getValue: (self: CoreReactBinding<T>) -> T,
 	_source: string?,
@@ -11,4 +9,4 @@ type ReactBindingMap = {
 
 export type Binding<T> = CoreReactBinding<T> & ReactBindingMap
 
-return React
+return require(script.Parent.Parent.react)

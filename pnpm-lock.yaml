@@ -26,6 +26,9 @@ importers:
       '@rbxts/types':
         specifier: ^1.0.854
         version: 1.0.854
+      '@rbxts/vide':
+        specifier: ^0.5.7
+        version: 0.5.7
       '@typescript-eslint/eslint-plugin':
         specifier: ^7.18.0
         version: 7.18.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.8.3))(eslint@8.57.1)(typescript@5.8.3)
@@ -64,6 +67,15 @@ importers:
         version: link:../ripple
 
   packages/ripple: {}
+
+  packages/vide-ripple:
+    dependencies:
+      '@rbxts/ripple':
+        specifier: workspace:*
+        version: link:../ripple
+      '@rbxts/vide':
+        specifier: '*'
+        version: 0.5.7
 
 packages:
 
@@ -187,6 +199,9 @@ packages:
 
   '@rbxts/types@1.0.854':
     resolution: {integrity: sha512-BEmIyfhfz+UM3I3Ah5PW7czJmMZCGA5k0wlg7wtJljlZtWmyxoBRP5moLsuVZ2hkP0XnkyGNEnhi5FUmYEkHcg==}
+
+  '@rbxts/vide@0.5.7':
+    resolution: {integrity: sha512-Q9R7ybzuHK1phtLicBHgAjQnlJ/dMsXDs2k296PIMLgLqK9aX/f1skOP7F1K/vo7IrSE0jCG3B3XTOtQL1Sb0Q==}
 
   '@roblox-ts/luau-ast@2.0.0':
     resolution: {integrity: sha512-cmMi093IdwBOLVxwuordhM8AmtbyTIyRpsTbB0D/JauidW4SXsQRQowSwWjHo4QP0DRJBXvOIlxtqEQi50uNzQ==}
@@ -1058,6 +1073,8 @@ snapshots:
       '@rbxts-js/react': 17.1.20-ts.1
 
   '@rbxts/types@1.0.854': {}
+
+  '@rbxts/vide@0.5.7': {}
 
   '@roblox-ts/luau-ast@2.0.0': {}
 
