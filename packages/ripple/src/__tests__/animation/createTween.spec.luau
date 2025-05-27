@@ -11,7 +11,7 @@ test("should get properties", function()
 	assert(tween.position == vector.one, "invalid position")
 	assert(tween.from == vector.one, "invalid from")
 	assert(tween.goal == vector.one, "invalid target")
-	assert(tween.complete, "invalid complete")
+	assert(tween.idle(), "invalid complete")
 end)
 
 test("should update properties", function()
@@ -23,7 +23,7 @@ test("should update properties", function()
 	assert(tween.position == vector.one, "invalid position")
 	assert(tween.from == tween.position, "invalid from")
 	assert(tween.goal == -vector.one, "invalid target")
-	assert(not tween.complete, "invalid complete")
+	assert(not tween.idle(), "invalid complete")
 end)
 
 test("should handle tables", function()
@@ -54,14 +54,14 @@ test("should complete if duration passes", function()
 	tween.position = vector.zero
 	tween.step(0.5)
 
-	assert(not tween.complete, "invalid complete")
+	assert(not tween.idle(), "invalid complete")
 	assert(not result, "invalid result")
 	assert(tween.position == vector.one / 2, "invalid position")
 	assert(tween.from == vector.zero, "invalid from")
 
 	tween.step(0.5)
 
-	assert(tween.complete, "invalid complete")
+	assert(tween.idle(), "invalid complete")
 	assert(result == vector.one, "invalid result")
 	assert(tween.position == vector.one, "invalid position")
 	assert(tween.from == vector.zero, "invalid from")
@@ -79,7 +79,7 @@ test("should start from new position", function()
 		tween.position = vector.zero
 		tween.step(0.5)
 
-		assert(not tween.complete, "invalid complete")
+		assert(not tween.idle(), "invalid complete")
 		assert(not result, "invalid result")
 		assert(tween.position == vector.one / 2, "invalid position")
 		assert(tween.from == vector.zero, "invalid from")
@@ -87,7 +87,7 @@ test("should start from new position", function()
 
 	tween.step(0.5)
 
-	assert(tween.complete, "invalid complete")
+	assert(tween.idle(), "invalid complete")
 	assert(result == vector.one, "invalid result")
 	assert(tween.position == vector.one, "invalid position")
 	assert(tween.from == vector.zero, "invalid from")
@@ -134,7 +134,7 @@ test("should repeat", function()
 			assert(tween.position == vector.one * case[i], `{repeats} expected {case[i]}, got {tween.position}`)
 		end
 
-		assert(tween.complete, "did not complete")
+		assert(tween.idle(), "did not complete")
 		assert(result == vector.one * case[#case], `{repeats} expected {case[#case]}, got {result}`)
 	end
 end)
@@ -159,7 +159,7 @@ test("should repeat in reverse", function()
 			assert(tween.position == vector.one * case[i], `{repeats} expected {case[i]}, got {tween.position}`)
 		end
 
-		assert(tween.complete, "did not complete")
+		assert(tween.idle(), "did not complete")
 		assert(result == vector.one * case[#case], `{repeats} expected {case[#case]}, got {result}`)
 	end
 end)
@@ -177,7 +177,7 @@ test("should wake after update on complete", function()
 		completes += 1
 		if tween.goal ~= 0 then
 			tween.goal = 0
-			assert(not tween.complete, "did not uncomplete")
+			assert(not tween.idle(), "did not uncomplete")
 		end
 	end)
 
@@ -196,7 +196,7 @@ test("should wake after update on complete", function()
 	tween.step(0.5)
 	assert(changes == 4, "did not step")
 	assert(completes == 2, "did not finally complete")
-	assert(tween.complete, "did not complete")
+	assert(tween.idle(), "did not complete")
 
 	tween.step(0.5)
 	assert(changes == 4, "stepped after complete")

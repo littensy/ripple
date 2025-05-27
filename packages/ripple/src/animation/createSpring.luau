@@ -29,6 +29,8 @@ type SpringApi<T> = {
 	step: (deltaTime: number) -> T,
 	to: (goal: T, config: SpringConfig<T>?) -> (),
 	impulse: (amount: T) -> (),
+	halt: () -> (),
+	idle: () -> boolean,
 	configure: (config: SpringConfig<T>) -> (),
 
 	start: () -> (),
@@ -40,7 +42,6 @@ export type Spring<T = any> = SpringApi<T> & {
 	position: T,
 	velocity: T,
 	goal: T,
-	complete: boolean,
 }
 
 local VELOCITY_THRESHOLD_MULTIPLIER = 1000 / 16
@@ -194,6 +195,14 @@ local function createSpring<T>(initialValue: T & Animatable, config: SpringConfi
 		scheduleUpdate()
 	end
 
+	local function halt()
+		intermediate.zero(velocity)
+	end
+
+	local function idle(): boolean
+		return complete
+	end
+
 	local function stop()
 		started = false
 		heartbeat.disconnect(id)
@@ -249,8 +258,6 @@ local function createSpring<T>(initialValue: T & Animatable, config: SpringConfi
 			return intermediate.getValue(velocity)
 		elseif key == "goal" then
 			return intermediate.getValue(goal)
-		elseif key == "complete" then
-			return complete
 		else
 			return nil
 		end
@@ -263,8 +270,6 @@ local function createSpring<T>(initialValue: T & Animatable, config: SpringConfi
 			setVelocity(value)
 		elseif key == "goal" then
 			setGoal(value)
-		elseif key == "complete" then
-			warn(debug.traceback("Cannot set 'complete' property directly. Use 'stop()' to stop the spring.", 2))
 		else
 			rawset(self, key, value)
 		end
@@ -276,7 +281,9 @@ local function createSpring<T>(initialValue: T & Animatable, config: SpringConfi
 		step = step,
 		to = to,
 		impulse = impulse,
+		halt = halt,
 		configure = configure,
+		idle = idle,
 		start = start,
 		stop = stop,
 		destroy = stop,

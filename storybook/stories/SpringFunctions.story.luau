@@ -30,9 +30,7 @@ local function SpringFunction(props: SpringFunctionProps)
 		precision = 0.001,
 		showRuntime = true,
 		step = spring.step,
-		completed = function()
-			return spring.complete
-		end,
+		idle = spring.idle,
 	})
 end
 

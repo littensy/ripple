@@ -23,9 +23,7 @@ local function EasingFunction(props: EasingFunctionProps)
 		name = props.easing :: string,
 		precision = 0.01,
 		step = tween.step,
-		completed = function()
-			return tween.complete
-		end,
+		idle = tween.idle,
 	})
 end
 

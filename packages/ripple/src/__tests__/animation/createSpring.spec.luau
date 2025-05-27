@@ -10,7 +10,7 @@ test("should get properties", function()
 	assert(spring.position == vector.one, "invalid position")
 	assert(spring.velocity == vector.zero, "invalid velocity")
 	assert(spring.goal == vector.one, "invalid target")
-	assert(spring.complete, "invalid complete")
+	assert(spring.idle(), "invalid complete")
 end)
 
 test("should update properties", function()
@@ -23,7 +23,7 @@ test("should update properties", function()
 	assert(spring.position == vector.one, "invalid position")
 	assert(spring.velocity == vector.one, "invalid velocity")
 	assert(spring.goal == -vector.one, "invalid target")
-	assert(not spring.complete, "invalid complete")
+	assert(not spring.idle(), "invalid complete")
 end)
 
 test("should handle tables", function()
@@ -54,7 +54,7 @@ test("should complete if goal is in reach", function()
 	spring.position = vector.zero
 	spring.step(0)
 
-	assert(not spring.complete, "invalid complete")
+	assert(not spring.idle(), "invalid complete")
 	assert(not result, "invalid result")
 	assert(spring.position == vector.zero, "invalid position")
 	assert(spring.velocity == vector.zero, "invalid velocity")
@@ -63,7 +63,7 @@ test("should complete if goal is in reach", function()
 	spring.velocity = vector.one / 2
 	spring.step(0)
 
-	assert(spring.complete, "invalid complete")
+	assert(spring.idle(), "invalid complete")
 	assert(result == vector.one, "invalid result")
 	assert(spring.position == vector.one, "invalid position")
 	assert(spring.velocity == vector.zero, "invalid velocity")
@@ -103,14 +103,14 @@ test("should wake after update on complete", function()
 		completes += 1
 		if spring.goal ~= 0 then
 			spring.goal = 0
-			assert(not spring.complete, "did not uncomplete")
+			assert(not spring.idle(), "did not uncomplete")
 		end
 	end)
 
 	spring.step(1)
 	assert(changed, "did not step")
 	assert(completes == 1, "did not complete")
-	assert(not spring.complete, "did not uncomplete")
+	assert(not spring.idle(), "did not uncomplete")
 
 	changed = false
 	spring.step(0.2)
@@ -121,7 +121,7 @@ test("should wake after update on complete", function()
 	spring.step(0.2)
 	assert(changed, "did not step")
 	assert(completes == 2, "did not finally complete")
-	assert(spring.complete, "did not complete")
+	assert(spring.idle(), "did not complete")
 
 	changed = false
 	spring.step(1)

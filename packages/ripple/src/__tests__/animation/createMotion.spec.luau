@@ -72,7 +72,7 @@ describe("spring", function()
 		assert(motion.position == vector.one, "invalid position")
 		assert(motion.velocity == vector.zero, "invalid velocity")
 		assert(motion.goal == vector.one, "invalid target")
-		assert(motion.complete, "invalid complete")
+		assert(motion.idle(), "invalid complete")
 	end)
 
 	test("should update properties", function()
@@ -85,7 +85,7 @@ describe("spring", function()
 		assert(motion.position == vector.one, "invalid position")
 		assert(motion.velocity == vector.one, "invalid velocity")
 		assert(motion.goal == -vector.one, "invalid target")
-		assert(not motion.complete, "invalid complete")
+		assert(not motion.idle(), "invalid complete")
 	end)
 
 	test("should handle tables", function()
@@ -116,7 +116,7 @@ describe("spring", function()
 		motion.spring(vector.one, { precision = 0.5, restVelocity = 0.5 })
 		motion.step(0)
 
-		assert(not motion.complete, "invalid complete")
+		assert(not motion.idle(), "invalid complete")
 		assert(not result, "invalid result")
 		assert(motion.position == vector.zero, "invalid position")
 		assert(motion.velocity == vector.zero, "invalid velocity")
@@ -125,7 +125,7 @@ describe("spring", function()
 		motion.velocity = vector.one / 2
 		motion.step(0)
 
-		assert(motion.complete, "invalid complete")
+		assert(motion.idle(), "invalid complete")
 		assert(result == vector.one, "invalid result")
 		assert(motion.position == vector.one, "invalid position")
 		assert(motion.velocity == vector.zero, "invalid velocity")
@@ -134,7 +134,7 @@ describe("spring", function()
 	test("should connect while active", function()
 		local motions = {}
 		for index = 1, 10 do
-			motions[index] = createMotion(vector.zero, { type = "spring", start = true, precision = 0.1 })
+			motions[index] = createMotion(vector.zero, { start = true, spring = { precision = 0.1 } })
 		end
 		assert(heartbeat.count() == 0, "start with 0 connections")
 
@@ -165,14 +165,14 @@ describe("spring", function()
 			completes += 1
 			if motion.goal ~= 0 then
 				motion.goal = 0
-				assert(not motion.complete, "did not uncomplete")
+				assert(not motion.idle(), "did not uncomplete")
 			end
 		end)
 
 		motion.step(1)
 		assert(changed, "did not step")
 		assert(completes == 1, "did not complete")
-		assert(not motion.complete, "did not uncomplete")
+		assert(not motion.idle(), "did not uncomplete")
 
 		changed = false
 		motion.step(0.2)
@@ -183,7 +183,7 @@ describe("spring", function()
 		motion.step(0.2)
 		assert(changed, "did not step")
 		assert(completes == 2, "did not finally complete")
-		assert(motion.complete, "did not complete")
+		assert(motion.idle(), "did not complete")
 
 		changed = false
 		motion.step(1)
@@ -194,26 +194,26 @@ end)
 
 describe("tween", function()
 	test("should get properties", function()
-		local motion = createMotion(vector.one, { type = "tween", duration = 1 })
+		local motion = createMotion(vector.one, { tween = { duration = 1 } })
 
 		assert(motion.position == vector.one, "invalid position")
 		assert(motion.goal == vector.one, "invalid target")
-		assert(motion.complete, "invalid complete")
+		assert(motion.idle(), "invalid complete")
 	end)
 
 	test("should update properties", function()
-		local motion = createMotion(vector.zero, { type = "tween", duration = 1 })
+		local motion = createMotion(vector.zero, { tween = { duration = 1 } })
 
 		motion.position += vector.one
 		motion.goal -= vector.one
 
 		assert(motion.position == vector.one, "invalid position")
 		assert(motion.goal == -vector.one, "invalid target")
-		assert(not motion.complete, "invalid complete")
+		assert(not motion.idle(), "invalid complete")
 	end)
 
 	test("should handle tables", function()
-		local motion = createMotion({ 0, 0, 0 }, { type = "tween", duration = 1 })
+		local motion = createMotion({ 0, 0, 0 }, { tween = { duration = 1 } })
 		local initialPosition = motion.position
 		local initialGoal = motion.goal
 
@@ -232,7 +232,7 @@ describe("tween", function()
 
 	test("should complete if duration passes", function()
 		local result
-		local motion = createMotion(vector.one, { type = "tween", duration = 1 })
+		local motion = createMotion(vector.one, { tween = { duration = 1 } })
 
 		motion.onComplete(function(value)
 			result = value
@@ -240,20 +240,20 @@ describe("tween", function()
 		motion.position = vector.zero
 		motion.step(0.5)
 
-		assert(not motion.complete, "invalid complete")
+		assert(not motion.idle(), "invalid complete")
 		assert(not result, "invalid result")
 		assert(motion.position == vector.one / 2, "invalid position")
 
 		motion.step(0.5)
 
-		assert(motion.complete, "invalid complete")
+		assert(motion.idle(), "invalid complete")
 		assert(result == vector.one, "invalid result")
 		assert(motion.position == vector.one, "invalid position")
 	end)
 
 	test("should start from new position", function()
 		local result
-		local motion = createMotion(vector.one, { type = "tween", duration = 1 })
+		local motion = createMotion(vector.one, { tween = { duration = 1 } })
 
 		motion.onComplete(function(value)
 			result = value
@@ -263,14 +263,14 @@ describe("tween", function()
 			motion.position = vector.zero
 			motion.step(0.5)
 
-			assert(not motion.complete, "invalid complete")
+			assert(not motion.idle(), "invalid complete")
 			assert(not result, "invalid result")
 			assert(motion.position == vector.one / 2, "invalid position")
 		end
 
 		motion.step(0.5)
 
-		assert(motion.complete, "invalid complete")
+		assert(motion.idle(), "invalid complete")
 		assert(result == vector.one, "invalid result")
 		assert(motion.position == vector.one, "invalid position")
 	end)
@@ -278,7 +278,7 @@ describe("tween", function()
 	test("should connect while active", function()
 		local motions = {}
 		for index = 1, 10 do
-			motions[index] = createMotion(vector.zero, { type = "tween", start = true, duration = 1 })
+			motions[index] = createMotion(vector.zero, { start = true, tween = { duration = 1 } })
 		end
 		assert(heartbeat.count() == 0, "start with 0 connections")
 
@@ -302,21 +302,23 @@ describe("tween", function()
 			[4] = { 0.5, 0, 0.5, 0, 0.5, 0, 0.5, 1 },
 		}
 		local result
-		local motion = createMotion(vector.one, { type = "tween", duration = 1 })
+		local motion = createMotion(vector.one, { tween = { duration = 1 } })
 
 		motion.onComplete(function(value)
 			result = value
 		end)
 
 		for repeats, case in cases do
-			motion.configure({ type = "tween", position = vector.zero, repeats = repeats })
+			motion.configure({
+				tween = { position = vector.zero, repeats = repeats },
+			})
 
 			for i = 1, repeats * 2 do
 				motion.step(0.5)
 				assert(motion.position == vector.one * case[i], `{repeats} expected {case[i]}, got {motion.position}`)
 			end
 
-			assert(motion.complete, "did not complete")
+			assert(motion.idle(), "did not complete")
 			assert(result == vector.one * case[#case], `{repeats} expected {case[#case]}, got {result}`)
 		end
 	end)
@@ -327,7 +329,7 @@ describe("tween", function()
 			[4] = { 0.5, 1, 0.5, 0, 0.5, 1, 0.5, 0 },
 		}
 		local result
-		local motion = createMotion(vector.one, { type = "tween", duration = 1 })
+		local motion = createMotion(vector.one, { tween = { duration = 1 } })
 
 		motion.onComplete(function(value)
 			result = value
@@ -335,10 +337,7 @@ describe("tween", function()
 
 		for repeats, case in cases do
 			motion.configure({
-				type = "tween",
-				position = vector.zero,
-				repeats = repeats,
-				reverses = true,
+				tween = { position = vector.zero, repeats = repeats, reverses = true },
 			})
 
 			for i = 1, repeats * 2 do
@@ -346,7 +345,7 @@ describe("tween", function()
 				assert(motion.position == vector.one * case[i], `{repeats} expected {case[i]}, got {motion.position}`)
 			end
 
-			assert(motion.complete, "did not complete")
+			assert(motion.idle(), "did not complete")
 			assert(result == vector.one * case[#case], `{repeats} expected {case[#case]}, got {result}`)
 		end
 	end)
@@ -355,7 +354,7 @@ describe("tween", function()
 		local changes = 0
 		local completes = 0
 
-		local motion = createMotion(0, { type = "tween", duration = 1 })
+		local motion = createMotion(0, { tween = { duration = 1 } })
 		motion.goal = 1
 		motion.onChange(function()
 			changes += 1
@@ -364,7 +363,7 @@ describe("tween", function()
 			completes += 1
 			if motion.goal ~= 0 then
 				motion.goal = 0
-				assert(not motion.complete, "did not uncomplete")
+				assert(not motion.idle(), "did not uncomplete")
 			end
 		end)
 
@@ -383,7 +382,7 @@ describe("tween", function()
 		motion.step(0.5)
 		assert(changes == 4, "did not step")
 		assert(completes == 2, "did not finally complete")
-		assert(motion.complete, "did not complete")
+		assert(motion.idle(), "did not complete")
 
 		motion.step(0.5)
 		assert(changes == 4, "stepped after complete")

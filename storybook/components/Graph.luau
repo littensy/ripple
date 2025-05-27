@@ -6,7 +6,7 @@ type GraphProps = {
 	name: string,
 	precision: number,
 	step: (dt: number) -> number,
-	completed: () -> boolean,
+	idle: () -> boolean,
 	showRuntime: boolean?,
 }
 
@@ -23,7 +23,7 @@ local function Graph(props: GraphProps)
 
 		for _ = 1, 2000 do
 			table.insert(samples, props.step(props.precision))
-			if props.completed() then
+			if props.idle() then
 				break
 			end
 		end

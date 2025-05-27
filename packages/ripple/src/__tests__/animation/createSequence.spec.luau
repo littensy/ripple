@@ -57,7 +57,7 @@ test("should persist interrupted tween config", function()
 	assert(sequence.position == 0.25, "should be 50% to keypoint 2")
 	sequence.step(1)
 	assert(sequence.position == 0, "should finish at keypoint 2")
-	assert(sequence.complete, "should be complete after finishing keypoint 2")
+	assert(sequence.idle(), "should be complete after finishing keypoint 2")
 end)
 
 return {}

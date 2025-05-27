@@ -25,6 +25,7 @@ type TweenApi<T> = {
 
 	step: (deltaTime: number) -> T,
 	to: (goal: T, config: TweenConfig<T>?) -> (),
+	idle: () -> boolean,
 	configure: (config: TweenConfig<T>) -> (),
 
 	start: () -> (),
@@ -36,7 +37,6 @@ export type Tween<T = any> = TweenApi<T> & {
 	position: T,
 	from: T,
 	goal: T,
-	complete: boolean,
 }
 
 local function getAlpha(progress: number, repeats: number, reverses: boolean): number
@@ -124,6 +124,10 @@ local function createTween<T>(initialValue: T & Animatable, config: TweenConfig<
 		end
 	end
 
+	local function idle(): boolean
+		return complete
+	end
+
 	local function stop()
 		started = false
 		heartbeat.disconnect(id)
@@ -165,8 +169,6 @@ local function createTween<T>(initialValue: T & Animatable, config: TweenConfig<
 			return intermediate.getValue(from)
 		elseif key == "goal" then
 			return intermediate.getValue(goal)
-		elseif key == "complete" then
-			return complete
 		else
 			return nil
 		end
@@ -177,8 +179,6 @@ local function createTween<T>(initialValue: T & Animatable, config: TweenConfig<
 			setPosition(value)
 		elseif key == "goal" then
 			setGoal(value)
-		elseif key == "complete" then
-			warn(debug.traceback("Cannot set 'complete' property directly. Use 'stop()' to stop the tween.", 2))
 		else
 			rawset(self, key, value)
 		end
@@ -190,6 +190,7 @@ local function createTween<T>(initialValue: T & Animatable, config: TweenConfig<
 		step = step,
 		to = to,
 		configure = configure,
+		idle = idle,
 		start = start,
 		stop = stop,
 		destroy = stop,

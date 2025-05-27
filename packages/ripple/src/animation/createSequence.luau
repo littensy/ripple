@@ -17,12 +17,16 @@ export type SequenceKeypoint<T = any> = {
 	goal: T,
 	spring: SpringConfig<T>?,
 	tween: TweenConfig<T>?,
+	start: nil,
 }
 
 type SequenceApi<T> = {
 	onChange: (callback: (value: T, deltaTime: number) -> ()) -> () -> (),
 	onComplete: (callback: (value: T) -> ()) -> () -> (),
+
 	step: (deltaTime: number) -> T,
+	idle: () -> boolean,
+
 	loop: () -> (),
 	start: () -> (),
 	stop: () -> (),
@@ -34,15 +38,6 @@ export type Sequence<T = any> = SequenceApi<T> & {
 	position: T,
 	velocity: T,
 	goal: T,
-	complete: boolean,
-	looped: boolean,
-}
-
-type MotionLike<T> = {
-	step: (dt: number) -> T,
-	position: T,
-	goal: T,
-	complete: boolean,
 }
 
 local function createSequence<T>(initialValue: T & Animatable, keypoints: { SequenceKeypoint<T> }): Sequence<T>
@@ -74,10 +69,12 @@ local function createSequence<T>(initialValue: T & Animatable, keypoints: { Sequ
 	end
 
 	local function updateKeypoint(keypoint: SequenceKeypoint<T>)
+		motion.configure(keypoint)
+
 		if keypoint.spring then
-			motion.spring(keypoint.goal, keypoint.spring)
+			motion.spring(keypoint.goal)
 		elseif keypoint.tween then
-			motion.tween(keypoint.goal, keypoint.tween)
+			motion.tween(keypoint.goal)
 		else
 			motion.goal = keypoint.goal
 		end
@@ -101,7 +98,7 @@ local function createSequence<T>(initialValue: T & Animatable, keypoints: { Sequ
 
 		fireChange(position, dt)
 
-		if isLastKeypoint and motion.complete then
+		if isLastKeypoint and motion.idle() then
 			if looped then
 				elapsed = 0
 			else
@@ -146,6 +143,10 @@ local function createSequence<T>(initialValue: T & Animatable, keypoints: { Sequ
 		resumeFromCurrentTime()
 	end
 
+	local function idle(): boolean
+		return complete
+	end
+
 	local function stop()
 		started = false
 		heartbeat.disconnect(id)
@@ -165,9 +166,7 @@ local function createSequence<T>(initialValue: T & Animatable, keypoints: { Sequ
 	end
 
 	local function getter(_, key: any): any
-		if key == "complete" then
-			return complete
-		elseif key == "time" then
+		if key == "time" then
 			return elapsed
 		else
 			return motion[key]
@@ -183,8 +182,6 @@ local function createSequence<T>(initialValue: T & Animatable, keypoints: { Sequ
 			setTime(value)
 		elseif key == "goal" then
 			warn(debug.traceback("Cannot set 'goal' in a sequence.", 2))
-		elseif key == "complete" then
-			warn(debug.traceback("Cannot set 'complete' property directly. Use 'stop()' to stop the sequence.", 2))
 		else
 			rawset(self, key, value)
 		end
@@ -194,6 +191,7 @@ local function createSequence<T>(initialValue: T & Animatable, keypoints: { Sequ
 		onChange = onChange,
 		onComplete = onComplete,
 		step = step,
+		idle = idle,
 		loop = loop,
 		start = start,
 		stop = stop,

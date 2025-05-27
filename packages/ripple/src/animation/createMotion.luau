@@ -14,61 +14,22 @@ type TweenConfig<T = any> = createTween.TweenConfig<T>
 type FireSignal<T...> = signal.FireSignal<T...>
 type SubscribeSignal<T...> = signal.SubscribeSignal<T...>
 
-type SpringMotionConfig<T> = {
-	type: "spring",
+export type MotionConfig<T = any> = {
 	start: boolean?,
-
-	-- Spring options
-	tension: number?,
-	friction: number?,
-	mass: number?,
-	dampingRatio: number?,
-	frequency: number?,
-	precision: number?,
-	restVelocity: number?,
-	position: T?,
-	velocity: T?,
-	impulse: T?,
-
-	-- Tween options
-	easing: nil,
-	duration: nil,
-	repeats: nil,
-	reverses: nil,
+	spring: SpringConfig<T>?,
+	tween: TweenConfig<T>?,
 }
-
-type TweenMotionConfig<T = any> = {
-	type: "tween",
-	start: boolean?,
-
-	-- Tween options
-	easing: Easing?,
-	duration: number?,
-	repeats: number?,
-	reverses: boolean?,
-	position: T?,
-
-	-- Spring options
-	tension: nil,
-	friction: nil,
-	mass: nil,
-	dampingRatio: nil,
-	frequency: nil,
-	precision: nil,
-	restVelocity: nil,
-	velocity: nil,
-	impulse: nil,
-}
-
-export type MotionConfig<T = any> = SpringMotionConfig<T> | TweenMotionConfig<T>
 
 type MotionApi<T> = {
 	onChange: (callback: (value: T, deltaTime: number) -> ()) -> () -> (),
 	onComplete: (callback: (value: T) -> ()) -> () -> (),
+
+	step: (deltaTime: number) -> T,
 	spring: (goal: T, config: SpringConfig<T>?) -> (),
 	tween: (goal: T, config: TweenConfig<T>?) -> (),
+	idle: () -> boolean,
 	configure: (config: MotionConfig<T>) -> (),
-	step: (deltaTime: number) -> T,
+
 	start: () -> (),
 	stop: () -> (),
 	destroy: () -> (),
@@ -78,14 +39,13 @@ export type Motion<T = any> = MotionApi<T> & {
 	position: T,
 	velocity: T,
 	goal: T,
-	complete: boolean,
 }
 
 type MotionLike<T> = {
 	step: (dt: number) -> T,
+	idle: () -> boolean,
 	position: T,
 	goal: T,
-	complete: boolean,
 }
 
 local function omitStartOption<T>(config: T): T
@@ -100,21 +60,11 @@ local function omitStartOption<T>(config: T): T
 end
 
 local function createMotion<T>(initialValue: T & Animatable, config: MotionConfig<T>?): Motion<T>
-	local spring: Spring<T>
-	local tween: Tween<T>
-	local current: MotionLike<T>
+	local config: MotionConfig<T> = config or {}
 
-	if not config or config.type == "spring" then
-		spring = createSpring(initialValue :: Animatable, omitStartOption(config))
-		tween = createTween(initialValue :: Animatable)
-		current = spring
-	else
-		spring = createSpring(initialValue :: Animatable)
-		tween = createTween(initialValue :: Animatable, omitStartOption(config))
-		current = tween
-	end
-
-	local initialVelocity = spring.velocity
+	local spring: Spring<T> = createSpring(initialValue :: Animatable, omitStartOption(config.spring))
+	local tween: Tween<T> = createTween(initialValue :: Animatable, omitStartOption(config.tween))
+	local current: MotionLike<T> = if not config.tween then spring else tween
 
 	local id = heartbeat.id()
 	local started = false
@@ -126,7 +76,6 @@ local function createMotion<T>(initialValue: T & Animatable, config: MotionConfi
 	local function initSpring()
 		if current ~= spring then
 			spring.position = tween.position
-			spring.velocity = initialVelocity
 			current = spring
 		end
 	end
@@ -134,6 +83,7 @@ local function createMotion<T>(initialValue: T & Animatable, config: MotionConfi
 	local function initTween()
 		if current ~= tween then
 			tween.position = spring.position
+			spring.halt()
 			current = tween
 		end
 	end
@@ -147,7 +97,7 @@ local function createMotion<T>(initialValue: T & Animatable, config: MotionConfi
 
 		fireChange(position, dt)
 
-		if current.complete then
+		if current.idle() then
 			complete = true
 			heartbeat.disconnect(id)
 			fireComplete(position)
@@ -185,6 +135,10 @@ local function createMotion<T>(initialValue: T & Animatable, config: MotionConfi
 		end
 	end
 
+	local function idle(): boolean
+		return complete
+	end
+
 	local function stop()
 		started = false
 		heartbeat.disconnect(id)
@@ -198,13 +152,17 @@ local function createMotion<T>(initialValue: T & Animatable, config: MotionConfi
 	end
 
 	local function configure(config: MotionConfig<T>)
-		if config.type == "spring" then
-			spring.configure(omitStartOption(config))
-		else
-			tween.configure(omitStartOption(config))
+		if config.spring then
+			spring.configure(omitStartOption(config.spring))
 		end
 
-		scheduleUpdate()
+		if config.tween then
+			tween.configure(omitStartOption(config.tween))
+		end
+
+		if config.spring or config.tween then
+			scheduleUpdate()
+		end
 	end
 
 	local function springTo(goal: T, config: SpringConfig<T>?)
@@ -235,11 +193,9 @@ local function createMotion<T>(initialValue: T & Animatable, config: MotionConfi
 		if key == "position" then
 			return current.position
 		elseif key == "velocity" then
-			return if current == spring then spring.velocity else initialVelocity
+			return spring.velocity
 		elseif key == "goal" then
 			return current.goal
-		elseif key == "complete" then
-			return complete
 		else
 			return nil
 		end
@@ -252,8 +208,6 @@ local function createMotion<T>(initialValue: T & Animatable, config: MotionConfi
 			setVelocity(value)
 		elseif key == "goal" then
 			setGoal(value)
-		elseif key == "complete" then
-			warn(debug.traceback("Cannot set 'complete' property directly. Use 'stop()' to stop the sequence.", 2))
 		else
 			rawset(self, key, value)
 		end
@@ -265,13 +219,14 @@ local function createMotion<T>(initialValue: T & Animatable, config: MotionConfi
 		spring = springTo,
 		tween = tweenTo,
 		configure = configure,
+		idle = idle,
 		step = step,
 		start = start,
 		stop = stop,
 		destroy = stop,
 	}
 
-	if config and config.start then
+	if config.start then
 		start()
 	end
 
