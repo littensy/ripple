@@ -1,35 +1,22 @@
 --[[
-	Each benchmark runs a prolonged spring animation that updates a property
-	a specified number of times, measuring the performance of stepping through
-	the animation and converting the internal values to and from vectors.
+	Each benchmark runs a prolonged spring animation on a 3D vector, measuring
+	the performance of stepping through the animation and converting the
+	internal representation to and from vectors.
 
 	For libraries that do not natively support vectors, the goal will be a
-	table with x, y, and z properties, and the vector will be derived from
-	these values.
+	table with x, y, and z properties.
 ]]
 
 local bench = require("./bench")
 
 local ITERATIONS = 10000
 
--- selene: allow(unused_variable)
-local object = {
-	property = vector.zero,
-}
-
 do
 	local createSpring = require("../packages/ripple/src/animation/createSpring")
 	local heartbeat = require("../packages/ripple/src/heartbeat")
 
-	local config: createSpring.SpringConfig = { start = true, frequency = 1 / 10 }
-
 	bench("ripple", function()
-		local spring = createSpring(vector.zero, config)
-
-		spring.to(vector.one)
-		spring.onChange(function(value)
-			object.property = value
-		end)
+		createSpring(vector.zero, { start = true, frequency = 1 / 10 }):setGoal(vector.one)
 
 		for _ = 1, ITERATIONS do
 			heartbeat.step(1 / ITERATIONS)
@@ -44,20 +31,12 @@ do
 	local createGroupMotor = require("./otter/createGroupMotor")
 	local spring = require("./otter/spring")
 
-	local config: spring.SpringOptions = { frequency = 1 / 10 }
-
 	bench("otter", function()
-		local motor = createGroupMotor({ x = 0, y = 0, z = 0 })
-
-		motor:setGoal({
-			x = spring(1, config),
-			y = spring(1, config),
-			z = spring(1, config),
+		createGroupMotor({ x = 0, y = 0, z = 0 }):setGoal({
+			x = spring(1, { frequency = 1 / 10 }),
+			y = spring(1, { frequency = 1 / 10 }),
+			z = spring(1, { frequency = 1 / 10 }),
 		})
-
-		motor:onStep(function(value)
-			object.property = vector.create(value.x, value.y, value.z)
-		end)
 
 		for _ = 1, ITERATIONS do
 			AnimationStepSignal:Fire(1 / ITERATIONS)
@@ -77,16 +56,12 @@ do
 
 	bench("vide", function()
 		root(function(cleanup)
-			local src = spring(goal, 10)
-			src(vector.zero)
+			spring(goal, 10)(vector.zero)
 
 			for _ = 1, ITERATIONS do
 				-- This step function runs at a variable frequency instead of
 				-- the 120hz fixed frequency normally used in Vide
 				step(1 / ITERATIONS)
-				-- Realistically, this should be in an effect, but including
-				-- Vide's reactive graph is not the point of this benchmark
-				object.property = src()
 			end
 
 			cleanup()
@@ -103,9 +78,6 @@ do
 
 		spring:SetGoal(vector.one)
 		spring:Run()
-		spring:SetUpdater(function(value)
-			object.property = value
-		end)
 
 		for _ = 1, ITERATIONS do
 			SpringValue.step(1 / ITERATIONS)

@@ -1,13 +1,13 @@
 import type {
 	Animatable,
 	Motion,
-	MotionConfig,
+	MotionOptions,
 	Sequence,
 	SequenceKeypoint,
 	Spring,
-	SpringConfig,
+	SpringOptions,
 	Tween,
-	TweenConfig,
+	TweenOptions,
 } from "@rbxts/ripple";
 
 export * from "@rbxts/ripple";
@@ -32,11 +32,11 @@ export interface VideSequence<T extends Animatable> extends Sequence<T> {
 	source: () => T;
 }
 
-export function useSpring<T extends Animatable>(initialValue: T, initialConfig?: SpringConfig<T>): VideSpring<T>;
+export function useSpring<T extends Animatable>(initialValue: T, initialOptions?: SpringOptions<T>): VideSpring<T>;
 
-export function useTween<T extends Animatable>(initialValue: T, initialConfig?: TweenConfig<T>): VideTween<T>;
+export function useTween<T extends Animatable>(initialValue: T, initialOptions?: TweenOptions<T>): VideTween<T>;
 
-export function useMotion<T extends Animatable>(initialValue: T, initialConfig?: MotionConfig<T>): VideMotion<T>;
+export function useMotion<T extends Animatable>(initialValue: T, initialOptions?: MotionOptions<T>): VideMotion<T>;
 
 export function useSequence<T extends Animatable>(
 	initialValue: T,

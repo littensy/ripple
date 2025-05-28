@@ -4,23 +4,25 @@ local Ripple = require(script.Parent.Parent.Ripple)
 type Binding<T> = React.Binding<T>
 type Animatable = Ripple.Animatable
 type Spring<T> = Ripple.Spring<T>
-type SpringConfig<T> = Ripple.SpringConfig<T>
+type SpringOptions<T> = Ripple.SpringOptions<T>
 
-local function useSpring<T>(initialValue: T, initialConfig: SpringConfig<T>?): (Binding<T>, Spring<T>)
+local function useSpring<T>(initialValue: T, initialOptions: SpringOptions<T>?): (Binding<T>, Spring<T>)
 	local value, setValue = React.useBinding(initialValue)
 	local springRef = React.useRef((nil :: any) :: Spring<T>)
 
 	if not springRef.current then
-		springRef.current = Ripple.createSpring(initialValue, initialConfig)
+		springRef.current = Ripple.createSpring(initialValue, initialOptions)
 	end
 
 	React.useEffect(function()
-		local disconnect = springRef.current.onChange(setValue)
-		if not initialConfig or initialConfig.start ~= false then
-			springRef.current.start()
+		local disconnect = springRef.current:onChange(setValue)
+
+		if not initialOptions or initialOptions.start ~= false then
+			springRef.current:start()
 		end
+
 		return function()
-			springRef.current.stop()
+			springRef.current:stop()
 			disconnect()
 		end
 	end, {})

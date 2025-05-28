@@ -1,14 +1,10 @@
-type Listener = (deltaTime: number) -> ()
+type Listener = {
+	step: (self: Listener, deltaTime: number) -> (),
+}
 
-local currentListeners: { Listener } = {}
-local nextListeners: { Listener } = currentListeners
-local nextListenerId = 0
+local currentListeners: { [Listener]: true? } = {}
+local nextListeners: { [Listener]: true? } = currentListeners
 local connection: RBXScriptConnection?
-
-local function nextId(): number
-	nextListenerId += 1
-	return nextListenerId
-end
 
 local function ensureCanMutateNextListeners()
 	if nextListeners == currentListeners then
@@ -19,8 +15,8 @@ end
 local function step(deltaTime: number)
 	currentListeners = nextListeners
 
-	for _, listener in currentListeners do
-		listener(deltaTime)
+	for listener in currentListeners do
+		listener:step(deltaTime)
 	end
 end
 
@@ -41,18 +37,18 @@ local function connectToHeartbeat()
 	end)
 end
 
-local function connect(id: number, listener: Listener)
-	if nextListeners[id] ~= listener then
+local function connect(listener: Listener)
+	if not nextListeners[listener] then
 		connectToHeartbeat()
 		ensureCanMutateNextListeners()
-		nextListeners[id] = listener
+		nextListeners[listener] = true
 	end
 end
 
-local function disconnect(id: number)
-	if nextListeners[id] then
+local function disconnect(listener: Listener)
+	if nextListeners[listener] then
 		ensureCanMutateNextListeners()
-		nextListeners[id] = nil
+		nextListeners[listener] = nil
 	end
 end
 
@@ -70,7 +66,6 @@ local function clear()
 end
 
 return {
-	nextId = nextId,
 	step = step,
 	connect = connect,
 	disconnect = disconnect,

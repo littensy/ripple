@@ -4,69 +4,93 @@ local suite = require("../../../../../test/suite")
 
 local test = suite.test
 
+test("should have expected api", function()
+	local spring = createSpring(0)
+
+	assert(type(spring.setPosition) == "function", "missing setPosition")
+	assert(type(spring.setVelocity) == "function", "missing setVelocity")
+	assert(type(spring.setGoal) == "function", "missing setGoal")
+
+	assert(type(spring.getPosition) == "function", "missing getPosition")
+	assert(type(spring.getVelocity) == "function", "missing getVelocity")
+	assert(type(spring.getGoal) == "function", "missing getGoal")
+
+	assert(type(spring.onChange) == "function", "missing onChange")
+	assert(type(spring.onComplete) == "function", "missing onComplete")
+	assert(type(spring.step) == "function", "missing step")
+	assert(type(spring.impulse) == "function", "missing impulse")
+	assert(type(spring.halt) == "function", "missing halt")
+	assert(type(spring.idle) == "function", "missing idle")
+
+	assert(type(spring.configure) == "function", "missing configure")
+	assert(type(spring.start) == "function", "missing start")
+	assert(type(spring.stop) == "function", "missing stop")
+	assert(type(spring.destroy) == "function", "missing destroy")
+end)
+
 test("should get properties", function()
 	local spring = createSpring(vector.one)
 
-	assert(spring.position == vector.one, "invalid position")
-	assert(spring.velocity == vector.zero, "invalid velocity")
-	assert(spring.goal == vector.one, "invalid target")
-	assert(spring.idle(), "invalid complete")
+	assert(spring:getPosition() == vector.one, "invalid position")
+	assert(spring:getVelocity() == vector.zero, "invalid velocity")
+	assert(spring:getGoal() == vector.one, "invalid target")
+	assert(spring:idle(), "invalid complete")
 end)
 
 test("should update properties", function()
 	local spring = createSpring(vector.zero)
 
-	spring.position += vector.one
-	spring.velocity += vector.one
-	spring.goal -= vector.one
+	spring:setPosition(vector.one)
+	spring:setVelocity(vector.one)
+	spring:setGoal(vector.one)
 
-	assert(spring.position == vector.one, "invalid position")
-	assert(spring.velocity == vector.one, "invalid velocity")
-	assert(spring.goal == -vector.one, "invalid target")
-	assert(not spring.idle(), "invalid complete")
+	assert(spring:getPosition() == vector.one, "invalid position")
+	assert(spring:getVelocity() == vector.one, "invalid velocity")
+	assert(spring:getGoal() == vector.one, "invalid target")
+	assert(not spring:idle(), "invalid complete")
 end)
 
 test("should handle tables", function()
 	local spring = createSpring({ 0, 0, 0 })
-	local initialPosition = spring.position
-	local initialVelocity = spring.velocity
+	local initialPosition = spring:getPosition()
+	local initialVelocity = spring:getVelocity()
 
-	spring.position = { 0, 0, 0 }
-	spring.velocity = { 0, 0, 0 }
+	spring:setPosition({ 0, 0, 0 })
+	spring:setVelocity({ 0, 0, 0 })
 
-	assert(spring.position == initialPosition, "unnecessary position copy")
-	assert(spring.velocity == initialVelocity, "unnecessary velocity copy")
+	assert(spring:getPosition() == initialPosition, "unnecessary position copy")
+	assert(spring:getVelocity() == initialVelocity, "unnecessary velocity copy")
 
-	spring.position = { [1] = 1, [3] = 1 }
-	spring.velocity = { [1] = 1, [3] = 1 }
+	spring:setPosition({ [1] = 1, [3] = 1 })
+	spring:setVelocity({ [1] = 1, [3] = 1 })
 
-	assert(table.concat(spring.position) == "101", "did not merge position")
-	assert(table.concat(spring.velocity) == "101", "did not merge velocity")
+	assert(table.concat(spring:getPosition()) == "101", "did not merge position")
+	assert(table.concat(spring:getVelocity()) == "101", "did not merge velocity")
 end)
 
 test("should complete if goal is in reach", function()
 	local result
 	local spring = createSpring(vector.one, { precision = 0.5, restVelocity = 0.5 })
 
-	spring.onComplete(function(value)
+	spring:onComplete(function(value)
 		result = value
 	end)
-	spring.position = vector.zero
-	spring.step(0)
+	spring:setPosition(vector.zero)
+	spring:step(0)
 
-	assert(not spring.idle(), "invalid complete")
+	assert(not spring:idle(), "invalid complete")
 	assert(not result, "invalid result")
-	assert(spring.position == vector.zero, "invalid position")
-	assert(spring.velocity == vector.zero, "invalid velocity")
+	assert(spring:getPosition() == vector.zero, "invalid position")
+	assert(spring:getVelocity() == vector.zero, "invalid velocity")
 
-	spring.position = vector.one / 2
-	spring.velocity = vector.one / 2
-	spring.step(0)
+	spring:setPosition(vector.one / 2)
+	spring:setVelocity(vector.one / 2)
+	spring:step(0)
 
-	assert(spring.idle(), "invalid complete")
+	assert(spring:idle(), "invalid complete")
 	assert(result == vector.one, "invalid result")
-	assert(spring.position == vector.one, "invalid position")
-	assert(spring.velocity == vector.zero, "invalid velocity")
+	assert(spring:getPosition() == vector.one, "invalid position")
+	assert(spring:getVelocity() == vector.zero, "invalid velocity")
 end)
 
 test("should connect while active", function()
@@ -78,7 +102,7 @@ test("should connect while active", function()
 
 	for _ = 1, 2 do
 		for _, spring in springs do
-			spring.goal += vector.one
+			spring:setGoal(spring:getGoal() + vector.one)
 		end
 		assert(heartbeat.count() == #springs, "connect on update")
 
@@ -95,36 +119,36 @@ test("should wake after update on complete", function()
 	local completes = 0
 
 	local spring = createSpring(0, { precision = 0.1 })
-	spring.goal = 1
-	spring.onChange(function()
+	spring:setGoal(1)
+	spring:onChange(function()
 		changed = true
 	end)
-	spring.onComplete(function()
+	spring:onComplete(function()
 		completes += 1
-		if spring.goal ~= 0 then
-			spring.goal = 0
-			assert(not spring.idle(), "did not uncomplete")
+		if spring:getGoal() ~= 0 then
+			spring:setGoal(0)
+			assert(not spring:idle(), "did not uncomplete")
 		end
 	end)
 
-	spring.step(1)
+	spring:step(1)
 	assert(changed, "did not step")
 	assert(completes == 1, "did not complete")
-	assert(not spring.idle(), "did not uncomplete")
+	assert(not spring:idle(), "did not uncomplete")
 
 	changed = false
-	spring.step(0.2)
+	spring:step(0.2)
 	assert(changed, "did not step")
 	assert(completes == 1, "completed for wrong goal")
 
 	changed = false
-	spring.step(0.2)
+	spring:step(0.2)
 	assert(changed, "did not step")
 	assert(completes == 2, "did not finally complete")
-	assert(spring.idle(), "did not complete")
+	assert(spring:idle(), "did not complete")
 
 	changed = false
-	spring.step(1)
+	spring:step(1)
 	assert(not changed, "stepped after complete")
 	assert(completes == 2, "completed after completion")
 end)

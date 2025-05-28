@@ -4,23 +4,23 @@ local callable = require(script.Parent.callable)
 
 type Animatable = Ripple.Animatable
 type Motion<T> = Ripple.Motion<T>
-type MotionConfig<T> = Ripple.MotionConfig<T>
+type MotionOptions<T> = Ripple.MotionOptions<T>
 
 export type VideMotion<T> = (() -> T) & Motion<T> & {
 	source: () -> T,
 }
 
-local function useMotion<T>(initialValue: T, initialConfig: MotionConfig<T>?): VideMotion<T>
-	local motion = Ripple.createMotion(initialValue, initialConfig) :: VideMotion<T>
+local function useMotion<T>(initialValue: T, initialOptions: MotionOptions<T>?): VideMotion<T>
+	local motion = Ripple.createMotion(initialValue, initialOptions) :: VideMotion<T>
 
 	motion.source = Vide.source(initialValue)
 
-	if not initialConfig or initialConfig.start ~= false then
-		motion.start()
+	if not initialOptions or initialOptions.start ~= false then
+		motion:start()
 	end
 
-	Vide.cleanup(motion.onChange(motion.source))
-	Vide.cleanup(motion.stop)
+	Vide.cleanup(motion:onChange(motion.source))
+	Vide.cleanup(motion)
 
 	return callable(motion, function()
 		return motion.source()

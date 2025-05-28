@@ -12,14 +12,8 @@ do
 	local createSpring = require("../packages/ripple/src/animation/createSpring")
 	local heartbeat = require("../packages/ripple/src/heartbeat")
 
-	local config: createSpring.SpringConfig = {
-		start = true,
-		frequency = 1 / 10,
-	}
-
 	bench("ripple", function()
-		local spring = createSpring(0, config)
-		spring.to(1)
+		createSpring(0, { start = true, frequency = 1 / 10 }):setGoal(1)
 
 		for _ = 1, ITERATIONS do
 			heartbeat.step(1 / ITERATIONS)
@@ -34,11 +28,8 @@ do
 	local createSingleMotor = require("./otter/createSingleMotor")
 	local spring = require("./otter/spring")
 
-	local config: spring.SpringOptions = { frequency = 1 / 10 }
-
 	bench("otter", function()
-		local motor = createSingleMotor(0)
-		motor:setGoal(spring(1, config))
+		createSingleMotor(0):setGoal(spring(1, { frequency = 1 / 10 }))
 
 		for _ = 1, ITERATIONS do
 			AnimationStepSignal:Fire(1 / ITERATIONS)
@@ -58,8 +49,7 @@ do
 
 	bench("vide", function()
 		root(function(cleanup)
-			local source = spring(goal, 10)
-			source(0)
+			spring(goal, 10)(0)
 
 			for _ = 1, ITERATIONS do
 				-- This step function runs at a variable frequency instead of
@@ -78,6 +68,7 @@ do
 
 	bench("react-flow", function()
 		local spring = SpringValue.new(0, 1 / 10)
+
 		spring:SetGoal(1)
 		spring:Run()
 

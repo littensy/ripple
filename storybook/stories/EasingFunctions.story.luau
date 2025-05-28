@@ -12,15 +12,19 @@ type EasingFunctionProps = {
 local function EasingFunction(props: EasingFunctionProps)
 	local tween = React.useMemo(function()
 		local source = Ripple.createTween(1, { duration = 1, easing = props.easing })
-		source.goal = 0
+		source:setGoal(0)
 		return source
 	end, { props.easing })
 
 	return React.createElement(Graph, {
 		name = props.easing :: string,
 		precision = 0.01,
-		step = tween.step,
-		idle = tween.idle,
+		step = function(dt)
+			return tween:step(dt)
+		end,
+		idle = function()
+			return tween:idle()
+		end,
 	})
 end
 

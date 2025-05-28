@@ -1,53 +1,76 @@
 local createSpring = require("./createSpring")
 local createTween = require("./createTween")
-local easing = require("../easing")
 local heartbeat = require("../heartbeat")
 local signal = require("../utils/signal")
+local types = require("../types")
 
-type Easing = easing.Easing
-type Spring<T = any> = createSpring.Spring<T>
-type SpringConfig<T = any> = createSpring.SpringConfig<T>
-type Tween<T = any> = createTween.Tween<T>
-type TweenConfig<T = any> = createTween.TweenConfig<T>
-type FireSignal<T...> = signal.FireSignal<T...>
-type SubscribeSignal<T...> = signal.SubscribeSignal<T...>
+type Animatable = types.Animatable
+type Spring<Value = any> = createSpring.Spring<Value>
+type SpringOptions<Value = any> = createSpring.SpringOptions<Value>
+type Tween<Value = any> = createTween.Tween<Value>
+type TweenOptions<Value = any> = createTween.TweenOptions<Value>
 
-export type MotionConfig<T = any> = {
+type MotionLike<Value> = {
+	step: (self: MotionLike<Value>, dt: number) -> Value,
+	idle: (self: MotionLike<Value>) -> boolean,
+	getPosition: (self: MotionLike<Value>) -> Value,
+	getGoal: (self: MotionLike<Value>) -> Value,
+	setPosition: (self: MotionLike<Value>, value: Value) -> (),
+	setGoal: (self: MotionLike<Value>, value: Value) -> (),
+}
+
+export type MotionOptions<Value = any> = {
 	start: boolean?,
-	spring: SpringConfig<T>?,
-	tween: TweenConfig<T>?,
+	spring: SpringOptions<Value>?,
+	tween: TweenOptions<Value>?,
 }
 
-type MotionApi<T> = {
-	onChange: (callback: (value: T, deltaTime: number) -> ()) -> () -> (),
-	onComplete: (callback: (value: T) -> ()) -> () -> (),
-
-	step: (deltaTime: number) -> T,
-	spring: (goal: T, config: SpringConfig<T>?) -> (),
-	tween: (goal: T, config: TweenConfig<T>?) -> (),
-	idle: () -> boolean,
-	configure: (config: MotionConfig<T>) -> (),
-
-	start: () -> (),
-	stop: () -> (),
-	destroy: () -> (),
+type MotionState<Value> = {
+	spring: Spring<Value>,
+	tween: Tween<Value>,
+	current: MotionLike<Value>,
+	started: boolean,
+	complete: boolean,
+	onChange: signal.SubscribeSignal<(Value, number)>,
+	onComplete: signal.SubscribeSignal<Value>,
+	fireComplete: signal.FireSignal<Value>,
 }
 
-export type Motion<T = any> = MotionApi<T> & {
-	position: T,
-	velocity: T,
-	goal: T,
+export type Motion<Value> = {
+	state: MotionState<Value>,
+
+	setPosition: (self: Motion<Value>, value: Value) -> (),
+	setVelocity: (self: Motion<Value>, value: Value) -> (),
+	setGoal: (self: Motion<Value>, value: Value, options: MotionOptions<Value>?) -> (),
+
+	getPosition: (self: Motion<Value>) -> Value,
+	getVelocity: (self: Motion<Value>) -> Value,
+	getGoal: (self: Motion<Value>) -> Value,
+
+	onChange: (self: Motion<Value>, callback: (value: Value, deltaTime: number) -> ()) -> () -> (),
+	onComplete: (self: Motion<Value>, callback: (value: Value) -> ()) -> () -> (),
+
+	step: (self: Motion<Value>, deltaTime: number) -> Value,
+	spring: (self: Motion<Value>, goal: Value, options: SpringOptions<Value>?) -> (),
+	tween: (self: Motion<Value>, goal: Value, options: TweenOptions<Value>?) -> (),
+	idle: (self: Motion<Value>) -> boolean,
+	configure: (self: Motion<Value>, options: MotionOptions<Value>) -> (),
+
+	start: (self: Motion<Value>) -> (),
+	stop: (self: Motion<Value>) -> (),
+	destroy: (self: Motion<Value>) -> (),
+
+	scheduleUpdate: (self: Motion<Value>) -> (),
+	prepareSpring: (self: Motion<Value>) -> (),
+	prepareTween: (self: Motion<Value>) -> (),
 }
 
-type MotionLike<T> = {
-	step: (dt: number) -> T,
-	idle: () -> boolean,
-	position: T,
-	goal: T,
-}
+local Motion = {} :: Motion<Animatable>
+(Motion :: any).__index = Motion
 
-local function omitStartOption<T>(config: T): T
-	local options: any = config
+local function omitStartOption<T>(inputOptions: T): T
+	local options: any = inputOptions
+
 	if options == nil or options.start ~= true then
 		return options
 	else
@@ -57,181 +80,198 @@ local function omitStartOption<T>(config: T): T
 	end
 end
 
-local function createMotion<T>(initialValue: T, inputConfig: MotionConfig<T>?): Motion<T>
-	local config: MotionConfig<T> = inputConfig or {}
+local function createMotion<Value>(initialValue: Value, options: MotionOptions<Value>?): Motion<Value>
+	local spring: Spring<Value> = createSpring(initialValue, options and omitStartOption(options.spring))
+	local tween: Tween<Value> = createTween(initialValue, options and omitStartOption(options.tween))
+	local current: MotionLike<Value> = if not options or not options.tween then spring else tween
 
-	local spring: Spring<T> = createSpring(initialValue, omitStartOption(config.spring))
-	local tween: Tween<T> = createTween(initialValue, omitStartOption(config.tween))
-	local current: MotionLike<T> = if not config.tween then spring else tween
+	local onChange, fireChange = signal()
+	local onComplete, fireComplete = signal()
 
-	local id = heartbeat.nextId()
-	local started = false
-	local complete = true
-
-	local onChange: SubscribeSignal<(T, number)>, fireChange: FireSignal<(T, number)> = signal()
-	local onComplete: SubscribeSignal<T>, fireComplete: FireSignal<T> = signal()
-
-	local function initSpring()
-		if current ~= spring then
-			spring.position = tween.position
-			current = spring
-		end
-	end
-
-	local function initTween()
-		if current ~= tween then
-			tween.position = spring.position
-			spring.halt()
-			current = tween
-		end
-	end
-
-	local function step(dt: number): T
-		if complete then
-			return current.position
-		end
-
-		local position = current.step(dt)
-
-		fireChange(position, dt)
-
-		if current.idle() then
-			complete = true
-			heartbeat.disconnect(id)
-			fireComplete(position)
-		end
-
-		return position
-	end
-
-	local function scheduleUpdate()
-		complete = false
-		if started then
-			heartbeat.connect(id, step)
-		end
-	end
-
-	local function setPosition(value: T)
-		if current.position ~= value then
-			current.position = value
-			scheduleUpdate()
-			fireChange(value, 0)
-		end
-	end
-
-	local function setVelocity(value: T)
-		if current == spring and spring.velocity ~= value then
-			spring.velocity = value
-			scheduleUpdate()
-		end
-	end
-
-	local function setGoal(value: T)
-		if current.goal ~= value then
-			current.goal = value
-			scheduleUpdate()
-		end
-	end
-
-	local function idle(): boolean
-		return complete
-	end
-
-	local function stop()
-		started = false
-		heartbeat.disconnect(id)
-	end
-
-	local function start()
-		started = true
-		if not complete then
-			heartbeat.connect(id, step)
-		end
-	end
-
-	local function configure(motionConfig: MotionConfig<T>)
-		if motionConfig.spring then
-			spring.configure(motionConfig.spring)
-		end
-
-		if motionConfig.tween then
-			tween.configure(motionConfig.tween)
-		end
-
-		if motionConfig.spring or motionConfig.tween then
-			scheduleUpdate()
-		end
-	end
-
-	local function springTo(goal: T, springConfig: SpringConfig<T>?)
-		initSpring()
-
-		if springConfig then
-			spring.to(goal, springConfig)
-			scheduleUpdate()
-		elseif spring.goal ~= goal then
-			spring.goal = goal
-			scheduleUpdate()
-		end
-	end
-
-	local function tweenTo(goal: T, tweenConfig: TweenConfig<T>?)
-		initTween()
-
-		if tweenConfig then
-			tween.to(goal, tweenConfig)
-			scheduleUpdate()
-		elseif tween.goal ~= goal then
-			tween.goal = goal
-			scheduleUpdate()
-		end
-	end
-
-	local function getter(_, key: any): any
-		if key == "position" then
-			return current.position
-		elseif key == "velocity" then
-			return spring.velocity
-		elseif key == "goal" then
-			return current.goal
-		else
-			return nil
-		end
-	end
-
-	local function setter(self: any, key: any, value: any)
-		if key == "position" then
-			setPosition(value)
-		elseif key == "velocity" then
-			setVelocity(value)
-		elseif key == "goal" then
-			setGoal(value)
-		else
-			rawset(self, key, value)
-		end
-	end
-
-	local motion: MotionApi<T> = {
+	local state: MotionState<Value> = {
+		spring = spring,
+		tween = tween,
+		current = current,
+		started = false,
+		complete = true,
 		onChange = onChange,
 		onComplete = onComplete,
-		spring = springTo,
-		tween = tweenTo,
-		configure = configure,
-		idle = idle,
-		step = step,
-		start = start,
-		stop = stop,
-		destroy = stop,
+		fireComplete = fireComplete,
 	}
 
-	if config.start then
-		start()
+	local self: Motion<Value> = setmetatable({
+		state = state,
+	}, Motion) :: any
+
+	if options and options.start then
+		self:start()
 	end
 
-	return setmetatable(motion, {
-		__index = getter,
-		__newindex = setter,
-	}) :: any
+	spring:onChange(function(value: Value, deltaTime: number)
+		if state.current == spring then
+			fireChange(value, deltaTime)
+		end
+	end)
+
+	tween:onChange(function(value: Value, deltaTime: number)
+		if state.current == tween then
+			fireChange(value, deltaTime)
+		end
+	end)
+
+	return self
+end
+
+function Motion:scheduleUpdate()
+	self.state.complete = false
+
+	if self.state.started then
+		heartbeat.connect(self)
+	end
+end
+
+function Motion:prepareSpring()
+	local state = self.state
+
+	if state.current ~= state.spring then
+		state.spring:setPosition(state.tween:getPosition())
+		state.current = state.spring
+	end
+end
+
+function Motion:prepareTween()
+	local state = self.state
+
+	if state.current ~= state.tween then
+		state.tween:setPosition(state.spring:getPosition())
+		state.spring:halt()
+		state.current = state.tween
+	end
+end
+
+function Motion:start()
+	self.state.started = true
+
+	if not self.state.complete then
+		heartbeat.connect(self)
+	end
+end
+
+function Motion:stop()
+	self.state.started = false
+	heartbeat.disconnect(self)
+end
+
+function Motion:idle(): boolean
+	return self.state.complete
+end
+
+function Motion:step(dt: number)
+	local state = self.state
+
+	if state.complete then
+		return state.current:getPosition()
+	end
+
+	local position = state.current:step(dt)
+
+	if state.current:idle() then
+		state.complete = true
+		heartbeat.disconnect(self)
+		state.fireComplete(position)
+	end
+
+	return position
+end
+
+function Motion:configure(options: MotionOptions)
+	if options.spring then
+		self.state.spring:configure(options.spring)
+	end
+
+	if options.tween then
+		self.state.tween:configure(options.tween)
+	end
+
+	if not self.state.current:idle() then
+		self:scheduleUpdate()
+	end
+end
+
+function Motion:getPosition(): Animatable
+	return self.state.current:getPosition()
+end
+
+function Motion:getVelocity(): Animatable
+	return self.state.spring:getVelocity()
+end
+
+function Motion:getGoal(): Animatable
+	return self.state.current:getGoal()
+end
+
+function Motion:setPosition(value: Animatable)
+	self.state.current:setPosition(value)
+
+	if not self.state.current:idle() then
+		self:scheduleUpdate()
+	end
+end
+
+function Motion:setVelocity(value: Animatable)
+	if self.state.current == self.state.spring then
+		self.state.spring:setVelocity(value)
+
+		if not self.state.current:idle() then
+			self:scheduleUpdate()
+		end
+	end
+end
+
+function Motion:setGoal(value: Animatable, options: MotionOptions?)
+	if options then
+		if options.spring then
+			return self:spring(value, options.spring)
+		elseif options.tween then
+			return self:tween(value, options.tween)
+		end
+	end
+
+	self.state.current:setGoal(value)
+
+	if not self.state.current:idle() then
+		self:scheduleUpdate()
+	end
+end
+
+function Motion:spring(value: Animatable, options: SpringOptions?)
+	self:prepareSpring()
+	self.state.spring:setGoal(value, options)
+
+	if not self.state.spring:idle() then
+		self:scheduleUpdate()
+	end
+end
+
+function Motion:tween(value: Animatable, options: TweenOptions?)
+	self:prepareTween()
+	self.state.tween:setGoal(value, options)
+
+	if not self.state.tween:idle() then
+		self:scheduleUpdate()
+	end
+end
+
+function Motion:onChange(callback: (value: Animatable, deltaTime: number) -> ()): () -> ()
+	return self.state.onChange(callback)
+end
+
+function Motion:onComplete(callback: (value: Animatable) -> ()): () -> ()
+	return self.state.onComplete(callback)
+end
+
+function Motion:destroy()
+	self:stop()
 end
 
 return createMotion

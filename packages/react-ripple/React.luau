@@ -9,4 +9,4 @@ type ReactBindingMap = {
 
 export type Binding<T> = CoreReactBinding<T> & ReactBindingMap
 
-return require(script.Parent.Parent.react)
+return require(script.Parent.Parent.Parent:WaitForChild("@rbxts-js").React)

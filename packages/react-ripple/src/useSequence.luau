@@ -19,12 +19,14 @@ local function useSequence<T>(
 	end
 
 	React.useEffect(function()
-		local disconnect = sequenceRef.current.onChange(setValue)
+		local disconnect = sequenceRef.current:onChange(setValue)
+
 		if startImmediately ~= false then
-			sequenceRef.current.start()
+			sequenceRef.current:start()
 		end
+
 		return function()
-			sequenceRef.current.stop()
+			sequenceRef.current:stop()
 			disconnect()
 		end
 	end, {})

@@ -10,13 +10,13 @@ local types = require("@self/types")
 export type Animatable = types.Animatable
 export type Easing = easing.Easing
 export type Motion<T = any> = createMotion.Motion<T>
-export type MotionConfig<T = any> = createMotion.MotionConfig<T>
+export type MotionOptions<T = any> = createMotion.MotionOptions<T>
 export type Sequence<T = any> = createSequence.Sequence<T>
 export type SequenceKeypoint<T = any> = createSequence.SequenceKeypoint<T>
 export type Spring<T = any> = createSpring.Spring<T>
-export type SpringConfig<T = any> = createSpring.SpringConfig<T>
+export type SpringOptions<T = any> = createSpring.SpringOptions<T>
 export type Tween<T = any> = createTween.Tween<T>
-export type TweenConfig<T = any> = createTween.TweenConfig<T>
+export type TweenOptions<T = any> = createTween.TweenOptions<T>
 
 return {
 	config = config,

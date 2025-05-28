@@ -12,11 +12,8 @@ do
 	local createTween = require("../packages/ripple/src/animation/createTween")
 	local heartbeat = require("../packages/ripple/src/heartbeat")
 
-	local config: createTween.TweenConfig = { start = true }
-
 	bench("ripple", function()
-		local tween = createTween(0, config)
-		tween.to(1)
+		createTween(0, { start = true }):setGoal(1)
 
 		for _ = 1, ITERATIONS do
 			heartbeat.step(1 / ITERATIONS)
@@ -32,8 +29,7 @@ do
 	local ease = require("./otter/ease")
 
 	bench("otter", function()
-		local motor = createSingleMotor(0)
-		motor:setGoal(ease(1))
+		createSingleMotor(0):setGoal(ease(1))
 
 		for _ = 1, ITERATIONS do
 			AnimationStepSignal:Fire(1 / ITERATIONS)

@@ -23,22 +23,17 @@ do
 	local createSpring = require("../packages/ripple/src/animation/createSpring")
 	local heartbeat = require("../packages/ripple/src/heartbeat")
 
-	local config: createSpring.SpringConfig = {
-		start = true,
-		frequency = 1 / 10,
-	}
-
 	bench("ripple", function()
 		root(function(cleanup)
-			local spring = createSpring(0, config)
+			local spring = createSpring(0, { start = true, frequency = 1 / 10 })
 			local src = source(0)
 
 			effect(function()
 				object.property = src()
 			end)
 
-			spring.to(1)
-			spring.onChange(src)
+			spring:setGoal(1)
+			spring:onChange(src)
 
 			for _ = 1, ITERATIONS do
 				heartbeat.step(1 / ITERATIONS)
@@ -55,8 +50,6 @@ do
 	local createSingleMotor = require("./otter/createSingleMotor")
 	local spring = require("./otter/spring")
 
-	local config: spring.SpringOptions = { frequency = 1 / 10 }
-
 	bench("otter", function()
 		root(function(cleanup)
 			local motor = createSingleMotor(0)
@@ -66,7 +59,7 @@ do
 				object.property = src()
 			end)
 
-			motor:setGoal(spring(1, config))
+			motor:setGoal(spring(1, { frequency = 1 / 10 }))
 			motor:onStep(src)
 
 			for _ = 1, ITERATIONS do

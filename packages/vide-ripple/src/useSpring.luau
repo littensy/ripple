@@ -4,23 +4,23 @@ local callable = require(script.Parent.callable)
 
 type Animatable = Ripple.Animatable
 type Spring<T> = Ripple.Spring<T>
-type SpringConfig<T> = Ripple.SpringConfig<T>
+type SpringOptions<T> = Ripple.SpringOptions<T>
 
 export type VideSpring<T> = (() -> T) & Spring<T> & {
 	source: () -> T,
 }
 
-local function useSpring<T>(initialValue: T, initialConfig: SpringConfig<T>?): VideSpring<T>
-	local spring = Ripple.createSpring(initialValue, initialConfig) :: VideSpring<T>
+local function useSpring<T>(initialValue: T, initialOptions: SpringOptions<T>?): VideSpring<T>
+	local spring = Ripple.createSpring(initialValue, initialOptions) :: VideSpring<T>
 
 	spring.source = Vide.source(initialValue)
 
-	if not initialConfig or initialConfig.start ~= false then
-		spring.start()
+	if not initialOptions or initialOptions.start ~= false then
+		spring:start()
 	end
 
-	Vide.cleanup(spring.onChange(spring.source))
-	Vide.cleanup(spring.stop)
+	Vide.cleanup(spring:onChange(spring.source))
+	Vide.cleanup(spring)
 
 	return callable(spring, function()
 		return spring.source()

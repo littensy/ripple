@@ -3,203 +3,219 @@ local createSpring = require("./createSpring")
 local createTween = require("./createTween")
 local heartbeat = require("../heartbeat")
 local signal = require("../utils/signal")
+local types = require("../types")
 
-type MotionConfig<T> = createMotion.MotionConfig<T>
-type SpringConfig<T> = createSpring.SpringConfig<T>
-type TweenConfig<T> = createTween.TweenConfig<T>
-type FireSignal<T...> = signal.FireSignal<T...>
-type SubscribeSignal<T...> = signal.SubscribeSignal<T...>
+type Animatable = types.Animatable
+type Motion<Value> = createMotion.Motion<Value>
 
-export type SequenceKeypoint<T = any> = {
+export type SequenceKeypoint<Value = any> = {
 	time: number,
-	goal: T,
-	spring: SpringConfig<T>?,
-	tween: TweenConfig<T>?,
+	goal: Value,
+	spring: createSpring.SpringOptions<Value>?,
+	tween: createTween.TweenOptions<Value>?,
 	start: nil,
 }
 
-type SequenceApi<T> = {
-	onChange: (callback: (value: T, deltaTime: number) -> ()) -> () -> (),
-	onComplete: (callback: (value: T) -> ()) -> () -> (),
-
-	step: (deltaTime: number) -> T,
-	idle: () -> boolean,
-
-	loop: () -> (),
-	start: () -> (),
-	stop: () -> (),
-	destroy: () -> (),
+type SequenceState<Value> = {
+	motion: Motion<Value>,
+	keypoints: { SequenceKeypoint<Value> },
+	keypoint: SequenceKeypoint<Value>?,
+	elapsed: number,
+	looped: boolean,
+	started: boolean,
+	complete: boolean,
+	onChange: signal.SubscribeSignal<(Value, number)>,
+	onComplete: signal.SubscribeSignal<Value>,
+	fireComplete: signal.FireSignal<Value>,
 }
 
-export type Sequence<T = any> = SequenceApi<T> & {
-	time: number,
-	position: T,
-	velocity: T,
-	goal: T,
+export type Sequence<Value = any> = {
+	state: SequenceState<Value>,
+
+	setTime: (self: Sequence<Value>, time: number) -> (),
+	setPosition: (self: Sequence<Value>, value: Value) -> (),
+	setVelocity: (self: Sequence<Value>, value: Value) -> (),
+
+	getTime: (self: Sequence<Value>) -> number,
+	getPosition: (self: Sequence<Value>) -> Value,
+	getVelocity: (self: Sequence<Value>) -> Value,
+	getGoal: (self: Sequence<Value>) -> Value,
+
+	onChange: (self: Sequence<Value>, callback: (value: Value, deltaTime: number) -> ()) -> () -> (),
+	onComplete: (self: Sequence<Value>, callback: (value: Value) -> ()) -> () -> (),
+
+	step: (self: Sequence<Value>, deltaTime: number) -> Value,
+	idle: (self: Sequence<Value>) -> boolean,
+
+	loop: (self: Sequence<Value>) -> (),
+	start: (self: Sequence<Value>) -> (),
+	stop: (self: Sequence<Value>) -> (),
+	destroy: (self: Sequence<Value>) -> (),
+
+	resumeFromCurrentTime: (self: Sequence<Value>) -> (),
+	getNextKeypoint: (self: Sequence<Value>, dt: number) -> (SequenceKeypoint<Value>, boolean),
+	setCurrentKeypoint: (self: Sequence<Value>, keypoint: SequenceKeypoint<Value>) -> (),
 }
 
-local function createSequence<T>(initialValue: T, keypoints: { SequenceKeypoint<T> }): Sequence<T>
+local Sequence = {} :: Sequence<Animatable>
+(Sequence :: any).__index = Sequence
+
+local function createSequence<Value>(initialValue: Value, keypoints: { SequenceKeypoint<Value> }): Sequence<Value>
 	local motion = createMotion(initialValue)
+	local onComplete, fireComplete = signal()
 
-	local id = heartbeat.nextId()
-	local elapsed = 0
-	local current: SequenceKeypoint<T>?
-
-	local looped = false
-	local started = false
-	local complete = false
-
-	local onChange: SubscribeSignal<(T, number)>, fireChange: FireSignal<(T, number)> = signal()
-	local onComplete: SubscribeSignal<T>, fireComplete: FireSignal<T> = signal()
-
-	local function getNextKeypoint(dt: number): (SequenceKeypoint<T>, boolean)
-		local previous = keypoints[1]
-		elapsed += dt
-
-		for _, keypoint in keypoints do
-			if keypoint.time > elapsed then
-				return previous, false
-			end
-			previous = keypoint
-		end
-
-		return previous, true
-	end
-
-	local function updateKeypoint(keypoint: SequenceKeypoint<T>)
-		motion.configure(keypoint)
-
-		if keypoint.spring then
-			motion.spring(keypoint.goal)
-		elseif keypoint.tween then
-			motion.tween(keypoint.goal)
-		else
-			motion.goal = keypoint.goal
-		end
-
-		current = keypoint
-	end
-
-	local function step(dt: number): T
-		if complete then
-			return motion.position
-		end
-
-		local keypoint, isLastKeypoint = getNextKeypoint(dt)
-		local position = motion.step(dt)
-
-		if keypoint ~= current then
-			updateKeypoint(keypoint)
-			dt = elapsed - keypoint.time
-			position = motion.step(dt)
-		end
-
-		fireChange(position, dt)
-
-		if isLastKeypoint and motion.idle() then
-			if looped then
-				elapsed = 0
-			else
-				complete = true
-				heartbeat.disconnect(id)
-			end
-
-			fireComplete(position)
-		end
-
-		return position
-	end
-
-	local function resumeFromCurrentTime()
-		complete = false
-		if started then
-			heartbeat.connect(id, step)
-		end
-	end
-
-	local function setPosition(value: T)
-		if motion.position ~= value then
-			motion.position = value
-			resumeFromCurrentTime()
-			fireChange(value, 0)
-		end
-	end
-
-	local function setVelocity(value: T)
-		if current and current.tween then
-			return
-		end
-
-		if motion.velocity ~= value then
-			motion.velocity = value
-			resumeFromCurrentTime()
-		end
-	end
-
-	local function setTime(time: number)
-		elapsed = time
-		resumeFromCurrentTime()
-	end
-
-	local function idle(): boolean
-		return complete
-	end
-
-	local function stop()
-		started = false
-		heartbeat.disconnect(id)
-	end
-
-	local function start()
-		started = true
-		if not complete then
-			heartbeat.connect(id, step)
-		end
-	end
-
-	local function loop()
-		looped = true
-		start()
-		resumeFromCurrentTime()
-	end
-
-	local function getter(_, key: any): any
-		if key == "time" then
-			return elapsed
-		else
-			return motion[key]
-		end
-	end
-
-	local function setter(self: any, key: any, value: any)
-		if key == "position" then
-			setPosition(value)
-		elseif key == "velocity" then
-			setVelocity(value)
-		elseif key == "time" then
-			setTime(value)
-		elseif key == "goal" then
-			warn(debug.traceback("Cannot set 'goal' in a sequence.", 2))
-		else
-			rawset(self, key, value)
-		end
-	end
-
-	local sequence: SequenceApi<T> = {
-		onChange = onChange,
+	local state: SequenceState<Value> = {
+		motion = motion,
+		keypoints = keypoints,
+		keypoint = nil,
+		elapsed = 0,
+		looped = false,
+		started = false,
+		complete = false,
+		onChange = motion.state.onChange,
 		onComplete = onComplete,
-		step = step,
-		idle = idle,
-		loop = loop,
-		start = start,
-		stop = stop,
-		destroy = stop,
+		fireComplete = fireComplete,
 	}
 
-	return setmetatable(sequence, {
-		__index = getter,
-		__newindex = setter,
-	}) :: any
+	return setmetatable({
+		state = state,
+	}, Sequence) :: any
+end
+
+function Sequence:getNextKeypoint(dt: number): (SequenceKeypoint<Animatable>, boolean)
+	local state = self.state
+	local previous = state.keypoints[1]
+
+	state.elapsed += dt
+
+	for _, keypoint in state.keypoints do
+		if keypoint.time > state.elapsed then
+			return previous, false
+		end
+		previous = keypoint
+	end
+
+	return previous, true
+end
+
+function Sequence:setCurrentKeypoint(keypoint: SequenceKeypoint<Animatable>)
+	self.state.motion:setGoal(keypoint.goal, keypoint)
+	self.state.keypoint = keypoint
+end
+
+function Sequence:resumeFromCurrentTime()
+	self.state.complete = false
+
+	if self.state.started then
+		heartbeat.connect(self)
+	end
+end
+
+function Sequence:start()
+	self.state.started = true
+
+	if not self.state.complete then
+		heartbeat.connect(self)
+	end
+end
+
+function Sequence:stop()
+	self.state.started = false
+	heartbeat.disconnect(self)
+end
+
+function Sequence:loop()
+	self.state.looped = true
+	self:start()
+	self:resumeFromCurrentTime()
+end
+
+function Sequence:idle(): boolean
+	return self.state.complete
+end
+
+function Sequence:step(dt: number)
+	local state = self.state
+	local motion = state.motion
+
+	if state.complete then
+		return motion:getPosition()
+	end
+
+	local keypoint, isLastKeypoint = self:getNextKeypoint(dt)
+	local position = motion:step(dt)
+
+	if keypoint ~= state.keypoint then
+		self:setCurrentKeypoint(keypoint)
+		dt = state.elapsed - keypoint.time
+		position = motion:step(dt)
+	end
+
+	if isLastKeypoint and motion:idle() then
+		if state.looped then
+			state.elapsed = 0
+		else
+			state.complete = true
+			heartbeat.disconnect(self)
+		end
+
+		state.fireComplete(position)
+	end
+
+	return position
+end
+
+function Sequence:getPosition(): Animatable
+	return self.state.motion:getPosition()
+end
+
+function Sequence:getVelocity(): Animatable
+	return self.state.motion:getVelocity()
+end
+
+function Sequence:getGoal(): Animatable
+	return self.state.motion:getGoal()
+end
+
+function Sequence:getTime(): number
+	return self.state.elapsed
+end
+
+function Sequence:setPosition(value: Animatable)
+	self.state.motion:setPosition(value)
+
+	if not self.state.motion:idle() then
+		self:resumeFromCurrentTime()
+	end
+end
+
+function Sequence:setVelocity(value: Animatable)
+	if self.state.keypoint and self.state.keypoint.tween then
+		return
+	end
+
+	self.state.motion:setVelocity(value)
+
+	if not self.state.motion:idle() then
+		self:resumeFromCurrentTime()
+	end
+end
+
+function Sequence:setTime(time: number)
+	self.state.elapsed = time
+	self:resumeFromCurrentTime()
+end
+
+function Sequence:onChange(callback: (value: Animatable, deltaTime: number) -> ()): () -> ()
+	return self.state.onChange(callback)
+end
+
+function Sequence:onComplete(callback: (value: Animatable) -> ()): () -> ()
+	return self.state.onComplete(callback)
+end
+
+function Sequence:destroy()
+	self:stop()
 end
 
 return createSequence

@@ -2,40 +2,64 @@ local easing = require("../easing")
 local heartbeat = require("../heartbeat")
 local intermediate = require("../utils/intermediate")
 local signal = require("../utils/signal")
+local types = require("../types")
 
+type Animatable = types.Animatable
 type Easing = easing.Easing
-type Intermediate<T> = intermediate.Intermediate<T>
-type FireSignal<T...> = signal.FireSignal<T...>
-type SubscribeSignal<T...> = signal.SubscribeSignal<T...>
+type Intermediate<Value> = intermediate.Intermediate<Value>
 
-export type TweenConfig<T = any> = {
+export type TweenOptions<Value = any> = {
 	start: boolean?,
 	easing: Easing?,
 	duration: number?,
 	repeats: number?,
 	reverses: boolean?,
-	position: T?,
+	position: Value?,
 }
 
-type TweenApi<T> = {
-	onChange: (callback: (value: T, deltaTime: number) -> ()) -> () -> (),
-	onComplete: (callback: (value: T) -> ()) -> () -> (),
-
-	step: (deltaTime: number) -> T,
-	to: (goal: T, config: TweenConfig<T>?) -> (),
-	idle: () -> boolean,
-	configure: (config: TweenConfig<T>) -> (),
-
-	start: () -> (),
-	stop: () -> (),
-	destroy: () -> (),
+type TweenState<Value> = {
+	position: Intermediate<Value>,
+	from: Intermediate<Value>,
+	goal: Intermediate<Value>,
+	easingFunction: (number) -> number,
+	duration: number,
+	repeats: number,
+	reverses: boolean,
+	elapsed: number,
+	started: boolean,
+	complete: boolean,
+	onChange: signal.SubscribeSignal<(Value, number)>,
+	fireChange: signal.FireSignal<(Value, number)>,
+	onComplete: signal.SubscribeSignal<Value>,
+	fireComplete: signal.FireSignal<Value>,
 }
 
-export type Tween<T = any> = TweenApi<T> & {
-	position: T,
-	from: T,
-	goal: T,
+export type Tween<Value = any> = {
+	state: TweenState<Value>,
+
+	setPosition: (self: Tween<Value>, value: Value) -> (),
+	setGoal: (self: Tween<Value>, value: Value, options: TweenOptions<Value>?) -> (),
+
+	getPosition: (self: Tween<Value>) -> Value,
+	getFrom: (self: Tween<Value>) -> Value,
+	getGoal: (self: Tween<Value>) -> Value,
+
+	onChange: (self: Tween<Value>, callback: (value: Value, deltaTime: number) -> ()) -> () -> (),
+	onComplete: (self: Tween<Value>, callback: (value: Value) -> ()) -> () -> (),
+
+	step: (self: Tween<Value>, deltaTime: number) -> Value,
+	idle: (self: Tween<Value>) -> boolean,
+	configure: (self: Tween<Value>, options: TweenOptions<Value>) -> (),
+
+	start: (self: Tween<Value>) -> (),
+	stop: (self: Tween<Value>) -> (),
+	destroy: (self: Tween<Value>) -> (),
+
+	resumeFromCurrentPosition: (self: Tween<Value>) -> (),
 }
+
+local Tween = {} :: Tween<Animatable>
+(Tween :: any).__index = Tween
 
 local function getAlpha(progress: number, repeats: number, reverses: boolean): number
 	if repeats > 1 and progress >= 1 then
@@ -49,156 +73,157 @@ local function getAlpha(progress: number, repeats: number, reverses: boolean): n
 	return progress
 end
 
-local function createTween<T>(initialValue: T, inputConfig: TweenConfig<T>?): Tween<T>
-	local config: TweenConfig<T> = inputConfig or {}
+local function createTween<Value>(initialValue: Value, options: TweenOptions<Value>?): Tween<Value>
+	local position = intermediate.create(options and options.position or initialValue)
+	local onChange, fireChange = signal()
+	local onComplete, fireComplete = signal()
 
-	local position = intermediate.create(config.position or initialValue)
-	local from = intermediate.copy(position)
-	local goal = intermediate.copy(position)
-
-	local easingFunction = easing.linear
-	local duration = 1
-	local repeats = 1
-	local reverses = false
-
-	local id = heartbeat.nextId()
-	local elapsed = 0
-	local started = false
-	local complete = true
-
-	local onChange: SubscribeSignal<(T, number)>, fireChange: FireSignal<(T, number)> = signal()
-	local onComplete: SubscribeSignal<T>, fireComplete: FireSignal<T> = signal()
-
-	local function step(deltaTime: number): T
-		if complete then
-			return intermediate.getValue(position)
-		end
-
-		elapsed += deltaTime
-
-		local progress = math.clamp(elapsed / duration, 0, repeats)
-		local alpha = getAlpha(progress, repeats, reverses)
-		local eased = if alpha > 0 and alpha < 1 then easingFunction(alpha) else alpha
-
-		intermediate.lerp(position, from, goal, eased)
-
-		local value = intermediate.getValue(position)
-
-		fireChange(value, deltaTime)
-
-		if progress == repeats then
-			complete = true
-			heartbeat.disconnect(id)
-			fireComplete(value)
-		end
-
-		return value
-	end
-
-	local function resumeFromCurrentPosition()
-		complete = false
-		elapsed = 0
-		intermediate.assign(from, position)
-		if started then
-			heartbeat.connect(id, step)
-		end
-	end
-
-	local function setPosition(value: T)
-		if intermediate.setValue(position, value) then
-			resumeFromCurrentPosition()
-			fireChange(value, 0)
-		end
-	end
-
-	local function setGoal(value: T)
-		if intermediate.setValue(goal, value) then
-			resumeFromCurrentPosition()
-		end
-	end
-
-	local function idle(): boolean
-		return complete
-	end
-
-	local function stop()
-		started = false
-		heartbeat.disconnect(id)
-	end
-
-	local function start()
-		started = true
-		if not complete then
-			heartbeat.connect(id, step)
-		end
-	end
-
-	local function configure(options: TweenConfig<T>)
-		easingFunction = easing[options.easing :: Easing] or easingFunction
-		duration = options.duration or duration
-		repeats = options.repeats or repeats
-		reverses = options.reverses or reverses
-
-		if options.position then
-			setPosition(options.position)
-		end
-
-		if not complete and elapsed ~= 0 then
-			resumeFromCurrentPosition()
-		end
-	end
-
-	local function to(value: T, options: TweenConfig<T>?)
-		if options then
-			configure(options)
-		end
-		setGoal(value)
-	end
-
-	local function getter(_: any, key: any): any
-		if key == "position" then
-			return intermediate.getValue(position)
-		elseif key == "from" then
-			return intermediate.getValue(from)
-		elseif key == "goal" then
-			return intermediate.getValue(goal)
-		else
-			return nil
-		end
-	end
-
-	local function setter(self: any, key: any, value: any)
-		if key == "position" or key == "from" then
-			setPosition(value)
-		elseif key == "goal" then
-			setGoal(value)
-		else
-			rawset(self, key, value)
-		end
-	end
-
-	local tween: TweenApi<T> = {
+	local state: TweenState<Value> = {
+		position = position,
+		from = intermediate.copy(position),
+		goal = intermediate.copy(position),
+		easingFunction = easing.linear,
+		duration = 1,
+		repeats = 1,
+		reverses = false,
+		elapsed = 0,
+		started = false,
+		complete = true,
 		onChange = onChange,
+		fireChange = fireChange,
 		onComplete = onComplete,
-		step = step,
-		to = to,
-		configure = configure,
-		idle = idle,
-		start = start,
-		stop = stop,
-		destroy = stop,
+		fireComplete = fireComplete,
 	}
 
-	configure(config)
+	local self: Tween<Value> = setmetatable({
+		state = state,
+	}, Tween) :: any
 
-	if config.start then
-		start()
+	if options then
+		self:configure(options)
+
+		if options.start then
+			self:start()
+		end
 	end
 
-	return setmetatable(tween, {
-		__index = getter,
-		__newindex = setter,
-	}) :: any
+	return self
+end
+
+function Tween:resumeFromCurrentPosition()
+	local state = self.state
+
+	state.complete = false
+	state.elapsed = 0
+
+	intermediate.assign(state.from, state.position)
+
+	if state.started then
+		heartbeat.connect(self)
+	end
+end
+
+function Tween:start()
+	self.state.started = true
+
+	if not self.state.complete then
+		heartbeat.connect(self)
+	end
+end
+
+function Tween:stop()
+	self.state.started = false
+	heartbeat.disconnect(self)
+end
+
+function Tween:idle(): boolean
+	return self.state.complete
+end
+
+function Tween:step(dt: number): Animatable
+	local state = self.state
+
+	if state.complete then
+		return intermediate.getValue(state.position)
+	end
+
+	state.elapsed += dt
+
+	local progress = math.clamp(state.elapsed / state.duration, 0, state.repeats)
+	local alpha = getAlpha(progress, state.repeats, state.reverses)
+	local eased = if alpha > 0 and alpha < 1 then state.easingFunction(alpha) else alpha
+
+	intermediate.lerp(state.position, state.from, state.goal, eased)
+
+	local value = intermediate.getValue(state.position)
+
+	state.fireChange(value, dt)
+
+	if progress == state.repeats then
+		state.complete = true
+		heartbeat.disconnect(self)
+		state.fireComplete(value)
+	end
+
+	return value
+end
+
+function Tween:configure(options: TweenOptions)
+	local state = self.state
+
+	state.easingFunction = easing[options.easing] or state.easingFunction
+	state.duration = options.duration or state.duration
+	state.repeats = options.repeats or state.repeats
+	state.reverses = options.reverses or state.reverses
+
+	if options.position then
+		self:setPosition(options.position)
+	end
+
+	if not state.complete and state.elapsed ~= 0 then
+		self:resumeFromCurrentPosition()
+	end
+end
+
+function Tween:getPosition(): Animatable
+	return intermediate.getValue(self.state.position)
+end
+
+function Tween:getFrom(): Animatable
+	return intermediate.getValue(self.state.from)
+end
+
+function Tween:getGoal(): Animatable
+	return intermediate.getValue(self.state.goal)
+end
+
+function Tween:setPosition(value: Animatable)
+	if intermediate.setValue(self.state.position, value) then
+		self:resumeFromCurrentPosition()
+		self.state.fireChange(value, 0)
+	end
+end
+
+function Tween:setGoal(value: Animatable, options: TweenOptions?)
+	if options then
+		self:configure(options)
+	end
+
+	if intermediate.setValue(self.state.goal, value) then
+		self:resumeFromCurrentPosition()
+	end
+end
+
+function Tween:onChange(callback: (value: Animatable, deltaTime: number) -> ()): () -> ()
+	return self.state.onChange(callback)
+end
+
+function Tween:onComplete(callback: (value: Animatable) -> ()): () -> ()
+	return self.state.onComplete(callback)
+end
+
+function Tween:destroy()
+	self:stop()
 end
 
 return createTween

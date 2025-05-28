@@ -20,11 +20,11 @@ local function useSequence<T>(
 	sequence.source = Vide.source(initialValue)
 
 	if startImmediately ~= false then
-		sequence.start()
+		sequence:start()
 	end
 
-	Vide.cleanup(sequence.onChange(sequence.source))
-	Vide.cleanup(sequence.stop)
+	Vide.cleanup(sequence:onChange(sequence.source))
+	Vide.cleanup(sequence)
 
 	return callable(sequence, function()
 		return sequence.source()

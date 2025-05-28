@@ -7,10 +7,10 @@ local Ripple = require(ReplicatedStorage.packages.ripple.src)
 
 type SpringFunctionProps = {
 	name: string,
-	config: Ripple.SpringConfig,
+	options: Ripple.SpringOptions,
 }
 
-local configs: { [string]: Ripple.SpringConfig } = table.clone(Ripple.config)
+local configs: { [string]: Ripple.SpringOptions } = table.clone(Ripple.config)
 
 configs.empty = {}
 configs.figmaGentle = { tension = 100, friction = 15 }
@@ -20,27 +20,31 @@ configs.figmaSlow = { tension = 80, friction = 20 }
 
 local function SpringFunction(props: SpringFunctionProps)
 	local spring = React.useMemo(function()
-		local source = Ripple.createSpring(1, props.config)
-		source.goal = 0
+		local source = Ripple.createSpring(1, props.options)
+		source:setGoal(0)
 		return source
-	end, { props.config })
+	end, { props.options })
 
 	return React.createElement(Graph, {
 		name = props.name,
 		precision = 0.001,
 		showRuntime = true,
-		step = spring.step,
-		idle = spring.idle,
+		step = function(dt)
+			return spring:step(dt)
+		end,
+		idle = function()
+			return spring:idle()
+		end,
 	})
 end
 
 local function SpringFunctions()
 	local children: { [string]: React.ReactNode } = {}
 
-	for name, config in configs do
+	for name, options in configs do
 		children[name] = React.createElement(SpringFunction, {
 			name = name,
-			config = config,
+			options = options,
 		})
 	end
 
