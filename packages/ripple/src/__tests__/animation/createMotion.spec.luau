@@ -216,6 +216,20 @@ describe("spring", function()
 		assert(not changed, "stepped after complete")
 		assert(completes == 2, "completed after completion")
 	end)
+
+	test("should fire change with full state", function()
+		local state = {}
+		local spring = createMotion({ 0, 0, 0 })
+		spring:onChange(function(newState)
+			state = newState
+		end)
+
+		spring:setPosition({ 1, 1, 1 })
+		assert(table.concat(state) == "111", "did not fire change with position")
+
+		spring:setPosition({ [1] = 2, [3] = 2 })
+		assert(table.concat(state) == "212", "did not fire change with position merge")
+	end)
 end)
 
 describe("tween", function()
@@ -427,6 +441,20 @@ describe("tween", function()
 			assert(x0 == 0, `{name}(0) should be 0, got {x0}`)
 			assert(x1 == 1, `{name}(1) should be 1, got {x1}`)
 		end
+	end)
+
+	test("should fire change with full state", function()
+		local state = {}
+		local tween = createMotion({ 0, 0, 0 }, { tween = {} })
+		tween:onChange(function(newState)
+			state = newState
+		end)
+
+		tween:setPosition({ 1, 1, 1 })
+		assert(table.concat(state) == "111", "did not fire change with position")
+
+		tween:setPosition({ [1] = 2, [3] = 2 })
+		assert(table.concat(state) == "212", "did not fire change with position merge")
 	end)
 end)
 

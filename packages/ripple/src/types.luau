@@ -1,13 +1,7 @@
-export type Animatable =
-	number
-	| vector
-	| { [any]: number | vector | Vector3 }
-	| Vector2
-	| Vector3
-	| CFrame
-	| Color3
-	| UDim
-	| UDim2
-	| Rect
+export type AnimatablePrimitive = number | vector | Vector3
+
+export type AnimatableType = AnimatablePrimitive | Vector2 | CFrame | Color3 | UDim | UDim2 | Rect
+
+export type Animatable = AnimatableType | { [any]: AnimatablePrimitive }
 
 return {}

@@ -83,4 +83,18 @@ test("should persist interrupted tween config", function()
 	assert(sequence:idle(), "should be complete after finishing keypoint 2")
 end)
 
+test("should fire change with full state", function()
+	local state = {}
+	local sequence = createSequence({ 0, 0, 0 }, {})
+	sequence:onChange(function(newState)
+		state = newState
+	end)
+
+	sequence:setPosition({ 1, 1, 1 })
+	assert(table.concat(state) == "111", "did not fire change with position")
+
+	sequence:setPosition({ [1] = 2, [3] = 2 })
+	assert(table.concat(state) == "212", "did not fire change with position merge")
+end)
+
 return {}

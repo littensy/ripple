@@ -8,6 +8,7 @@ node_modules
 build
 *.rbxl
 *.rbxm
+*.tgz
 sourcemap.json
 roblox.d.luau
 types.d.luau

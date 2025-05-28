@@ -78,8 +78,10 @@ local function belowThreshold(value: number | vector, threshold: number): boolea
 	end
 end
 
-local function createSpring<Value>(initialValue: Value, options: SpringOptions<Value>?): Spring<Value>
-	local position = intermediate.create(options and options.position or initialValue)
+local function createSpring<Value>(initialValue: Value, inputOptions: SpringOptions<Value>?): Spring<Value>
+	local options: SpringOptions<Value> = inputOptions or {}
+	local position = intermediate.create(options.position or initialValue)
+
 	local onChange, fireChange = signal()
 	local onComplete, fireComplete = signal()
 
@@ -103,12 +105,10 @@ local function createSpring<Value>(initialValue: Value, options: SpringOptions<V
 		state = state,
 	}, Spring) :: any
 
-	if options then
-		self:configure(options)
+	self:configure(options)
 
-		if options.start then
-			self:start()
-		end
+	if options.start then
+		self:start()
 	end
 
 	return self
@@ -282,7 +282,7 @@ end
 function Spring:setPosition(value: Animatable)
 	if intermediate.setValue(self.state.position, value) then
 		self:scheduleUpdate()
-		self.state.fireChange(value, 0)
+		self.state.fireChange(intermediate.getValue(self.state.position), 0)
 	end
 end
 

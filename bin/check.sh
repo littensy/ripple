@@ -14,4 +14,6 @@ selene packages test storybook benchmarks
 
 stylua --check packages test storybook benchmarks
 
+pnpm eslint packages
+
 rm bin/roblox.d.luau

@@ -80,10 +80,11 @@ local function omitStartOption<T>(inputOptions: T): T
 	end
 end
 
-local function createMotion<Value>(initialValue: Value, options: MotionOptions<Value>?): Motion<Value>
-	local spring: Spring<Value> = createSpring(initialValue, options and omitStartOption(options.spring))
-	local tween: Tween<Value> = createTween(initialValue, options and omitStartOption(options.tween))
-	local current: MotionLike<Value> = if not options or not options.tween then spring else tween
+local function createMotion<Value>(initialValue: Value, inputOptions: MotionOptions<Value>?): Motion<Value>
+	local options: MotionOptions<Value> = inputOptions or {}
+	local spring: Spring<Value> = createSpring(initialValue, omitStartOption(options.spring))
+	local tween: Tween<Value> = createTween(initialValue, omitStartOption(options.tween))
+	local current: MotionLike<Value> = if not options.tween then spring else tween
 
 	local onChange, fireChange = signal()
 	local onComplete, fireComplete = signal()
@@ -103,7 +104,7 @@ local function createMotion<Value>(initialValue: Value, options: MotionOptions<V
 		state = state,
 	}, Motion) :: any
 
-	if options and options.start then
+	if options.start then
 		self:start()
 	end
 

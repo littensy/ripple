@@ -15,11 +15,6 @@ export type SpringOptions<T = any> = Ripple.SpringOptions<T>
 export type Tween<T = any> = Ripple.Tween<T>
 export type TweenOptions<T = any> = Ripple.TweenOptions<T>
 
-export type VideSpring<T = any> = useSpring.VideSpring<T>
-export type VideTween<T = any> = useTween.VideTween<T>
-export type VideMotion<T = any> = useMotion.VideMotion<T>
-export type VideSequence<T = any> = useSequence.VideSequence<T>
-
 return {
 	config = Ripple.config,
 	easing = Ripple.easing,

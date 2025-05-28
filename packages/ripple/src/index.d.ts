@@ -1,8 +1,10 @@
 type Key = string | number | symbol;
 
-export type AnimatableType = number | vector | Vector2 | Vector3 | CFrame | Color3 | UDim | UDim2 | Rect;
+export type AnimatablePrimitive = number | vector | Vector3;
 
-export type Animatable = AnimatableType | Record<Key, number | vector | Vector3>;
+export type AnimatableType = AnimatablePrimitive | Vector2 | CFrame | Color3 | UDim | UDim2 | Rect;
+
+export type Animatable = AnimatableType | Record<Key, AnimatablePrimitive>;
 
 export type PartialGoal<T extends Animatable> = T extends AnimatableType ? T : Partial<T>;
 
@@ -41,7 +43,7 @@ export type Easing =
 	| "smoothstep"
 	| "instant";
 
-interface SpringOptions<T extends Animatable> {
+interface SpringOptions<T extends Animatable = any> {
 	start?: boolean;
 	tension?: number;
 	friction?: number;
@@ -55,7 +57,7 @@ interface SpringOptions<T extends Animatable> {
 	impulse?: T;
 }
 
-interface Spring<T extends Animatable> {
+interface Spring<T extends Animatable = any> {
 	getPosition(): T;
 	getVelocity(): T;
 	getGoal(): T;
@@ -78,7 +80,7 @@ interface Spring<T extends Animatable> {
 	destroy(): void;
 }
 
-interface TweenOptions<T extends Animatable> {
+interface TweenOptions<T extends Animatable = any> {
 	start?: boolean;
 	easing?: Easing;
 	duration?: number;
@@ -87,7 +89,7 @@ interface TweenOptions<T extends Animatable> {
 	position?: T;
 }
 
-interface Tween<T extends Animatable> {
+interface Tween<T extends Animatable = any> {
 	getPosition(): T;
 	getFrom(): T;
 	getGoal(): T;
@@ -108,13 +110,13 @@ interface Tween<T extends Animatable> {
 	destroy(): void;
 }
 
-interface MotionOptions<T extends Animatable> {
+interface MotionOptions<T extends Animatable = any> {
 	start?: boolean;
 	spring?: SpringOptions<T>;
 	tween?: TweenOptions<T>;
 }
 
-interface Motion<T extends Animatable> {
+interface Motion<T extends Animatable = any> {
 	getPosition(): T;
 	getVelocity(): T;
 	getGoal(): T;
@@ -137,14 +139,14 @@ interface Motion<T extends Animatable> {
 	destroy(): void;
 }
 
-interface SequenceKeypoint<T extends Animatable> {
+interface SequenceKeypoint<T extends Animatable = any> {
 	time: number;
 	goal: T;
 	spring?: SpringOptions<T>;
 	tween?: TweenOptions<T>;
 }
 
-interface Sequence<T extends Animatable> {
+interface Sequence<T extends Animatable = any> {
 	getTime(): number;
 	getPosition(): T;
 	getVelocity(): T;
@@ -174,13 +176,13 @@ export function createMotion<T extends Animatable>(initialValue: T, options?: Mo
 
 export function createSequence<T extends Animatable>(initialValue: T, keypoints: SequenceKeypoint<T>[]): Sequence<T>;
 
-export const options: {
-	default: SpringOptions<any>;
-	gentle: SpringOptions<any>;
-	wobbly: SpringOptions<any>;
-	stiff: SpringOptions<any>;
-	slow: SpringOptions<any>;
-	molasses: SpringOptions<any>;
+export const config: {
+	default: SpringOptions;
+	gentle: SpringOptions;
+	wobbly: SpringOptions;
+	stiff: SpringOptions;
+	slow: SpringOptions;
+	molasses: SpringOptions;
 };
 
 export const easing: {
@@ -193,8 +195,12 @@ export namespace heartbeat {
 	}
 
 	function step(deltaTime: number): void;
+
 	function connect(listener: Listener): void;
+
 	function disconnect(listener: Listener): void;
+
 	function count(): number;
+
 	function clear(): void;
 }

@@ -73,8 +73,10 @@ local function getAlpha(progress: number, repeats: number, reverses: boolean): n
 	return progress
 end
 
-local function createTween<Value>(initialValue: Value, options: TweenOptions<Value>?): Tween<Value>
-	local position = intermediate.create(options and options.position or initialValue)
+local function createTween<Value>(initialValue: Value, inputOptions: TweenOptions<Value>?): Tween<Value>
+	local options: TweenOptions<Value> = inputOptions or {}
+	local position = intermediate.create(options.position or initialValue)
+
 	local onChange, fireChange = signal()
 	local onComplete, fireComplete = signal()
 
@@ -99,12 +101,10 @@ local function createTween<Value>(initialValue: Value, options: TweenOptions<Val
 		state = state,
 	}, Tween) :: any
 
-	if options then
-		self:configure(options)
+	self:configure(options)
 
-		if options.start then
-			self:start()
-		end
+	if options.start then
+		self:start()
 	end
 
 	return self
@@ -200,7 +200,7 @@ end
 function Tween:setPosition(value: Animatable)
 	if intermediate.setValue(self.state.position, value) then
 		self:resumeFromCurrentPosition()
-		self.state.fireChange(value, 0)
+		self.state.fireChange(intermediate.getValue(self.state.position), 0)
 	end
 end
 

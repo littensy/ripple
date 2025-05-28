@@ -243,4 +243,18 @@ test("should have correct start and end", function()
 	end
 end)
 
+test("should fire change with full state", function()
+	local state = {}
+	local tween = createTween({ 0, 0, 0 })
+	tween:onChange(function(newState)
+		state = newState
+	end)
+
+	tween:setPosition({ 1, 1, 1 })
+	assert(table.concat(state) == "111", "did not fire change with position")
+
+	tween:setPosition({ [1] = 2, [3] = 2 })
+	assert(table.concat(state) == "212", "did not fire change with position merge")
+end)
+
 return {}

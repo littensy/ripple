@@ -153,4 +153,18 @@ test("should wake after update on complete", function()
 	assert(completes == 2, "completed after completion")
 end)
 
+test("should fire change with full state", function()
+	local state = {}
+	local spring = createSpring({ 0, 0, 0 })
+	spring:onChange(function(newState)
+		state = newState
+	end)
+
+	spring:setPosition({ 1, 1, 1 })
+	assert(table.concat(state) == "111", "did not fire change with position")
+
+	spring:setPosition({ [1] = 2, [3] = 2 })
+	assert(table.concat(state) == "212", "did not fire change with position merge")
+end)
+
 return {}

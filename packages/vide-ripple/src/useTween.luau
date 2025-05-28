@@ -1,30 +1,22 @@
 local Ripple = require(script.Parent.Parent.Ripple)
 local Vide = require(script.Parent.Parent.Vide)
-local callable = require(script.Parent.callable)
 
 type Animatable = Ripple.Animatable
 type Tween<T> = Ripple.Tween<T>
 type TweenOptions<T> = Ripple.TweenOptions<T>
 
-export type VideTween<T> = (() -> T) & Tween<T> & {
-	source: () -> T,
-}
-
-local function useTween<T>(initialValue: T, initialOptions: TweenOptions<T>?): VideTween<T>
-	local tween = Ripple.createTween(initialValue, initialOptions) :: VideTween<T>
-
-	tween.source = Vide.source(initialValue)
+local function useTween<T>(initialValue: T, initialOptions: TweenOptions<T>?): (() -> T, Tween<T>)
+	local tween = Ripple.createTween(initialValue, initialOptions)
+	local getter = Vide.source(initialValue)
 
 	if not initialOptions or initialOptions.start ~= false then
 		tween:start()
 	end
 
-	Vide.cleanup(tween:onChange(tween.source))
+	Vide.cleanup(tween:onChange(getter))
 	Vide.cleanup(tween)
 
-	return callable(tween, function()
-		return tween.source()
-	end)
+	return getter, tween
 end
 
 return useTween
