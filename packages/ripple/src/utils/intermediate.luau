@@ -1,7 +1,7 @@
 local merge = require("./merge")
 local oklab = require("./oklab")
 
-export type Components = { number | vector }
+export type Components = { number | vector | Vector3 }
 
 type AnyComponents = { any }
 
@@ -31,9 +31,11 @@ local encoders: { [string]: (Components, any) -> () } = {
 	Vector2 = function(components: Components, value: Vector2)
 		components[1] = vector.create(value.X, value.Y, 0)
 	end,
-	CFrame = function(components: AnyComponents, value: CFrame)
+	CFrame = function(components: Components, value: CFrame)
 		components[1] = value.Position
-		components[2], components[3] = value:ToAxisAngle()
+		components[2] = value.XVector
+		components[3] = value.YVector
+		components[4] = value.ZVector
 	end,
 	Color3 = function(components: Components, value: Color3)
 		components[1] = oklab.fromSRGB(vector.create(value.R, value.G, value.B))
@@ -51,7 +53,7 @@ local encoders: { [string]: (Components, any) -> () } = {
 	end,
 }
 
-local decoders: { [string]: (Components & { any }) -> any } = {
+local decoders: { [string]: (components: AnyComponents) -> any } = {
 	number = function(components: { number }): number
 		return components[1]
 	end,
@@ -68,8 +70,8 @@ local decoders: { [string]: (Components & { any }) -> any } = {
 		local xy = components[1]
 		return Vector2.new(xy.x, xy.y)
 	end,
-	CFrame = function(components: { any }): CFrame
-		return CFrame.fromAxisAngle(components[2], components[3]) + components[1]
+	CFrame = function(components: { Vector3 }): CFrame
+		return CFrame.fromMatrix(components[1], components[2], components[3], components[4]):Orthonormalize()
 	end,
 	Color3 = function(components: { vector }): Color3
 		local rgb = vector.max(oklab.toSRGB(components[1]), vector.zero)
