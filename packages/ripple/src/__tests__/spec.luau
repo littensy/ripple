@@ -30,4 +30,8 @@ suite.describe("easing", function()
 	require("./easing.spec")
 end)
 
+suite.describe("spr", function()
+	require("./spr.spec")
+end)
+
 return {}

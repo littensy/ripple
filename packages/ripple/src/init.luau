@@ -5,6 +5,7 @@ local createSpring = require("@self/animation/createSpring")
 local createTween = require("@self/animation/createTween")
 local easing = require("@self/easing")
 local heartbeat = require("@self/heartbeat")
+local spr = require("@self/spr")
 local types = require("@self/types")
 
 export type Animatable = types.Animatable
@@ -22,6 +23,7 @@ return {
 	config = config,
 	easing = easing,
 	heartbeat = heartbeat,
+	spr = spr,
 	createMotion = createMotion,
 	createSequence = createSequence,
 	createSpring = createSpring,
