@@ -112,10 +112,10 @@ local function configure<T>(
 	end
 
 	if propertyOptions then
-		for property, options in propertyOptions do
+		for property, options in propertyOptions :: { [string]: SpringOptions<T> } do
 			if state[property] then
 				state[property]:configure(options)
-			else
+			elseif options.impulse or options.velocity then
 				createSpringForProperty(instance, property, state, options)
 			end
 		end
