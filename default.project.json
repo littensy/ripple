@@ -1,13 +1,21 @@
 {
 	"name": "ripple-test",
-	"globIgnorePaths": ["**/default.project.json"],
+	"globIgnorePaths": [
+		"**/default.project.json",
+		"node_modules/ripple",
+		"node_modules/react-ripple",
+		"node_modules/vide-ripple"
+	],
 	"emitLegacyScripts": false,
 	"tree": {
 		"$className": "DataModel",
 		"ReplicatedStorage": {
 			"$className": "ReplicatedStorage",
 			"packages": {
-				"$path": "node_modules/@rbxts",
+				"$className": "Folder",
+				"vide": {
+					"$path": "node_modules/@rbxts/vide"
+				},
 				"ripple": {
 					"$className": "Folder",
 					"src": { "$path": "packages/ripple/src" }

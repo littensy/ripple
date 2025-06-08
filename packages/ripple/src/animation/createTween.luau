@@ -1,12 +1,12 @@
 local easing = require("../easing")
 local heartbeat = require("../heartbeat")
-local intermediate = require("../utils/intermediate")
+local interpolate = require("../utils/interpolate")
+local merge = require("../utils/merge")
 local signal = require("../utils/signal")
 local types = require("../types")
 
 type Animatable = types.Animatable
 type Easing = easing.Easing
-type Intermediate<Value> = intermediate.Intermediate<Value>
 
 export type TweenOptions<Value = any> = {
 	start: boolean?,
@@ -18,9 +18,9 @@ export type TweenOptions<Value = any> = {
 }
 
 type TweenState<Value> = {
-	position: Intermediate<Value>,
-	from: Intermediate<Value>,
-	goal: Intermediate<Value>,
+	position: Value,
+	from: Value,
+	goal: Value,
 	easingFunction: (number) -> number,
 	duration: number,
 	repeats: number,
@@ -75,15 +75,15 @@ end
 
 local function createTween<Value>(initialValue: Value, inputOptions: TweenOptions<Value>?): Tween<Value>
 	local options: TweenOptions<Value> = inputOptions or {}
-	local position = intermediate.create(options.position or initialValue)
+	local position = options.position or initialValue
 
 	local onChange, fireChange = signal()
 	local onComplete, fireComplete = signal()
 
 	local state: TweenState<Value> = {
 		position = position,
-		from = intermediate.copy(position),
-		goal = intermediate.copy(position),
+		from = position,
+		goal = position,
 		easingFunction = easing.linear,
 		duration = 1,
 		repeats = 1,
@@ -115,8 +115,7 @@ function Tween:resumeFromCurrentPosition()
 
 	state.complete = false
 	state.elapsed = 0
-
-	intermediate.assign(state.from, state.position)
+	state.from = state.position
 
 	if state.started then
 		heartbeat.connect(self)
@@ -144,7 +143,7 @@ function Tween:step(dt: number): Animatable
 	local state = self.state
 
 	if state.complete then
-		return intermediate.getValue(state.position)
+		return state.position
 	end
 
 	state.elapsed += dt
@@ -152,11 +151,9 @@ function Tween:step(dt: number): Animatable
 	local progress = math.clamp(state.elapsed / state.duration, 0, state.repeats)
 	local alpha = getAlpha(progress, state.repeats, state.reverses)
 	local eased = if alpha > 0 and alpha < 1 then state.easingFunction(alpha) else alpha
+	local value = interpolate(state.from, state.goal, eased)
 
-	intermediate.lerp(state.position, state.from, state.goal, eased)
-
-	local value = intermediate.getValue(state.position)
-
+	state.position = value
 	state.fireChange(value, dt)
 
 	if progress == state.repeats then
@@ -186,21 +183,24 @@ function Tween:configure(options: TweenOptions)
 end
 
 function Tween:getPosition(): Animatable
-	return intermediate.getValue(self.state.position)
+	return self.state.position
 end
 
 function Tween:getFrom(): Animatable
-	return intermediate.getValue(self.state.from)
+	return self.state.from
 end
 
 function Tween:getGoal(): Animatable
-	return intermediate.getValue(self.state.goal)
+	return self.state.goal
 end
 
 function Tween:setPosition(value: Animatable)
-	if intermediate.setValue(self.state.position, value) then
+	local position = if type(value) == "table" then merge(self.state.position, value) else value
+
+	if self.state.position ~= position then
+		self.state.position = position
 		self:resumeFromCurrentPosition()
-		self.state.fireChange(intermediate.getValue(self.state.position), 0)
+		self.state.fireChange(position, 0)
 	end
 end
 
@@ -209,7 +209,10 @@ function Tween:setGoal(value: Animatable, options: TweenOptions?)
 		self:configure(options)
 	end
 
-	if intermediate.setValue(self.state.goal, value) then
+	local goal = if type(value) == "table" then merge(self.state.goal, value) else value
+
+	if self.state.goal ~= goal then
+		self.state.goal = goal
 		self:resumeFromCurrentPosition()
 	end
 end
