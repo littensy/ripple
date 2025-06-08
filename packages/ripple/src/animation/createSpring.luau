@@ -157,71 +157,95 @@ function Spring:step(dt: number)
 	local decay = math.exp(-dt * d * f)
 	local complete = true
 
-	local positionComponents = position.components :: { vector }
-	local velocityComponents = velocity.components :: { vector }
-	local goalComponents = goal.components :: { vector }
+	local pc = position.components :: { vector }
+	local vc = velocity.components :: { vector }
+	local gc = goal.components :: { vector }
 
-	for key, p0 in positionComponents do
-		local v0 = velocityComponents[key]
-		local g = goalComponents[key]
+	-- Spring calculation from Otter:
+	-- https://github.com/Roblox/otter/blob/main/modules/otter/src/spring.lua
+	if d == 1 then -- Critically damped
+		for key, p0 in pc do
+			local v0 = vc[key]
+			local g = gc[key]
+			local o = p0 - g
 
-		local offset = p0 - g
-		local p1, v1
+			local p1 = (v0 * dt + o * (f * dt + 1)) * decay + g
+			local v1 = (v0 - f * dt * (o * f + v0)) * decay
 
-		-- Spring calculation from Otter:
-		-- https://github.com/Roblox/otter/blob/main/modules/otter/src/spring.lua
-		if d == 1 then -- Critically damped
-			p1 = (v0 * dt + offset * (f * dt + 1)) * decay + g
-			v1 = (v0 - f * dt * (offset * f + v0)) * decay
-		elseif d < 1 then -- Underdamped
-			local c = math.sqrt(1 - d * d)
-
-			local i = math.cos(f * c * dt)
-			local j = math.sin(f * c * dt)
-
-			local z
-			if c > 1e-4 then
-				z = j / c
-			else
-				local a = dt * f
-				z = a + ((a * a) * (c * c) * (c * c) / 20 - c * c) * (a * a * a) / 6
+			if complete then
+				complete = belowThreshold(p1 - g, restPosition) and belowThreshold(v1, restVelocity)
 			end
 
-			local y
-			if f * c > 1e-4 then
-				y = j / (f * c)
-			else
-				local b = f * c
-				y = dt + ((dt * dt) * (b * b) * (b * b) / 20 - b * b) * (dt * dt * dt) / 6
+			pc[key] = p1
+			vc[key], velocity.dirty = v1, true
+		end
+	elseif d < 1 then -- Underdamped
+		local c = math.sqrt(1 - d * d)
+
+		local i = math.cos(f * c * dt)
+		local j = math.sin(f * c * dt)
+
+		local z
+		if c > 1e-4 then
+			z = j / c
+		else
+			local a = dt * f
+			z = a + ((a * a) * (c * c) * (c * c) / 20 - c * c) * (a * a * a) / 6
+		end
+
+		local y
+		if f * c > 1e-4 then
+			y = j / (f * c)
+		else
+			local b = f * c
+			y = dt + ((dt * dt) * (b * b) * (b * b) / 20 - b * b) * (dt * dt * dt) / 6
+		end
+
+		for key, p0 in pc do
+			local v0 = vc[key]
+			local g = gc[key]
+			local o = p0 - g
+
+			local p1 = (o * (i + d * z) + v0 * y) * decay + g
+			local v1 = (v0 * (i - z * d) - o * (z * f)) * decay
+
+			if complete then
+				complete = belowThreshold(p1 - g, restPosition) and belowThreshold(v1, restVelocity)
 			end
 
-			p1 = (offset * (i + d * z) + v0 * y) * decay + g
-			v1 = (v0 * (i - z * d) - offset * (z * f)) * decay
-		else -- Overdamped
-			local c = math.sqrt(d * d - 1)
-
-			local r1 = -f * (d - c)
-			local r2 = -f * (d + c)
-
-			local co2 = (v0 - r1 * offset) / (2 * f * c)
-			local co1 = offset - co2
-
-			local e1 = co1 * math.exp(r1 * dt)
-			local e2 = co2 * math.exp(r2 * dt)
-
-			p1 = e1 + e2 + g
-			v1 = r1 * e1 + r2 * e2
+			pc[key] = p1
+			vc[key], velocity.dirty = v1, true
 		end
+	else -- Overdamped
+		local c = math.sqrt(d * d - 1)
 
-		if complete then
-			complete = belowThreshold(p1 - g, restPosition) and belowThreshold(v1, restVelocity)
+		local r1 = -f * (d - c)
+		local r2 = -f * (d + c)
+
+		local ec1 = math.exp(r1 * dt)
+		local ec2 = math.exp(r2 * dt)
+
+		for key, p0 in pc do
+			local v0 = vc[key]
+			local g = gc[key]
+			local o = p0 - g
+
+			local co2 = (v0 - o * r1) / (2 * f * c)
+			local co1 = ec1 * (o - co2)
+
+			local p1 = co1 + co2 * ec2 + g
+			local v1 = co1 * r1 + co2 * ec2 * r2
+
+			if complete then
+				complete = belowThreshold(p1 - g, restPosition) and belowThreshold(v1, restVelocity)
+			end
+
+			pc[key] = p1
+			vc[key], velocity.dirty = v1, true
 		end
-
-		positionComponents[key], position.dirty = p1, true
-		velocityComponents[key], velocity.dirty = v1, true
 	end
 
-	local value = intermediate.getValue(if complete then goal else position)
+	local value = intermediate.recomputeValue(if complete then goal else position)
 
 	state.complete = complete
 	state.fireChange(value, dt)

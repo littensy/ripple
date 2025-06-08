@@ -133,6 +133,12 @@ local function getValue<T>(intermediate: Intermediate<T>): T
 	return intermediate.value
 end
 
+local function recomputeValue<T>(intermediate: Intermediate<T>): T
+	intermediate.value = intermediate.decode(intermediate.components)
+	intermediate.dirty = nil
+	return intermediate.value
+end
+
 local function setValue<T>(intermediate: Intermediate<T>, value: T): boolean
 	if type(value) == "table" then
 		value = merge(getValue(intermediate), value)
@@ -181,6 +187,7 @@ return {
 	setValue = setValue,
 	addValue = addValue,
 	getValue = getValue,
+	recomputeValue = recomputeValue,
 	assign = assign,
 	lerp = lerp,
 }
