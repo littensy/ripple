@@ -15,13 +15,13 @@ local function interpolate(from: any, to: any, alpha: number): Animatable
 	elseif kind == "UDim2" or kind == "CFrame" then
 		return from:Lerp(to, alpha)
 	elseif kind == "UDim" then
-		return UDim.new(from.Scale + (to.Scale - from.Scale) * alpha, from.Offset + (to.Offset - from.Offset) * alpha)
+		return UDim.new(math.lerp(from.Scale, to.Scale, alpha), math.lerp(from.Offset, to.Offset, alpha))
 	elseif kind == "Rect" then
 		return Rect.new(
-			from.Min.X + (to.Min.X - from.Min.X) * alpha,
-			from.Min.Y + (to.Min.Y - from.Min.Y) * alpha,
-			from.Max.X + (to.Max.X - from.Max.X) * alpha,
-			from.Max.Y + (to.Max.Y - from.Max.Y) * alpha
+			math.lerp(from.Min.X, to.Min.X, alpha),
+			math.lerp(from.Min.Y, to.Min.Y, alpha),
+			math.lerp(from.Max.X, to.Max.X, alpha),
+			math.lerp(from.Max.Y, to.Max.Y, alpha)
 		)
 	elseif kind == "table" then
 		local result: { number | vector } = from

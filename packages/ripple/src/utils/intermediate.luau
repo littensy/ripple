@@ -60,10 +60,10 @@ local decoders: { [string]: (components: AnyComponents) -> any } = {
 	vector = function(components: { vector }): vector
 		return components[1]
 	end,
-	Vector3 = function(components: { vector }): Vector3
-		return components[1] :: any
+	Vector3 = function(components: { Vector3 }): Vector3
+		return components[1]
 	end,
-	table = function(components: { vector | number }): { any }
+	table = function(components: Components): Components
 		return table.clone(components)
 	end,
 	Vector2 = function(components: { vector }): Vector2

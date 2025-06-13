@@ -150,8 +150,8 @@ function Tween:step(dt: number): Animatable
 
 	local progress = math.clamp(state.elapsed / state.duration, 0, state.repeats)
 	local alpha = getAlpha(progress, state.repeats, state.reverses)
-	local eased = if alpha > 0 and alpha < 1 then state.easingFunction(alpha) else alpha
-	local value = interpolate(state.from, state.goal, eased)
+	local alphaEased = if alpha > 0 and alpha < 1 then state.easingFunction(alpha) else alpha
+	local value = interpolate(state.from, state.goal, alphaEased)
 
 	state.position = value
 	state.fireChange(value, dt)

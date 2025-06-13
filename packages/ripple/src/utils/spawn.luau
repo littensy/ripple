@@ -13,13 +13,12 @@ local function runner()
 end
 
 local function spawn<T...>(callback: (T...) -> (), ...: T...)
-	if not task then
-		return callback(...)
-	end
-
 	local thread = freeThread or task.spawn(runner)
-
 	task.spawn(thread, thread, callback, ...)
 end
 
-return spawn
+local function call<T...>(callback: (T...) -> (), ...: T...)
+	callback(...)
+end
+
+return (if task then spawn else call) :: typeof(spawn)

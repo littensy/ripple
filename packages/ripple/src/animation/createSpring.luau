@@ -152,96 +152,96 @@ function Spring:step(dt: number)
 	local restPosition = state.restPosition
 	local restVelocity = state.restVelocity
 
-	local d = state.dampingRatio
-	local f = state.frequency * 2 * math.pi
-	local decay = math.exp(-dt * d * f)
+	local dampingRatio = state.dampingRatio
+	local angularFrequency = state.frequency * 2 * math.pi
+	local decay = math.exp(-dt * dampingRatio * angularFrequency)
 	local complete = true
 
-	local pc = position.components :: { vector }
-	local vc = velocity.components :: { vector }
-	local gc = goal.components :: { vector }
+	local positionComponents = position.components :: { vector }
+	local velocityComponents = velocity.components :: { vector }
+	local goalComponents = goal.components :: { vector }
 
 	-- Spring calculation from Otter:
 	-- https://github.com/Roblox/otter/blob/main/modules/otter/src/spring.lua
-	if d == 1 then -- Critically damped
-		for key, p0 in pc do
-			local v0 = vc[key]
-			local g = gc[key]
-			local o = p0 - g
+	if dampingRatio == 1 then -- Critically damped
+		for key, lastPos in positionComponents do
+			local lastVel = velocityComponents[key]
+			local target = goalComponents[key]
+			local offset = lastPos - target
 
-			local p1 = (v0 * dt + o * (f * dt + 1)) * decay + g
-			local v1 = (v0 - f * dt * (o * f + v0)) * decay
+			local newPos = (lastVel * dt + offset * (angularFrequency * dt + 1)) * decay + target
+			local newVel = (lastVel - angularFrequency * dt * (offset * angularFrequency + lastVel)) * decay
 
 			if complete then
-				complete = belowThreshold(p1 - g, restPosition) and belowThreshold(v1, restVelocity)
+				complete = belowThreshold(newPos - target, restPosition) and belowThreshold(newVel, restVelocity)
 			end
 
-			pc[key] = p1
-			vc[key], velocity.dirty = v1, true
+			positionComponents[key] = newPos
+			velocityComponents[key], velocity.dirty = newVel, true
 		end
-	elseif d < 1 then -- Underdamped
-		local c = math.sqrt(1 - d * d)
+	elseif dampingRatio < 1 then -- Underdamped
+		local c = math.sqrt(1 - dampingRatio * dampingRatio)
 
-		local i = math.cos(f * c * dt)
-		local j = math.sin(f * c * dt)
+		local i = math.cos(angularFrequency * c * dt)
+		local j = math.sin(angularFrequency * c * dt)
 
 		local z
 		if c > 1e-4 then
 			z = j / c
 		else
-			local a = dt * f
+			local a = dt * angularFrequency
 			z = a + ((a * a) * (c * c) * (c * c) / 20 - c * c) * (a * a * a) / 6
 		end
 
 		local y
-		if f * c > 1e-4 then
-			y = j / (f * c)
+		if angularFrequency * c > 1e-4 then
+			y = j / (angularFrequency * c)
 		else
-			local b = f * c
+			local b = angularFrequency * c
 			y = dt + ((dt * dt) * (b * b) * (b * b) / 20 - b * b) * (dt * dt * dt) / 6
 		end
 
-		for key, p0 in pc do
-			local v0 = vc[key]
-			local g = gc[key]
-			local o = p0 - g
+		for key, lastPos in positionComponents do
+			local lastVel = velocityComponents[key]
+			local target = goalComponents[key]
+			local offset = lastPos - target
 
-			local p1 = (o * (i + d * z) + v0 * y) * decay + g
-			local v1 = (v0 * (i - z * d) - o * (z * f)) * decay
+			local newPos = (offset * (i + dampingRatio * z) + lastVel * y) * decay + target
+			local newVel = (lastVel * (i - z * dampingRatio) - offset * (z * angularFrequency)) * decay
 
 			if complete then
-				complete = belowThreshold(p1 - g, restPosition) and belowThreshold(v1, restVelocity)
+				complete = belowThreshold(newPos - target, restPosition) and belowThreshold(newVel, restVelocity)
 			end
 
-			pc[key] = p1
-			vc[key], velocity.dirty = v1, true
+			positionComponents[key] = newPos
+			velocityComponents[key], velocity.dirty = newVel, true
 		end
 	else -- Overdamped
-		local c = math.sqrt(d * d - 1)
+		local c = math.sqrt(dampingRatio * dampingRatio - 1)
 
-		local r1 = -f * (d - c)
-		local r2 = -f * (d + c)
+		local r1 = -angularFrequency * (dampingRatio - c)
+		local r2 = -angularFrequency * (dampingRatio + c)
 
 		local ec1 = math.exp(r1 * dt)
 		local ec2 = math.exp(r2 * dt)
 
-		for key, p0 in pc do
-			local v0 = vc[key]
-			local g = gc[key]
-			local o = p0 - g
+		for key, lastPos in positionComponents do
+			local lastVel = velocityComponents[key]
+			local target = goalComponents[key]
+			local offset = lastPos - target
 
-			local co2 = (v0 - o * r1) / (2 * f * c)
-			local co1 = ec1 * (o - co2)
+			local co2 = (lastVel - offset * r1) / (2 * angularFrequency * c)
+			local co1 = ec1 * (offset - co2)
 
-			local p1 = co1 + co2 * ec2 + g
-			local v1 = co1 * r1 + co2 * ec2 * r2
+			local newPos = co1 + co2 * ec2 + target
+			local newVel = co1 * r1 + co2 * ec2 * r2
 
 			if complete then
-				complete = belowThreshold(p1 - g, restPosition) and belowThreshold(v1, restVelocity)
+				complete = belowThreshold(newPos - target, restPosition) and belowThreshold(newVel, restVelocity)
 			end
 
-			pc[key] = p1
-			vc[key], velocity.dirty = v1, true
+			positionComponents[key] = newPos
+			velocityComponents[key], velocity.dirty = newVel, true
 		end
 	end
 
