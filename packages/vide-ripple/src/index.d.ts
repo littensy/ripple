@@ -1,14 +1,4 @@
-import type {
-	Animatable,
-	Motion,
-	MotionOptions,
-	Sequence,
-	SequenceKeypoint,
-	Spring,
-	SpringOptions,
-	Tween,
-	TweenOptions,
-} from "@rbxts/ripple";
+import type { Animatable, Motion, MotionOptions, Spring, SpringOptions, Tween, TweenOptions } from "@rbxts/ripple";
 
 export * from "@rbxts/ripple";
 
@@ -28,9 +18,3 @@ export function useMotion<T extends Animatable>(
 	initialValue: T,
 	initialOptions?: MotionOptions<T>,
 ): LuaTuple<[getter: () => T, motion: Motion<NonStrict<T>>]>;
-
-export function useSequence<T extends Animatable>(
-	initialValue: T,
-	keypoints: SequenceKeypoint<T>[],
-	startImmediately?: boolean,
-): LuaTuple<[getter: () => T, sequence: Sequence<NonStrict<T>>]>;

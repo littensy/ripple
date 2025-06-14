@@ -139,42 +139,11 @@ interface Motion<T extends Animatable = any> {
 	destroy(): void;
 }
 
-interface SequenceKeypoint<T extends Animatable = any> {
-	time: number;
-	goal: T;
-	spring?: SpringOptions<T>;
-	tween?: TweenOptions<T>;
-}
-
-interface Sequence<T extends Animatable = any> {
-	getTime(): number;
-	getPosition(): T;
-	getVelocity(): T;
-	getGoal(): T;
-
-	setTime(time: number): void;
-	setPosition(value: PartialGoal<T>): void;
-	setVelocity(value: PartialGoal<T>): void;
-
-	onChange(callback: (value: T, deltaTime: number) => void): () => void;
-	onComplete(callback: (value: T) => void): () => void;
-
-	step(deltaTime: number): T;
-	idle(): boolean;
-
-	loop(): void;
-	start(): void;
-	stop(): void;
-	destroy(): void;
-}
-
 export function createSpring<T extends Animatable>(initialValue: T, options?: SpringOptions<T>): Spring<T>;
 
 export function createTween<T extends Animatable>(initialValue: T, options?: TweenOptions<T>): Tween<T>;
 
 export function createMotion<T extends Animatable>(initialValue: T, options?: MotionOptions<T>): Motion<T>;
-
-export function createSequence<T extends Animatable>(initialValue: T, keypoints: SequenceKeypoint<T>[]): Sequence<T>;
 
 export const config: {
 	default: SpringOptions;
