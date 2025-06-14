@@ -27,6 +27,20 @@ do
 end
 
 do
+	local spr = require("./spr/spr")
+
+	bench("spr", function()
+		spr.target({ value = vector.zero }, 1, 1 / 10, { value = vector.one })
+
+		for _ = 1, ITERATIONS do
+			spr.step(1 / ITERATIONS)
+		end
+
+		spr.clear()
+	end)
+end
+
+do
 	local AnimationStepSignal = require("./otter/AnimationStepSignal")
 	local createGroupMotor = require("./otter/createGroupMotor")
 	local spring = require("./otter/spring")

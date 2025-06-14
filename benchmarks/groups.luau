@@ -12,7 +12,22 @@ do
 	local createSpring = require("../packages/ripple/src/animation/createSpring")
 	local heartbeat = require("../packages/ripple/src/heartbeat")
 
-	bench("ripple", function()
+	bench("ripple group", function()
+		createSpring({ 0, 0, 0 }, { start = true, frequency = 1 / 10 }):setGoal({ 1, 1, 1 })
+
+		for _ = 1, ITERATIONS do
+			heartbeat.step(1 / ITERATIONS)
+		end
+
+		heartbeat.clear()
+	end)
+end
+
+do
+	local createSpring = require("../packages/ripple/src/animation/createSpring")
+	local heartbeat = require("../packages/ripple/src/heartbeat")
+
+	bench("ripple single", function()
 		for _ = 1, 3 do
 			createSpring(0, { start = true, frequency = 1 / 10 }):setGoal(1)
 		end
@@ -22,6 +37,20 @@ do
 		end
 
 		heartbeat.clear()
+	end)
+end
+
+do
+	local spr = require("./spr/spr")
+
+	bench("spr", function()
+		spr.target({ x = 0, y = 0, z = 0 }, 1, 1 / 10, { x = 1, y = 1, z = 1 })
+
+		for _ = 1, ITERATIONS do
+			spr.step(1 / ITERATIONS)
+		end
+
+		spr.clear()
 	end)
 end
 
