@@ -1,10 +1,12 @@
-local heartbeat = require("../heartbeat")
-local intermediate = require("../utils/intermediate")
-local signal = require("../utils/signal")
-local types = require("../types")
+local heartbeat = require("@self/heartbeat")
+local intermediate = require("./utils/intermediate")
+local signal = require("./utils/signal")
+local types = require("@self/types")
 
 type Animatable = types.Animatable
 type Intermediate<Value> = intermediate.Intermediate<Value>
+
+export type SpringState<Value = any> = types.SpringState<Value>
 
 export type SpringOptions<Value = any> = {
 	start: boolean?,
@@ -18,22 +20,6 @@ export type SpringOptions<Value = any> = {
 	position: Value?,
 	velocity: Value?,
 	impulse: Value?,
-}
-
-type SpringState<Value> = {
-	position: Intermediate<Value>,
-	velocity: Intermediate<Value>,
-	goal: Intermediate<Value>,
-	dampingRatio: number,
-	frequency: number,
-	restPosition: number,
-	restVelocity: number,
-	started: boolean,
-	complete: boolean,
-	onChange: signal.SubscribeSignal<(Value, number)>,
-	fireChange: signal.FireSignal<(Value, number)>,
-	onComplete: signal.SubscribeSignal<Value>,
-	fireComplete: signal.FireSignal<Value>,
 }
 
 export type Spring<Value = any> = {
@@ -68,15 +54,6 @@ local VELOCITY_THRESHOLD_MULTIPLIER = 1000 / 16
 
 local Spring = {} :: Spring<Animatable>
 (Spring :: any).__index = Spring
-
-local function belowThreshold(value: number | vector, threshold: number): boolean
-	if type(value) == "number" then
-		return math.abs(value) <= threshold
-	else
-		local abs = vector.abs(value)
-		return math.max(abs.x, abs.y, abs.z) <= threshold
-	end
-end
 
 local function createSpring<Value>(initialValue: Value, inputOptions: SpringOptions<Value>?): Spring<Value>
 	local options: SpringOptions<Value> = inputOptions or {}
@@ -118,7 +95,7 @@ function Spring:scheduleUpdate()
 	self.state.complete = false
 
 	if self.state.started then
-		heartbeat.connect(self)
+		heartbeat.connect(self.state)
 	end
 end
 
@@ -126,138 +103,21 @@ function Spring:start()
 	self.state.started = true
 
 	if not self.state.complete then
-		heartbeat.connect(self)
+		heartbeat.connect(self.state)
 	end
 end
 
 function Spring:stop()
 	self.state.started = false
-	heartbeat.disconnect(self)
+	heartbeat.disconnect(self.state)
 end
 
 function Spring:idle(): boolean
 	return self.state.complete
 end
 
-function Spring:step(dt: number)
-	local state = self.state
-
-	if state.complete then
-		return intermediate.getValue(state.position)
-	end
-
-	local position = state.position
-	local velocity = state.velocity
-	local goal = state.goal
-	local restPosition = state.restPosition
-	local restVelocity = state.restVelocity
-
-	local dampingRatio = state.dampingRatio
-	local angularFrequency = state.frequency * 2 * math.pi
-	local decay = math.exp(-dt * dampingRatio * angularFrequency)
-	local complete = true
-
-	local positionComponents = position.components :: { vector }
-	local velocityComponents = velocity.components :: { vector }
-	local goalComponents = goal.components :: { vector }
-
-	-- Spring calculation from Otter:
-	-- https://github.com/Roblox/otter/blob/main/modules/otter/src/spring.lua
-	if dampingRatio == 1 then -- Critically damped
-		for key, lastPos in positionComponents do
-			local lastVel = velocityComponents[key]
-			local target = goalComponents[key]
-			local offset = lastPos - target
-
-			local newPos = (lastVel * dt + offset * (angularFrequency * dt + 1)) * decay + target
-			local newVel = (lastVel - angularFrequency * dt * (offset * angularFrequency + lastVel)) * decay
-
-			if complete then
-				complete = belowThreshold(newPos - target, restPosition) and belowThreshold(newVel, restVelocity)
-			end
-
-			positionComponents[key] = newPos
-			velocityComponents[key], velocity.dirty = newVel, true
-		end
-	elseif dampingRatio < 1 then -- Underdamped
-		local c = math.sqrt(1 - dampingRatio * dampingRatio)
-
-		local i = math.cos(angularFrequency * c * dt)
-		local j = math.sin(angularFrequency * c * dt)
-
-		local z
-		if c > 1e-4 then
-			z = j / c
-		else
-			local a = dt * angularFrequency
-			z = a + ((a * a) * (c * c) * (c * c) / 20 - c * c) * (a * a * a) / 6
-		end
-
-		local y
-		if angularFrequency * c > 1e-4 then
-			y = j / (angularFrequency * c)
-		else
-			local b = angularFrequency * c
-			y = dt + ((dt * dt) * (b * b) * (b * b) / 20 - b * b) * (dt * dt * dt) / 6
-		end
-
-		for key, lastPos in positionComponents do
-			local lastVel = velocityComponents[key]
-			local target = goalComponents[key]
-			local offset = lastPos - target
-
-			local newPos = (offset * (i + dampingRatio * z) + lastVel * y) * decay + target
-			local newVel = (lastVel * (i - z * dampingRatio) - offset * (z * angularFrequency)) * decay
-
-			if complete then
-				complete = belowThreshold(newPos - target, restPosition) and belowThreshold(newVel, restVelocity)
-			end
-
-			positionComponents[key] = newPos
-			velocityComponents[key], velocity.dirty = newVel, true
-		end
-	else -- Overdamped
-		local c = math.sqrt(dampingRatio * dampingRatio - 1)
-
-		local r1 = -angularFrequency * (dampingRatio - c)
-		local r2 = -angularFrequency * (dampingRatio + c)
-
-		local ec1 = math.exp(r1 * dt)
-		local ec2 = math.exp(r2 * dt)
-
-		for key, lastPos in positionComponents do
-			local lastVel = velocityComponents[key]
-			local target = goalComponents[key]
-			local offset = lastPos - target
-
-			local co2 = (lastVel - offset * r1) / (2 * angularFrequency * c)
-			local co1 = ec1 * (offset - co2)
-
-			local newPos = co1 + co2 * ec2 + target
-			local newVel = co1 * r1 + co2 * ec2 * r2
-
-			if complete then
-				complete = belowThreshold(newPos - target, restPosition) and belowThreshold(newVel, restVelocity)
-			end
-
-			positionComponents[key] = newPos
-			velocityComponents[key], velocity.dirty = newVel, true
-		end
-	end
-
-	local value = intermediate.recomputeValue(if complete then goal else position)
-
-	state.complete = complete
-	state.fireChange(value, dt)
-
-	if complete then
-		heartbeat.disconnect(self)
-		intermediate.assign(position, goal)
-		intermediate.zero(velocity)
-		state.fireComplete(value)
-	end
-
-	return value
+function Spring:step(dt: number): Animatable
+	return heartbeat.update(self.state, dt)
 end
 
 function Spring:configure(options: SpringOptions)

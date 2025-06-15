@@ -10,6 +10,8 @@ export type PartialGoal<T extends Animatable> = T extends AnimatableType ? T : P
 
 export type Easing =
 	| "linear"
+	| "smoothstep"
+	| "instant"
 	| "sineIn"
 	| "sineOut"
 	| "sineInOut"
@@ -39,9 +41,7 @@ export type Easing =
 	| "circInOut"
 	| "cubicIn"
 	| "cubicOut"
-	| "cubicInOut"
-	| "smoothstep"
-	| "instant";
+	| "cubicInOut";
 
 interface SpringOptions<T extends Animatable = any> {
 	start?: boolean;
@@ -158,18 +158,21 @@ export const easing: {
 	[K in Easing]: (x: number) => number;
 };
 
-export namespace heartbeat {
-	interface Listener {
-		step(deltaTime: number): void;
-	}
+export declare namespace spr {
+	type PickAnimatable<T> = { [P in ExtractKeys<T, Animatable>]?: T[P] };
 
-	function step(deltaTime: number): void;
+	function target<T extends object, P extends PickAnimatable<T>>(
+		object: T,
+		options: SpringOptions<NoInfer<NonNullable<P[keyof P]>>> | undefined,
+		properties: P,
+	): void;
 
-	function connect(listener: Listener): void;
+	function configure<T extends object>(
+		object: T,
+		optionsByProperty: { [P in ExtractKeys<T, Animatable>]?: SpringOptions<NonNullable<T[P]>> } | undefined,
+	): void;
 
-	function disconnect(listener: Listener): void;
+	function completed(object: object, complete: () => void): () => void;
 
-	function count(): number;
-
-	function clear(): void;
+	function stop(object: object): void;
 }

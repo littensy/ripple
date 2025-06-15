@@ -1,7 +1,8 @@
-local createMotion = require("../../animation/createMotion")
-local easing = require("../../easing")
-local heartbeat = require("../../heartbeat")
-local suite = require("../../../../../test/suite")
+local countAnimations = require("./helpers/countAnimations")
+local createMotion = require("../createMotion")
+local easing = require("../easing")
+local heartbeat = require("../createMotion/heartbeat")
+local suite = require("../../../../test/suite")
 
 local describe = suite.describe
 local test = suite.test
@@ -162,19 +163,19 @@ describe("spring", function()
 		for index = 1, 10 do
 			springs[index] = createMotion(vector.zero, { start = true, spring = { precision = 0.1 } })
 		end
-		assert(heartbeat.count() == 0, "start with 0 connections")
+		assert(countAnimations() == 0, "start with 0 connections")
 
 		for _ = 1, 2 do
 			for _, spring in springs do
 				spring:setGoal(spring:getGoal() + vector.one)
 			end
-			assert(heartbeat.count() == #springs, "connect on update")
+			assert(countAnimations() == #springs, "connect on update")
 
 			heartbeat.step(0.2)
-			assert(heartbeat.count() == #springs, "stay connected on partial step")
+			assert(countAnimations() == #springs, "stay connected on partial step")
 
 			heartbeat.step(0.5)
-			assert(heartbeat.count() == 0, "disconnect on complete")
+			assert(countAnimations() == 0, "disconnect on complete")
 		end
 	end)
 
@@ -320,19 +321,19 @@ describe("tween", function()
 		for index = 1, 10 do
 			tweens[index] = createMotion(vector.zero, { start = true, tween = { duration = 1 } })
 		end
-		assert(heartbeat.count() == 0, "start with 0 connections")
+		assert(countAnimations() == 0, "start with 0 connections")
 
 		for _ = 1, 2 do
 			for _, tween in tweens do
 				tween:setGoal(tween:getGoal() + vector.one)
 			end
-			assert(heartbeat.count() == #tweens, "connect on update")
+			assert(countAnimations() == #tweens, "connect on update")
 
 			heartbeat.step(0.5)
-			assert(heartbeat.count() == #tweens, "stay connected on partial step")
+			assert(countAnimations() == #tweens, "stay connected on partial step")
 
 			heartbeat.step(0.5)
-			assert(heartbeat.count() == 0, "disconnect on complete")
+			assert(countAnimations() == 0, "disconnect on complete")
 		end
 	end)
 

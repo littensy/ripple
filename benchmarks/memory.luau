@@ -1,6 +1,6 @@
 local SpringValue = require("./react-flow/SpringValue")
 local createSingleMotor = require("./otter/createSingleMotor")
-local createSpring = require("../packages/ripple/src/animation/createSpring")
+local createSpring = require("../packages/ripple/src/createSpring")
 local otterSpring = require("./otter/spring")
 
 local references: { [any]: true? } = {}

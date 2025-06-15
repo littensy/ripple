@@ -118,8 +118,9 @@ local function copy<T>(intermediate: Intermediate<T>): Intermediate<T>
 end
 
 local function zero<T>(intermediate: Intermediate<T>): Intermediate<T>
-	for key in intermediate.components do
-		intermediate.components[key] *= 0 :: any
+	local components = intermediate.components
+	for key in components do
+		components[key] *= 0 :: any
 	end
 	intermediate.dirty = true
 	return intermediate
@@ -127,16 +128,19 @@ end
 
 local function getValue<T>(intermediate: Intermediate<T>): T
 	if intermediate.dirty then
-		intermediate.value = intermediate.decode(intermediate.components)
+		local value = intermediate.decode(intermediate.components)
+		intermediate.value = value
 		intermediate.dirty = nil
+		return value
 	end
 	return intermediate.value
 end
 
 local function recomputeValue<T>(intermediate: Intermediate<T>): T
-	intermediate.value = intermediate.decode(intermediate.components)
+	local value = intermediate.decode(intermediate.components)
+	intermediate.value = value
 	intermediate.dirty = nil
-	return intermediate.value
+	return value
 end
 
 local function setValue<T>(intermediate: Intermediate<T>, value: T): boolean
@@ -151,7 +155,7 @@ local function setValue<T>(intermediate: Intermediate<T>, value: T): boolean
 		intermediate.encode(intermediate.components, value)
 		return true
 	else
-		return false
+		return true
 	end
 end
 
@@ -165,17 +169,19 @@ local function addValue<T>(intermediate: Intermediate<T>, value: T)
 end
 
 local function assign<T>(intermediate: Intermediate<T>, source: Intermediate<T>)
+	local destination = intermediate.components
 	for key, component in source.components do
-		intermediate.components[key] = component
+		destination[key] = component
 	end
 	intermediate.value = getValue(source)
 	intermediate.dirty = nil
 end
 
 local function lerp<T>(intermediate: Intermediate<T>, from: Intermediate<T>, to: Intermediate<T>, alpha: number)
+	local components = intermediate.components
 	for key, b in to.components do
 		local a = from.components[key] :: any
-		intermediate.components[key] = a + (b - a) * alpha
+		components[key] = a + (b - a) * alpha
 	end
 	intermediate.dirty = true
 end

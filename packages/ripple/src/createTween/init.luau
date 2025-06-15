@@ -1,12 +1,13 @@
-local easing = require("../easing")
-local heartbeat = require("../heartbeat")
-local interpolate = require("../utils/interpolate")
-local merge = require("../utils/merge")
-local signal = require("../utils/signal")
-local types = require("../types")
+local easing = require("./easing")
+local heartbeat = require("@self/heartbeat")
+local merge = require("./utils/merge")
+local signal = require("./utils/signal")
+local types = require("@self/types")
 
 type Animatable = types.Animatable
 type Easing = easing.Easing
+
+export type TweenState<Value = any> = types.TweenState<Value>
 
 export type TweenOptions<Value = any> = {
 	start: boolean?,
@@ -15,23 +16,6 @@ export type TweenOptions<Value = any> = {
 	repeats: number?,
 	reverses: boolean?,
 	position: Value?,
-}
-
-type TweenState<Value> = {
-	position: Value,
-	from: Value,
-	goal: Value,
-	easingFunction: (number) -> number,
-	duration: number,
-	repeats: number,
-	reverses: boolean,
-	elapsed: number,
-	started: boolean,
-	complete: boolean,
-	onChange: signal.SubscribeSignal<(Value, number)>,
-	fireChange: signal.FireSignal<(Value, number)>,
-	onComplete: signal.SubscribeSignal<Value>,
-	fireComplete: signal.FireSignal<Value>,
 }
 
 export type Tween<Value = any> = {
@@ -60,18 +44,6 @@ export type Tween<Value = any> = {
 
 local Tween = {} :: Tween<Animatable>
 (Tween :: any).__index = Tween
-
-local function getAlpha(progress: number, repeats: number, reverses: boolean): number
-	if repeats > 1 and progress >= 1 then
-		if reverses then
-			return math.abs((progress - 1) % 2 - 1)
-		elseif progress < repeats then
-			return progress % 1
-		end
-		return 1
-	end
-	return progress
-end
 
 local function createTween<Value>(initialValue: Value, inputOptions: TweenOptions<Value>?): Tween<Value>
 	local options: TweenOptions<Value> = inputOptions or {}
@@ -118,7 +90,7 @@ function Tween:resumeFromCurrentPosition()
 	state.from = state.position
 
 	if state.started then
-		heartbeat.connect(self)
+		heartbeat.connect(state)
 	end
 end
 
@@ -126,13 +98,13 @@ function Tween:start()
 	self.state.started = true
 
 	if not self.state.complete then
-		heartbeat.connect(self)
+		heartbeat.connect(self.state)
 	end
 end
 
 function Tween:stop()
 	self.state.started = false
-	heartbeat.disconnect(self)
+	heartbeat.disconnect(self.state)
 end
 
 function Tween:idle(): boolean
@@ -140,29 +112,7 @@ function Tween:idle(): boolean
 end
 
 function Tween:step(dt: number): Animatable
-	local state = self.state
-
-	if state.complete then
-		return state.position
-	end
-
-	state.elapsed += dt
-
-	local progress = math.clamp(state.elapsed / state.duration, 0, state.repeats)
-	local alpha = getAlpha(progress, state.repeats, state.reverses)
-	local alphaEased = if alpha > 0 and alpha < 1 then state.easingFunction(alpha) else alpha
-	local value = interpolate(state.from, state.goal, alphaEased)
-
-	state.position = value
-	state.fireChange(value, dt)
-
-	if progress == state.repeats then
-		state.complete = true
-		heartbeat.disconnect(self)
-		state.fireComplete(value)
-	end
-
-	return value
+	return heartbeat.update(self.state, dt)
 end
 
 function Tween:configure(options: TweenOptions)

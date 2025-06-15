@@ -1,7 +1,8 @@
-local createTween = require("../../animation/createTween")
-local easing = require("../../easing")
-local heartbeat = require("../../heartbeat")
-local suite = require("../../../../../test/suite")
+local countAnimations = require("./helpers/countAnimations")
+local createTween = require("../createTween")
+local easing = require("../easing")
+local heartbeat = require("../createTween/heartbeat")
+local suite = require("../../../../test/suite")
 
 local test = suite.test
 
@@ -120,19 +121,19 @@ test("should connect while active", function()
 	for index = 1, 10 do
 		tweens[index] = createTween(vector.zero, { start = true, duration = 1 })
 	end
-	assert(heartbeat.count() == 0, "start with 0 connections")
+	assert(countAnimations() == 0, "start with 0 connections")
 
 	for _ = 1, 2 do
 		for _, tween in tweens do
 			tween:setGoal(tween:getGoal() + vector.one)
 		end
-		assert(heartbeat.count() == #tweens, "connect on update")
+		assert(countAnimations() == #tweens, "connect on update")
 
 		heartbeat.step(0.5)
-		assert(heartbeat.count() == #tweens, "stay connected on partial step")
+		assert(countAnimations() == #tweens, "stay connected on partial step")
 
 		heartbeat.step(0.5)
-		assert(heartbeat.count() == 0, "disconnect on complete")
+		assert(countAnimations() == 0, "disconnect on complete")
 	end
 end)
 

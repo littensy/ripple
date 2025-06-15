@@ -9,8 +9,8 @@ local bench = require("./bench")
 local ITERATIONS = 10000
 
 do
-	local createTween = require("../packages/ripple/src/animation/createTween")
-	local heartbeat = require("../packages/ripple/src/heartbeat")
+	local createTween = require("../packages/ripple/src/createTween")
+	local heartbeat = require("../packages/ripple/src/createTween/heartbeat")
 
 	bench("ripple", function()
 		createTween(0, { start = true }):setGoal(1)

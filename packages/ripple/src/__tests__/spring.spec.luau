@@ -1,6 +1,7 @@
-local createSpring = require("../../animation/createSpring")
-local heartbeat = require("../../heartbeat")
-local suite = require("../../../../../test/suite")
+local countAnimations = require("./helpers/countAnimations")
+local createSpring = require("../createSpring")
+local heartbeat = require("../createSpring/heartbeat")
+local suite = require("../../../../test/suite")
 
 local test = suite.test
 
@@ -98,19 +99,19 @@ test("should connect while active", function()
 	for index = 1, 10 do
 		springs[index] = createSpring(vector.zero, { start = true, precision = 0.1 })
 	end
-	assert(heartbeat.count() == 0, "start with 0 connections")
+	assert(countAnimations() == 0, "start with 0 connections")
 
 	for _ = 1, 2 do
 		for _, spring in springs do
 			spring:setGoal(spring:getGoal() + vector.one)
 		end
-		assert(heartbeat.count() == #springs, "connect on update")
+		assert(countAnimations() == #springs, "connect on update")
 
 		heartbeat.step(0.2)
-		assert(heartbeat.count() == #springs, "stay connected on partial step")
+		assert(countAnimations() == #springs, "stay connected on partial step")
 
 		heartbeat.step(0.5)
-		assert(heartbeat.count() == 0, "disconnect on complete")
+		assert(countAnimations() == 0, "disconnect on complete")
 	end
 end)
 

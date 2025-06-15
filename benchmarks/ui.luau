@@ -20,8 +20,8 @@ local object = {
 }
 
 do
-	local createSpring = require("../packages/ripple/src/animation/createSpring")
-	local heartbeat = require("../packages/ripple/src/heartbeat")
+	local createSpring = require("../packages/ripple/src/createSpring")
+	local heartbeat = require("../packages/ripple/src/createSpring/heartbeat")
 
 	bench("ripple", function()
 		root(function(cleanup)

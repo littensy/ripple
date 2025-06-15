@@ -1,39 +1,22 @@
 local createSpring = require("./createSpring")
 local createTween = require("./createTween")
-local heartbeat = require("../heartbeat")
-local signal = require("../utils/signal")
-local types = require("../types")
+local heartbeat = require("@self/heartbeat")
+local signal = require("./utils/signal")
+local types = require("@self/types")
 
 type Animatable = types.Animatable
+type MotionLike<Value> = types.MotionLike<Value>
 type Spring<Value = any> = createSpring.Spring<Value>
 type SpringOptions<Value = any> = createSpring.SpringOptions<Value>
 type Tween<Value = any> = createTween.Tween<Value>
 type TweenOptions<Value = any> = createTween.TweenOptions<Value>
 
-type MotionLike<Value> = {
-	step: (self: MotionLike<Value>, dt: number) -> Value,
-	idle: (self: MotionLike<Value>) -> boolean,
-	getPosition: (self: MotionLike<Value>) -> Value,
-	getGoal: (self: MotionLike<Value>) -> Value,
-	setPosition: (self: MotionLike<Value>, value: Value) -> (),
-	setGoal: (self: MotionLike<Value>, value: Value) -> (),
-}
+export type MotionState<Value> = types.MotionState<Value>
 
 export type MotionOptions<Value = any> = {
 	start: boolean?,
 	spring: SpringOptions<Value>?,
 	tween: TweenOptions<Value>?,
-}
-
-type MotionState<Value> = {
-	spring: Spring<Value>,
-	tween: Tween<Value>,
-	current: MotionLike<Value>,
-	started: boolean,
-	complete: boolean,
-	onChange: signal.SubscribeSignal<(Value, number)>,
-	onComplete: signal.SubscribeSignal<Value>,
-	fireComplete: signal.FireSignal<Value>,
 }
 
 export type Motion<Value> = {
@@ -127,7 +110,7 @@ function Motion:scheduleUpdate()
 	self.state.complete = false
 
 	if self.state.started then
-		heartbeat.connect(self)
+		heartbeat.connect(self.state)
 	end
 end
 
@@ -154,35 +137,21 @@ function Motion:start()
 	self.state.started = true
 
 	if not self.state.complete then
-		heartbeat.connect(self)
+		heartbeat.connect(self.state)
 	end
 end
 
 function Motion:stop()
 	self.state.started = false
-	heartbeat.disconnect(self)
+	heartbeat.disconnect(self.state)
 end
 
 function Motion:idle(): boolean
 	return self.state.complete
 end
 
-function Motion:step(dt: number)
-	local state = self.state
-
-	if state.complete then
-		return state.current:getPosition()
-	end
-
-	local position = state.current:step(dt)
-
-	if state.current:idle() then
-		state.complete = true
-		heartbeat.disconnect(self)
-		state.fireComplete(position)
-	end
-
-	return position
+function Motion:step(dt: number): Animatable
+	return heartbeat.update(self.state, dt)
 end
 
 function Motion:configure(options: MotionOptions)

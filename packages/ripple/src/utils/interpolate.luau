@@ -48,4 +48,4 @@ local function interpolate(from: any, to: any, alpha: number): Animatable
 	end
 end
 
-return interpolate
+return interpolate :: <T>(from: T, to: T, alpha: number) -> T

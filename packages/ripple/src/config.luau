@@ -1,4 +1,4 @@
-local createSpring = require("./animation/createSpring")
+local createSpring = require("./createSpring")
 
 type SpringOptions = createSpring.SpringOptions
 

@@ -9,8 +9,8 @@ local bench = require("./bench")
 local ITERATIONS = 10000
 
 do
-	local createSpring = require("../packages/ripple/src/animation/createSpring")
-	local heartbeat = require("../packages/ripple/src/heartbeat")
+	local createSpring = require("../packages/ripple/src/createSpring")
+	local heartbeat = require("../packages/ripple/src/createSpring/heartbeat")
 
 	bench("ripple group", function()
 		createSpring({ 0, 0, 0 }, { start = true, frequency = 1 / 10 }):setGoal({ 1, 1, 1 })
@@ -24,8 +24,8 @@ do
 end
 
 do
-	local createSpring = require("../packages/ripple/src/animation/createSpring")
-	local heartbeat = require("../packages/ripple/src/heartbeat")
+	local createSpring = require("../packages/ripple/src/createSpring")
+	local heartbeat = require("../packages/ripple/src/createSpring/heartbeat")
 
 	bench("ripple single", function()
 		for _ = 1, 3 do

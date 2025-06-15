@@ -1,4 +1,4 @@
-local heartbeat = require("../heartbeat")
+local heartbeat = require("../createSpring/heartbeat")
 local spr = require("../spr")
 local suite = require("../../../../test/suite")
 
@@ -86,7 +86,7 @@ end)
 
 test("should not create empty states", function()
 	spr.target({}, {}, {})
-	spr.configure({}, {}, {})
+	spr.configure({}, {})
 	spr.completed({}, function() end)
 	assert(next(spr.objects) == nil, "objects should be empty when no properties are set")
 end)
@@ -95,7 +95,7 @@ test("should configure properties", function()
 	local instance = { x = 0, y = 0 }
 
 	spr.target(instance, {}, { x = 1 })
-	spr.configure(instance, { velocity = 1 }, { y = { velocity = 2 } })
+	spr.configure(instance, { x = { velocity = 1 }, y = { velocity = 2 } })
 
 	local state = spr.objects[instance]
 	assert(state, "state should not be nil")

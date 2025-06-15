@@ -1,20 +1,15 @@
-local heartbeat = require("../heartbeat")
 local suite = require("../../../../test/suite")
 
-suite.afterEach(function()
-	heartbeat.clear()
+suite.describe("spring", function()
+	require("./spring.spec")
 end)
 
-suite.describe("animation", function()
-	suite.describe("createMotion", function()
-		require("./animation/createMotion.spec")
-	end)
-	suite.describe("createSpring", function()
-		require("./animation/createSpring.spec")
-	end)
-	suite.describe("createTween", function()
-		require("./animation/createTween.spec")
-	end)
+suite.describe("tween", function()
+	require("./tween.spec")
+end)
+
+suite.describe("motion", function()
+	require("./motion.spec")
 end)
 
 suite.describe("utils", function()

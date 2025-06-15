@@ -1,7 +1,7 @@
 -- spr-like API for animating instance and table properties using springs
 -- https://github.com/fraktality/spr
 
-local createSpring = require("./animation/createSpring")
+local createSpring = require("./createSpring")
 
 type Spring<T = any> = createSpring.Spring<T>
 type SpringOptions<T = any> = createSpring.SpringOptions<T>
@@ -96,23 +96,11 @@ local function target<T>(instance: AnimatableObject<T>, options: SpringOptions<T
 	end
 end
 
-local function configure<T>(
-	instance: AnimatableObject<T>,
-	instanceOptions: SpringOptions<T>?,
-	propertyOptions: { [string]: SpringOptions<T>? }?
-)
+local function configure<T>(instance: AnimatableObject<T>, optionsByProperty: { [string]: SpringOptions<T>? }?)
 	local state: AnimatableObjectState = objects[instance] or { springs = {} }
 
-	if instanceOptions then
-		for property, spring in state.springs :: { [string]: Spring<T> } do
-			if not propertyOptions or not propertyOptions[property] then
-				spring:configure(instanceOptions)
-			end
-		end
-	end
-
-	if propertyOptions then
-		for property, options in propertyOptions :: { [string]: SpringOptions<T> } do
+	if optionsByProperty then
+		for property, options in optionsByProperty :: { [string]: SpringOptions<T> } do
 			if state[property] then
 				state[property]:configure(options)
 			elseif options.impulse or options.velocity then
