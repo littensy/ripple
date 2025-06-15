@@ -14,17 +14,17 @@
 		"@rbxts/compiler-types": "3.0.0-types.0",
 		"@rbxts/react": "17.3.0-alpha.1",
 		"@rbxts/react-roblox": "17.3.0-alpha.1",
-		"@rbxts/types": "^1.0.855",
+		"@rbxts/types": "^1.0.858",
 		"@rbxts/vide": "^0.5.7",
-		"@typescript-eslint/eslint-plugin": "^8.33.0",
-		"@typescript-eslint/parser": "^8.33.0",
+		"@typescript-eslint/eslint-plugin": "^8.34.0",
+		"@typescript-eslint/parser": "^8.34.0",
 		"eslint": "^8.57.1",
 		"eslint-config-prettier": "^9.1.0",
-		"eslint-plugin-prettier": "^5.4.0",
+		"eslint-plugin-prettier": "^5.4.1",
 		"eslint-plugin-roblox-ts": "^0.0.36",
 		"prettier": "^3.5.3",
 		"roblox-ts": "^3.0.0",
 		"typescript": "^5.8.3"
 	},
-	"packageManager": "pnpm@10.11.0"
+	"packageManager": "pnpm@10.12.1"
 }

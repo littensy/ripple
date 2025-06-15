@@ -1,10 +1,8 @@
 # 🎨 Ripple
 
-**Ripple** is a simple, lightweight, and easy-to-use Roblox library for creating simple transitions and animations. It is inspired by [roact-spring](https://github.com/chriscerie/roact-spring) and is primarily intended to be a general-use alternative to [Flipper](https://github.com/Reselim/Flipper) for [Roblox-TS](https://roblox-ts.com).
+**Ripple** is a simple, lightweight, and easy-to-use Roblox library for creating simple transitions and animations. It is inspired by [react-spring](https://react-spring.dev) and aims to provide an imperative API for general use.
 
-You may use Ripple with or without Roact. Currently, there is no package for using Ripple with Roact.
-
-## 📦 Installation
+## Installation
 
 Ripple is available on [NPM](https://www.npmjs.com/package/@rbxts/ripple) and can be installed with the following commands:
 
@@ -19,115 +17,178 @@ pnpm add @rbxts/ripple
 Ripple = "littensy/ripple@version"
 ```
 
-## 📚 Documentation
+## Reference
 
-To see Ripple in action, check out the [example repository](https://github.com/littensy/rbxts-react-example).
+### Supported types
 
-### ⚡ Quick Start
+The following data types are supported for animation:
 
-Call `createMotion` to create an animation.
+| Data type                  | [Converted type](./packages/ripple/src/utils/intermediate.luau) |
+| -------------------------- | --------------------------------------------------------------- |
+| number                     | `[number]`                                                      |
+| vector                     | `[vector]`                                                      |
+| Vector2                    | `[vector]`                                                      |
+| Vector3                    | `[vector]`                                                      |
+| Color3                     | `[vector]` (Oklab)                                              |
+| UDim                       | `[vector]`                                                      |
+| UDim2                      | `[vector, number]`                                              |
+| CFrame                     | `[vector, vector, vector, vector]`                              |
+| Rect                       | `[vector, number]`                                              |
+| Map<any, number \| vector> | `Map<any, number \| vector>`                                    |
 
-Use the `spring`, `linear`, `immediate`, and `tween` methods to set the goal of your animation.
+---
 
-```typescript
-import { Motion, MotionGoal, config, createMotion } from "@rbxts/ripple";
+### `createSpring(initialValue, options)`
 
-const motion = createMotion(Vector3.zero, { start: true });
+`createSpring` creates a spring object starting at the given value.
 
-motion.spring(Vector3.one, config.spring.stiff);
+```lua
+local spring = createSpring(0, {
+	tension = 170,
+	friction = 26,
+	start = true,
+})
 
-motion.onStep((value, deltaTime) => {
-	print(value, deltaTime);
-});
-
-print(motion.get());
+spring:setGoal(1)
+spring:onChange(print) --> number, deltaTime
 ```
 
-You can also apply different goal types to specific properties using the `to` method:
+[Try the react-spring visualizer →](https://react-spring-visualizer.com)
 
-```typescript
-const motion = createMotion({ x: 0, y: 0 });
+#### Parameters
 
-motion.to({
-	x: spring(100, config.spring.stiff),
-	y: linear(100),
-});
+- `initialValue`: The value that the spring should start with.
+- **optional** `options`: The physical properties of the spring.
+
+#### Options
+
+| Option           | Type      | Description                                                                                    |
+| ---------------- | --------- | ---------------------------------------------------------------------------------------------- |
+| tension[^1]      | `number`  | Influences the number of bounces in the animation. Defaults to `170`.                          |
+| friction[^1]     | `number`  | Influences the level of spring in the animation. Defaults to `26`.                             |
+| mass[^1]         | `number`  | Influences the speed of the spring and height of the bounce. Defaults to `1`.                  |
+| frequency[^2]    | `number`  | How quickly the spring responds to changes.                                                    |
+| dampingRatio[^2] | `number`  | Dictates how the spring slows down.                                                            |
+| precision        | `number`  | The distance to the goal before the spring is considered idle. Defaults to `0.001`.            |
+| restVelocity     | `number`  | The smallest velocity before the spring is considered idle. Derived from precision by default. |
+| position         | `T`       | Set the position of the spring.                                                                |
+| velocity         | `T`       | Set the velocity of the spring.                                                                |
+| impulse          | `T`       | Add to the velocity of the spring.                                                             |
+| start            | `boolean` | Connect to Heartbeat while animating. Defaults to `false`.                                     |
+
+[^1]: Tension, friction, and mass are not compatible with frequency or damping ratio.
+
+[^2]: Frequency and damping ratio are not compatible with tension, friction, or mass.
+
+#### Returns
+
+`createSpring` returns a spring object.
+
+---
+
+### `createTween(initialValue, options)`
+
+`createTween` creates a tween object starting at the given value.
+
+```lua
+local tween = createTween(0, {
+	easing = "quadOut",
+	duration = 1,
+	start = true,
+})
+
+tween:setGoal(1)
+tween:onChange(print) --> number, deltaTime
 ```
 
-### ⚛️ Usage with React
+#### Parameters
 
-#### `useMotion(initialValue)`
+- `initialValue`: The value that the spring should start with.
+- **optional** `options`: The properties of the tween.
 
-Creates a memoized Motion object set to the given initial value.
+#### Options
 
-Returns a binding that updates with the Motion, along with the Motion object.
+| Option   | Type      | Description                                                    |
+| -------- | --------- | -------------------------------------------------------------- |
+| easing   | `Easing`  | The [easing function](#easing-functions) to use for animation. |
+| duration | `number`  | Duration of one repetition of the tween, in seconds.           |
+| repeats  | `number`  | Number of times the tween repeats.                             |
+| reverses | `boolean` | Reverse directions when repeating.                             |
+| position | `T`       | Continue the rest of the tween from this position.             |
+| start    | `boolean` | Connect to Heartbeat while animating. Defaults to `false`.     |
 
-```typescript
-function MyComponent() {
-	const [binding, motion] = useMotion(0);
-	// ...
-}
+#### Easing functions
+
+|               |                |                  |
+| ------------- | -------------- | ---------------- |
+| `"linear"`    | `"instant"`    | `"smoothstep"`   |
+| `"sineIn"`    | `"sineOut"`    | `"sineInOut"`    |
+| `"backIn"`    | `"backOut"`    | `"backInOut"`    |
+| `"quadIn"`    | `"quadOut"`    | `"quadInOut"`    |
+| `"quartIn"`   | `"quartOut"`   | `"quartInOut"`   |
+| `"quintIn"`   | `"quintOut"`   | `"quintInOut"`   |
+| `"bounceIn"`  | `"bounceOut"`  | `"bounceInOut"`  |
+| `"elasticIn"` | `"elasticOut"` | `"elasticInOut"` |
+| `"expoIn"`    | `"expoOut"`    | `"expoInOut"`    |
+| `"circIn"`    | `"circOut"`    | `"circInOut"`    |
+| `"cubicIn"`   | `"cubicOut"`   | `"cubicInOut"`   |
+
+[See examples of easing functions →](https://easings.net)
+
+#### Returns
+
+`createTween` returns a tween object.
+
+---
+
+### `createMotion(initialValue, options)`
+
+`createMotion` creates an animation that switches between a spring and a tween.
+
+```lua
+local motion = createMotion(0, {
+	spring = { tension = 170, friction = 26 },
+	tween = { easing = "quadOut", duration = 1 },
+	start = true,
+})
+
+motion:onChange(print) --> number, deltaTime
+motion:tween(1)
+task.wait(1)
+motion:spring(0)
 ```
 
-```typescript
-export function useMotion(initialValue: number): LuaTuple<[Binding<number>, Motion]>;
+> [!WARNING]
+>
+> This creates both a spring and a tween object, which can be wasteful if your animation uses only one or the other.
+>
+> Use [`createSpring`](#createspringinitialvalue-options) or [`createTween`](#createtweeninitialvalue-options) if you do not need to switch animation types.
 
-export function useMotion<T extends MotionGoal>(initialValue: T): LuaTuple<[Binding<T>, Motion<T>]>;
+#### Parameters
 
-export function useMotion<T extends MotionGoal>(initialValue: T) {
-	const motion = useMemo(() => {
-		return createMotion(initialValue);
-	}, []);
+- `initialValue`: The value that the spring and tween should start with.
+- **optional** `options`: The properties of the spring or tween.
 
-	const [binding, setValue] = useBinding(initialValue);
+#### Options
 
-	useEventListener(RunService.Heartbeat, (delta) => {
-		const value = motion.step(delta);
+| Option | Type               | Description                                                  |
+| ------ | ------------------ | ------------------------------------------------------------ |
+| spring | `SpringOptions<T>` | The [spring options](#options) to use for spring animations. |
+| tween  | `TweenOptions<T>`  | The [tween options](#options-1) to use for tween animations. |
+| start  | `boolean`          | Connect to Heartbeat while animating. Defaults to `false`.   |
 
-		if (value !== binding.getValue()) {
-			setValue(value);
-		}
-	});
+#### Returns
 
-	return $tuple(binding, motion);
-}
-```
+`createMotion` returns a motion object that controls a spring and a tween.
 
-#### `useSpring(value, springConfig?)`
+---
 
-Applies spring animations to the given value, and updates the goal with the latest value on every re-render.
+<p align="center">
+Ripple is licensed under the <a href="LICENSE.md">MIT License</a>.
+</p>
 
-Returns a binding that updates with the Motion.
+<div align="center">
 
-```typescript
-function MyComponent({ someValue }: Props) {
-	const binding = useSpring(someValue);
-	// ...
-}
-```
+[![GitHub License](https://img.shields.io/github/license/littensy/ripple?)](LICENSE.md)
 
-```typescript
-export function useSpring(goal: number | Binding<number>, options?: SpringOptions): Binding<number>;
-
-export function useSpring<T extends MotionGoal>(goal: T | Binding<T>, options?: SpringOptions): Binding<T>;
-
-export function useSpring(goal: MotionGoal | Binding<MotionGoal>, options?: SpringOptions) {
-	const [binding, motion] = useMotion(getBindingValue(goal));
-	const previousValue = useRef(getBindingValue(goal));
-
-	useEventListener(RunService.Heartbeat, () => {
-		const currentValue = getBindingValue(goal);
-
-		if (currentValue !== previousValue.current) {
-			previousValue.current = currentValue;
-			motion.spring(currentValue, options);
-		}
-	});
-
-	return binding;
-}
-```
-
-### 📝 License
-
-Ripple is licensed under the MIT License.
+</div>

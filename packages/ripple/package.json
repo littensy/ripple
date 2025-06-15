@@ -1,6 +1,6 @@
 {
 	"name": "@rbxts/ripple",
-	"version": "0.10.0",
+	"version": "0.10.0-alpha.1",
 	"description": "Spring-driven animations and more",
 	"license": "MIT",
 	"main": "src/init.luau",
