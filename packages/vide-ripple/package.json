@@ -1,6 +1,6 @@
 {
 	"name": "@rbxts/vide-ripple",
-	"version": "0.10.0-alpha.1",
+	"version": "0.10.0-alpha.2",
 	"description": "Vide bindings for Ripple spring animation",
 	"license": "MIT",
 	"main": "src/init.luau",
