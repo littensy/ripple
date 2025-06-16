@@ -16,7 +16,7 @@ local function ensureCanMutate()
 	end
 end
 
-local function disconnect(state: SpringState)
+local function remove(state: SpringState)
 	ensureCanMutate()
 	pendingSprings[state] = nil
 end
@@ -32,7 +32,7 @@ end
 
 local function update<Value>(state: SpringState<Value>, dt: number): Value
 	if state.complete then
-		disconnect(state)
+		remove(state)
 		return getValue(state.position)
 	end
 
@@ -142,7 +142,7 @@ local function update<Value>(state: SpringState<Value>, dt: number): Value
 	state.fireChange(value, dt)
 
 	if complete then
-		disconnect(state)
+		remove(state)
 		intermediate.assign(position, goal)
 		intermediate.zero(velocity)
 		state.fireComplete(value)
@@ -158,7 +158,7 @@ local function step(deltaTime: number)
 	end
 end
 
-local function connect(state: SpringState)
+local function add(state: SpringState)
 	if pendingSprings[state] then
 		return
 	end
@@ -183,7 +183,7 @@ local function connect(state: SpringState)
 end
 
 local function clear()
-	table.clear(pendingSprings)
+	pendingSprings = {}
 	currentSprings = pendingSprings
 end
 
@@ -194,8 +194,8 @@ end
 return {
 	update = update,
 	step = step,
-	connect = connect,
-	disconnect = disconnect,
+	add = add,
+	remove = remove,
 	clear = clear,
 	get = get,
 }

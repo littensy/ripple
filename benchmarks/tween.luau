@@ -10,16 +10,16 @@ local ITERATIONS = 10000
 
 do
 	local createTween = require("../packages/ripple/src/createTween")
-	local heartbeat = require("../packages/ripple/src/createTween/heartbeat")
+	local scheduler = require("../packages/ripple/src/createTween/scheduler")
 
 	bench("ripple", function()
 		createTween(0, { start = true }):setGoal(1)
 
 		for _ = 1, ITERATIONS do
-			heartbeat.step(1 / ITERATIONS)
+			scheduler.step(1 / ITERATIONS)
 		end
 
-		heartbeat.clear()
+		scheduler.clear()
 	end)
 end
 

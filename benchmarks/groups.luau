@@ -10,22 +10,22 @@ local ITERATIONS = 10000
 
 do
 	local createSpring = require("../packages/ripple/src/createSpring")
-	local heartbeat = require("../packages/ripple/src/createSpring/heartbeat")
+	local scheduler = require("../packages/ripple/src/createSpring/scheduler")
 
 	bench("ripple group", function()
 		createSpring({ 0, 0, 0 }, { start = true, frequency = 1 / 10 }):setGoal({ 1, 1, 1 })
 
 		for _ = 1, ITERATIONS do
-			heartbeat.step(1 / ITERATIONS)
+			scheduler.step(1 / ITERATIONS)
 		end
 
-		heartbeat.clear()
+		scheduler.clear()
 	end)
 end
 
 do
 	local createSpring = require("../packages/ripple/src/createSpring")
-	local heartbeat = require("../packages/ripple/src/createSpring/heartbeat")
+	local scheduler = require("../packages/ripple/src/createSpring/scheduler")
 
 	bench("ripple single", function()
 		for _ = 1, 3 do
@@ -33,10 +33,10 @@ do
 		end
 
 		for _ = 1, ITERATIONS do
-			heartbeat.step(1 / ITERATIONS)
+			scheduler.step(1 / ITERATIONS)
 		end
 
-		heartbeat.clear()
+		scheduler.clear()
 	end)
 end
 

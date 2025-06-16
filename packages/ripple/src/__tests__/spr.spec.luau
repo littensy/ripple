@@ -1,4 +1,4 @@
-local heartbeat = require("../createSpring/heartbeat")
+local scheduler = require("../createSpring/scheduler")
 local spr = require("../spr")
 local suite = require("../../../../test/suite")
 
@@ -6,7 +6,7 @@ local beforeEach = suite.beforeEach
 local test = suite.test
 
 beforeEach(function()
-	heartbeat.clear()
+	scheduler.clear()
 	table.clear(spr.objects)
 end)
 
@@ -21,11 +21,11 @@ test("should update properties", function()
 	assert(state.springs.value:getPosition() == 0, "spring should start at 0")
 	assert(state.springs.value:getGoal() == 1, "spring should have a goal of 1")
 
-	heartbeat.step(0.1)
+	scheduler.step(0.1)
 	assert(state.springs.value:getPosition() > 0, "spring should move towards goal")
 	assert(instance.value == state.springs.value:getPosition(), "instance value should be updated")
 
-	heartbeat.step(1)
+	scheduler.step(1)
 	assert(not state.springs.value, "spring should be removed after reaching goal")
 	assert(instance.value == 1, "instance value should equal goal")
 	assert(next(spr.objects) == nil, "no springs should remain in state after completion")
@@ -40,11 +40,11 @@ test("should run completed callback", function()
 		calls += 1
 	end)
 
-	heartbeat.step(0.1)
+	scheduler.step(0.1)
 	assert(instance.value > 0, "instance value should be updated")
 	assert(calls == 0, "callback should not have run")
 
-	heartbeat.step(1)
+	scheduler.step(1)
 	assert(instance.value == 1, "instance value should equal goal")
 	assert(calls == 1, "callback should have run once after completion")
 end)
@@ -58,7 +58,7 @@ test("should run completed callback on cancel", function()
 		calls += 1
 	end)
 
-	heartbeat.step(0.1)
+	scheduler.step(0.1)
 	assert(instance.value > 0, "instance value should be updated")
 	assert(calls == 0, "callback should not have run")
 
@@ -79,7 +79,7 @@ test("should dispose completed callback", function()
 		calls += 1
 	end)
 
-	heartbeat.step(1)
+	scheduler.step(1)
 	assert(instance.value == 1, "instance value should equal goal")
 	assert(calls == 1, "callback should have run once after completion")
 end)
@@ -95,7 +95,8 @@ test("should configure properties", function()
 	local instance = { x = 0, y = 0 }
 
 	spr.target(instance, {}, { x = 1 })
-	spr.configure(instance, { x = { velocity = 1 }, y = { velocity = 2 } })
+	spr.configure(instance, { velocity = 1 }, { "x" })
+	spr.configure(instance, { velocity = 2 }, { "y" })
 
 	local state = spr.objects[instance]
 	assert(state, "state should not be nil")

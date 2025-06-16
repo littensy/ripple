@@ -1,6 +1,6 @@
 local easing = require("./easing")
-local heartbeat = require("@self/heartbeat")
 local merge = require("./utils/merge")
+local scheduler = require("@self/scheduler")
 local signal = require("./utils/signal")
 local types = require("@self/types")
 
@@ -90,7 +90,7 @@ function Tween:resumeFromCurrentPosition()
 	state.from = state.position
 
 	if state.started then
-		heartbeat.connect(state)
+		scheduler.add(state)
 	end
 end
 
@@ -98,13 +98,13 @@ function Tween:start()
 	self.state.started = true
 
 	if not self.state.complete then
-		heartbeat.connect(self.state)
+		scheduler.add(self.state)
 	end
 end
 
 function Tween:stop()
 	self.state.started = false
-	heartbeat.disconnect(self.state)
+	scheduler.remove(self.state)
 end
 
 function Tween:idle(): boolean
@@ -112,7 +112,7 @@ function Tween:idle(): boolean
 end
 
 function Tween:step(dt: number): Animatable
-	return heartbeat.update(self.state, dt)
+	return scheduler.update(self.state, dt)
 end
 
 function Tween:configure(options: TweenOptions)

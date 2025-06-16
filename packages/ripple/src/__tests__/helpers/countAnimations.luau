@@ -1,16 +1,16 @@
-local motionHeartbeat = require("../../createMotion/heartbeat")
-local springHeartbeat = require("../../createSpring/heartbeat")
-local tweenHeartbeat = require("../../createTween/heartbeat")
+local motionScheduler = require("../../createMotion/scheduler")
+local springScheduler = require("../../createSpring/scheduler")
+local tweenScheduler = require("../../createTween/scheduler")
 
 local function countAnimations(): number
 	local total = 0
-	for _ in motionHeartbeat.get() do
+	for _ in motionScheduler.get() do
 		total += 1
 	end
-	for _ in springHeartbeat.get() do
+	for _ in springScheduler.get() do
 		total += 1
 	end
-	for _ in tweenHeartbeat.get() do
+	for _ in tweenScheduler.get() do
 		total += 1
 	end
 	return total

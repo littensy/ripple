@@ -1,7 +1,7 @@
 local countAnimations = require("./helpers/countAnimations")
 local createTween = require("../createTween")
 local easing = require("../easing")
-local heartbeat = require("../createTween/heartbeat")
+local scheduler = require("../createTween/scheduler")
 local suite = require("../../../../test/suite")
 
 local test = suite.test
@@ -129,10 +129,10 @@ test("should connect while active", function()
 		end
 		assert(countAnimations() == #tweens, "connect on update")
 
-		heartbeat.step(0.5)
+		scheduler.step(0.5)
 		assert(countAnimations() == #tweens, "stay connected on partial step")
 
-		heartbeat.step(0.5)
+		scheduler.step(0.5)
 		assert(countAnimations() == 0, "disconnect on complete")
 	end
 end)

@@ -3,8 +3,6 @@ local oklab = require("./oklab")
 
 export type Components = { number | vector | Vector3 }
 
-type AnyComponents = { any }
-
 export type Intermediate<T = any> = {
 	components: Components,
 	value: T,
@@ -20,7 +18,7 @@ local encoders: { [string]: (Components, any) -> () } = {
 	vector = function(components: Components, value: vector)
 		components[1] = value
 	end,
-	Vector3 = function(components: AnyComponents, value: Vector3)
+	Vector3 = function(components: Components, value: Vector3)
 		components[1] = value
 	end,
 	table = function(components: Components, value: { [any]: any })
@@ -53,7 +51,7 @@ local encoders: { [string]: (Components, any) -> () } = {
 	end,
 }
 
-local decoders: { [string]: (components: AnyComponents) -> any } = {
+local decoders: { [string]: (components: { any }) -> any } = {
 	number = function(components: { number }): number
 		return components[1]
 	end,
@@ -82,12 +80,14 @@ local decoders: { [string]: (components: AnyComponents) -> any } = {
 		return UDim.new(so.x, math.round(so.y))
 	end,
 	UDim2 = function(components: { vector | number }): UDim2
-		local xxy = components[1] :: vector
-		return UDim2.new(xxy.x, math.round(xxy.y), xxy.z, math.round(components[2] :: number))
+		local abc = components[1] :: vector
+		local d = components[2] :: number
+		return UDim2.new(abc.x, math.round(abc.y), abc.z, math.round(d))
 	end,
 	Rect = function(components: { vector | number }): Rect
-		local xxy = components[1] :: vector
-		return Rect.new(xxy.x, xxy.y, xxy.z, components[2] :: number)
+		local abc = components[1] :: vector
+		local d = components[2] :: number
+		return Rect.new(abc.x, abc.y, abc.z, d)
 	end,
 }
 

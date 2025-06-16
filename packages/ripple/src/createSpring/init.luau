@@ -1,5 +1,5 @@
-local heartbeat = require("@self/heartbeat")
 local intermediate = require("./utils/intermediate")
+local scheduler = require("@self/scheduler")
 local signal = require("./utils/signal")
 local types = require("@self/types")
 
@@ -95,7 +95,7 @@ function Spring:scheduleUpdate()
 	self.state.complete = false
 
 	if self.state.started then
-		heartbeat.connect(self.state)
+		scheduler.add(self.state)
 	end
 end
 
@@ -103,13 +103,13 @@ function Spring:start()
 	self.state.started = true
 
 	if not self.state.complete then
-		heartbeat.connect(self.state)
+		scheduler.add(self.state)
 	end
 end
 
 function Spring:stop()
 	self.state.started = false
-	heartbeat.disconnect(self.state)
+	scheduler.remove(self.state)
 end
 
 function Spring:idle(): boolean
@@ -117,7 +117,7 @@ function Spring:idle(): boolean
 end
 
 function Spring:step(dt: number): Animatable
-	return heartbeat.update(self.state, dt)
+	return scheduler.update(self.state, dt)
 end
 
 function Spring:configure(options: SpringOptions)

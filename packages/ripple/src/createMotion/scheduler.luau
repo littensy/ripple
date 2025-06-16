@@ -12,21 +12,21 @@ local function ensureCanMutate()
 	end
 end
 
-local function disconnect(state: MotionState)
+local function remove(state: MotionState)
 	ensureCanMutate()
 	pendingMotions[state] = nil
 end
 
 local function update<Value>(state: MotionState<Value>, deltaTime: number): Value
 	if state.complete then
-		disconnect(state)
+		remove(state)
 		return state.current:getPosition()
 	end
 
 	local position = state.current:step(deltaTime)
 
 	if state.current:idle() then
-		disconnect(state)
+		remove(state)
 		state.complete = true
 		state.fireComplete(position)
 	end
@@ -41,7 +41,7 @@ local function step(deltaTime: number)
 	end
 end
 
-local function connect(state: MotionState)
+local function add(state: MotionState)
 	if pendingMotions[state] then
 		return
 	end
@@ -66,7 +66,7 @@ local function connect(state: MotionState)
 end
 
 local function clear()
-	table.clear(pendingMotions)
+	pendingMotions = {}
 	currentMotions = pendingMotions
 end
 
@@ -77,8 +77,8 @@ end
 return {
 	update = update,
 	step = step,
-	connect = connect,
-	disconnect = disconnect,
+	add = add,
+	remove = remove,
 	clear = clear,
 	get = get,
 }

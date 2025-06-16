@@ -6,7 +6,7 @@ export type SubscribeSignal<T...> = (callback: FireSignal<T...>) -> () -> ()
 local function signal<T...>(): (SubscribeSignal<T...>, FireSignal<T...>)
 	local currentListeners: { (...any) -> () } = {}
 	local nextListeners = currentListeners
-	local nextListenerId = 0
+	local nextListenerId = 1
 
 	local function ensureCanMutateNextListeners()
 		if nextListeners == currentListeners then

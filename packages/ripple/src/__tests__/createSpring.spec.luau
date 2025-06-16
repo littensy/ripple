@@ -1,6 +1,6 @@
 local countAnimations = require("./helpers/countAnimations")
 local createSpring = require("../createSpring")
-local heartbeat = require("../createSpring/heartbeat")
+local scheduler = require("../createSpring/scheduler")
 local suite = require("../../../../test/suite")
 
 local test = suite.test
@@ -107,10 +107,10 @@ test("should connect while active", function()
 		end
 		assert(countAnimations() == #springs, "connect on update")
 
-		heartbeat.step(0.2)
+		scheduler.step(0.2)
 		assert(countAnimations() == #springs, "stay connected on partial step")
 
-		heartbeat.step(0.5)
+		scheduler.step(0.5)
 		assert(countAnimations() == 0, "disconnect on complete")
 	end
 end)

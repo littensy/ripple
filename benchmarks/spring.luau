@@ -6,17 +6,14 @@
 
 local bench = require("./bench")
 
-local SPRINGS = 100
-local ITERATIONS = 1000
+local ITERATIONS = 10000
 
 do
 	local createSpring = require("../packages/ripple/src/createSpring")
 	local scheduler = require("../packages/ripple/src/createSpring/scheduler")
 
 	bench("ripple", function()
-		for _ = 1, SPRINGS do
-			createSpring(0, { start = true, frequency = 1 / 10 }):setGoal(1)
-		end
+		createSpring(0, { start = true, frequency = 1 / 10 }):setGoal(1)
 
 		for _ = 1, ITERATIONS do
 			scheduler.step(1 / ITERATIONS)
@@ -30,9 +27,7 @@ do
 	local spr = require("./spr/spr")
 
 	bench("spr", function()
-		for _ = 1, SPRINGS do
-			spr.target({ value = 0 }, 1, 1 / 10, { value = 1 })
-		end
+		spr.target({ value = 0 }, 1, 1 / 10, { value = 1 })
 
 		for _ = 1, ITERATIONS do
 			spr.step(1 / ITERATIONS)
@@ -48,9 +43,7 @@ do
 	local spring = require("./otter/spring")
 
 	bench("otter", function()
-		for _ = 1, SPRINGS do
-			createSingleMotor(0):setGoal(spring(1, { frequency = 1 / 10 }))
-		end
+		createSingleMotor(0):setGoal(spring(1, { frequency = 1 / 10 }))
 
 		for _ = 1, ITERATIONS do
 			AnimationStepSignal:Fire(1 / ITERATIONS)
@@ -70,9 +63,7 @@ do
 
 	bench("vide", function()
 		root(function(cleanup)
-			for _ = 1, SPRINGS do
-				spring(goal, 10)(0)
-			end
+			spring(goal, 10)(0)
 
 			for _ = 1, ITERATIONS do
 				-- This step function runs at a variable frequency instead of

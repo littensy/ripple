@@ -13,7 +13,7 @@ local function ensureCanMutate()
 	end
 end
 
-local function disconnect(state: TweenState)
+local function remove(state: TweenState)
 	ensureCanMutate()
 	pendingTweens[state] = nil
 end
@@ -32,7 +32,7 @@ end
 
 local function update<Value>(state: TweenState<Value>, dt: number): Value
 	if state.complete then
-		disconnect(state)
+		remove(state)
 		return state.position
 	end
 
@@ -47,7 +47,7 @@ local function update<Value>(state: TweenState<Value>, dt: number): Value
 	state.fireChange(value, dt)
 
 	if progress == state.repeats then
-		disconnect(state)
+		remove(state)
 		state.complete = true
 		state.fireComplete(value)
 	end
@@ -62,7 +62,7 @@ local function step(deltaTime: number)
 	end
 end
 
-local function connect(state: TweenState)
+local function add(state: TweenState)
 	if pendingTweens[state] then
 		return
 	end
@@ -87,7 +87,7 @@ local function connect(state: TweenState)
 end
 
 local function clear()
-	table.clear(pendingTweens)
+	pendingTweens = {}
 	currentTweens = pendingTweens
 end
 
@@ -98,8 +98,8 @@ end
 return {
 	update = update,
 	step = step,
-	connect = connect,
-	disconnect = disconnect,
+	add = add,
+	remove = remove,
 	clear = clear,
 	get = get,
 }

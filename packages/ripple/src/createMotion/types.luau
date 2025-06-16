@@ -5,11 +5,6 @@ local types = require("../types")
 
 export type Animatable = types.Animatable
 
-type Spring<Value = any> = createSpring.Spring<Value>
-type SpringOptions<Value = any> = createSpring.SpringOptions<Value>
-type Tween<Value = any> = createTween.Tween<Value>
-type TweenOptions<Value = any> = createTween.TweenOptions<Value>
-
 export type MotionLike<Value> = {
 	step: (self: MotionLike<Value>, dt: number) -> Value,
 	idle: (self: MotionLike<Value>) -> boolean,
@@ -20,8 +15,8 @@ export type MotionLike<Value> = {
 }
 
 export type MotionState<Value> = {
-	spring: Spring<Value>,
-	tween: Tween<Value>,
+	spring: createSpring.Spring<Value>,
+	tween: createTween.Tween<Value>,
 	current: MotionLike<Value>,
 	started: boolean,
 	complete: boolean,

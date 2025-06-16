@@ -1,7 +1,7 @@
 local countAnimations = require("./helpers/countAnimations")
 local createMotion = require("../createMotion")
 local easing = require("../easing")
-local heartbeat = require("../createMotion/heartbeat")
+local scheduler = require("../createMotion/scheduler")
 local suite = require("../../../../test/suite")
 
 local describe = suite.describe
@@ -171,10 +171,10 @@ describe("spring", function()
 			end
 			assert(countAnimations() == #springs, "connect on update")
 
-			heartbeat.step(0.2)
+			scheduler.step(0.2)
 			assert(countAnimations() == #springs, "stay connected on partial step")
 
-			heartbeat.step(0.5)
+			scheduler.step(0.5)
 			assert(countAnimations() == 0, "disconnect on complete")
 		end
 	end)
@@ -329,10 +329,10 @@ describe("tween", function()
 			end
 			assert(countAnimations() == #tweens, "connect on update")
 
-			heartbeat.step(0.5)
+			scheduler.step(0.5)
 			assert(countAnimations() == #tweens, "stay connected on partial step")
 
-			heartbeat.step(0.5)
+			scheduler.step(0.5)
 			assert(countAnimations() == 0, "disconnect on complete")
 		end
 	end)

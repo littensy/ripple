@@ -13,16 +13,16 @@ local ITERATIONS = 10000
 
 do
 	local createSpring = require("../packages/ripple/src/createSpring")
-	local heartbeat = require("../packages/ripple/src/createSpring/heartbeat")
+	local scheduler = require("../packages/ripple/src/createSpring/scheduler")
 
 	bench("ripple", function()
 		createSpring(vector.zero, { start = true, frequency = 1 / 10 }):setGoal(vector.one)
 
 		for _ = 1, ITERATIONS do
-			heartbeat.step(1 / ITERATIONS)
+			scheduler.step(1 / ITERATIONS)
 		end
 
-		heartbeat.clear()
+		scheduler.clear()
 	end)
 end
 
@@ -81,22 +81,5 @@ do
 			cleanup()
 			clear()
 		end)
-	end)
-end
-
-do
-	local SpringValue = require("./react-flow/SpringValue")
-
-	bench("react-flow", function()
-		local spring = SpringValue.new(vector.zero, 1 / 10)
-
-		spring:SetGoal(vector.one)
-		spring:Run()
-
-		for _ = 1, ITERATIONS do
-			SpringValue.step(1 / ITERATIONS)
-		end
-
-		SpringValue.clear()
 	end)
 end

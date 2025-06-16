@@ -4,12 +4,10 @@ local types = require("../types")
 
 export type Animatable = types.Animatable
 
-type Intermediate<Value> = intermediate.Intermediate<Value>
-
 export type SpringState<Value = any> = {
-	position: Intermediate<Value>,
-	velocity: Intermediate<Value>,
-	goal: Intermediate<Value>,
+	position: intermediate.Intermediate<Value>,
+	velocity: intermediate.Intermediate<Value>,
+	goal: intermediate.Intermediate<Value>,
 	dampingRatio: number,
 	frequency: number,
 	restPosition: number,

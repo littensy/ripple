@@ -1,14 +1,12 @@
 local createSpring = require("./createSpring")
 local createTween = require("./createTween")
-local heartbeat = require("@self/heartbeat")
+local scheduler = require("@self/scheduler")
 local signal = require("./utils/signal")
 local types = require("@self/types")
 
 type Animatable = types.Animatable
 type MotionLike<Value> = types.MotionLike<Value>
-type Spring<Value = any> = createSpring.Spring<Value>
 type SpringOptions<Value = any> = createSpring.SpringOptions<Value>
-type Tween<Value = any> = createTween.Tween<Value>
 type TweenOptions<Value = any> = createTween.TweenOptions<Value>
 
 export type MotionState<Value> = types.MotionState<Value>
@@ -65,8 +63,8 @@ end
 
 local function createMotion<Value>(initialValue: Value, inputOptions: MotionOptions<Value>?): Motion<Value>
 	local options: MotionOptions<Value> = inputOptions or {}
-	local spring: Spring<Value> = createSpring(initialValue, omitStartOption(options.spring))
-	local tween: Tween<Value> = createTween(initialValue, omitStartOption(options.tween))
+	local spring = createSpring(initialValue, omitStartOption(options.spring))
+	local tween = createTween(initialValue, omitStartOption(options.tween))
 	local current: MotionLike<Value> = if not options.tween then spring else tween
 
 	local onChange, fireChange = signal()
@@ -110,7 +108,7 @@ function Motion:scheduleUpdate()
 	self.state.complete = false
 
 	if self.state.started then
-		heartbeat.connect(self.state)
+		scheduler.add(self.state)
 	end
 end
 
@@ -137,13 +135,13 @@ function Motion:start()
 	self.state.started = true
 
 	if not self.state.complete then
-		heartbeat.connect(self.state)
+		scheduler.add(self.state)
 	end
 end
 
 function Motion:stop()
 	self.state.started = false
-	heartbeat.disconnect(self.state)
+	scheduler.remove(self.state)
 end
 
 function Motion:idle(): boolean
@@ -151,7 +149,7 @@ function Motion:idle(): boolean
 end
 
 function Motion:step(dt: number): Animatable
-	return heartbeat.update(self.state, dt)
+	return scheduler.update(self.state, dt)
 end
 
 function Motion:configure(options: MotionOptions)
