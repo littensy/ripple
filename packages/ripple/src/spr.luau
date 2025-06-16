@@ -18,7 +18,7 @@ type AnimatableObjectState<T = any> = {
 
 local objects: { [AnimatableObject]: AnimatableObjectState } = {}
 
-local function assertPropertyType(object: AnimatableObject, property: string, newValue: any)
+local function assertPropertyType(object: AnimatableObject, property: string, newValue: unknown)
 	local success, value = pcall(function()
 		return (object :: any)[property]
 	end)
@@ -30,7 +30,9 @@ local function assertPropertyType(object: AnimatableObject, property: string, ne
 	end
 end
 
-local function dispatchOnComplete(state: AnimatableObjectState)
+local function removeState(object: AnimatableObject, state: AnimatableObjectState)
+	objects[object] = nil
+
 	if state.onComplete then
 		for _, callback in state.onComplete do
 			spawn(callback)
@@ -42,7 +44,7 @@ local function createSpringForProperty(
 	object: any,
 	property: string,
 	state: AnimatableObjectState,
-	options: SpringOptions?
+	options: SpringOptions<Animatable>?
 ): Spring
 	local spring = createSpring(object[property], options)
 
@@ -55,8 +57,7 @@ local function createSpringForProperty(
 		state.springs[property] = nil
 
 		if not next(state.springs) then
-			objects[object] = nil
-			dispatchOnComplete(state)
+			removeState(object, state)
 		end
 	end)
 
@@ -77,8 +78,7 @@ local function stop(object: AnimatableObject)
 		spring:stop()
 	end
 
-	objects[object] = nil
-	dispatchOnComplete(state)
+	removeState(object, state)
 end
 
 local function target(

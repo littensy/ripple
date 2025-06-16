@@ -3,19 +3,18 @@ local types = require("./types")
 
 type TweenState<Value = any> = types.TweenState<Value>
 
-local currentTweens: { [TweenState]: true? } = {}
-local pendingTweens: { [TweenState]: true? } = {}
+local tweens: { TweenState } = {}
+local count = 0
 local connection: RBXScriptConnection?
 
-local function ensureCanMutate()
-	if currentTweens == pendingTweens then
-		pendingTweens = table.clone(currentTweens)
-	end
-end
-
 local function remove(state: TweenState)
-	ensureCanMutate()
-	pendingTweens[state] = nil
+	local index = table.find(tweens, state)
+
+	if index then
+		tweens[index] = tweens[count]
+		tweens[count] = nil
+		count -= 1
+	end
 end
 
 local function getAlpha(progress: number, repeats: number, reverses: boolean): number
@@ -56,21 +55,20 @@ local function update<Value>(state: TweenState<Value>, dt: number): Value
 end
 
 local function step(deltaTime: number)
-	currentTweens = pendingTweens
-	for state in currentTweens do
-		update(state, deltaTime)
+	for index = count, 1, -1 do
+		update(tweens[index], deltaTime)
 	end
 end
 
 local function add(state: TweenState)
-	if pendingTweens[state] then
+	if table.find(tweens, state) then
 		return
 	end
 
-	ensureCanMutate()
-	pendingTweens[state] = true
+	table.insert(tweens, state)
+	count += 1
 
-	if connection or not game then
+	if not game or connection then
 		return
 	end
 
@@ -79,7 +77,7 @@ local function add(state: TweenState)
 		step(deltaTime)
 		debug.profileend()
 
-		if connection and next(pendingTweens) == nil then
+		if connection and count == 0 then
 			connection:Disconnect()
 			connection = nil
 		end
@@ -87,19 +85,15 @@ local function add(state: TweenState)
 end
 
 local function clear()
-	pendingTweens = {}
-	currentTweens = pendingTweens
-end
-
-local function get(): { [TweenState]: true? }
-	return pendingTweens
+	table.clear(tweens)
+	count = 0
 end
 
 return {
+	tweens = tweens,
 	update = update,
 	step = step,
 	add = add,
 	remove = remove,
 	clear = clear,
-	get = get,
 }

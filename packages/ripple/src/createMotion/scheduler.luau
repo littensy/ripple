@@ -2,19 +2,18 @@ local types = require("./types")
 
 type MotionState<Value = any> = types.MotionState<Value>
 
-local currentMotions: { [MotionState]: true? } = {}
-local pendingMotions: { [MotionState]: true? } = {}
+local motions: { MotionState } = {}
+local count = 0
 local connection: RBXScriptConnection?
 
-local function ensureCanMutate()
-	if currentMotions == pendingMotions then
-		pendingMotions = table.clone(currentMotions)
-	end
-end
-
 local function remove(state: MotionState)
-	ensureCanMutate()
-	pendingMotions[state] = nil
+	local index = table.find(motions, state)
+
+	if index then
+		motions[index] = motions[count]
+		motions[count] = nil
+		count -= 1
+	end
 end
 
 local function update<Value>(state: MotionState<Value>, deltaTime: number): Value
@@ -35,19 +34,18 @@ local function update<Value>(state: MotionState<Value>, deltaTime: number): Valu
 end
 
 local function step(deltaTime: number)
-	currentMotions = pendingMotions
-	for state in currentMotions do
-		update(state, deltaTime)
+	for index = count, 1, -1 do
+		update(motions[index], deltaTime)
 	end
 end
 
 local function add(state: MotionState)
-	if pendingMotions[state] then
+	if table.find(motions, state) then
 		return
 	end
 
-	ensureCanMutate()
-	pendingMotions[state] = true
+	table.insert(motions, state)
+	count += 1
 
 	if not game or connection then
 		return
@@ -58,7 +56,7 @@ local function add(state: MotionState)
 		step(deltaTime)
 		debug.profileend()
 
-		if connection and next(pendingMotions) == nil then
+		if connection and count == 0 then
 			connection:Disconnect()
 			connection = nil
 		end
@@ -66,19 +64,15 @@ local function add(state: MotionState)
 end
 
 local function clear()
-	pendingMotions = {}
-	currentMotions = pendingMotions
-end
-
-local function get(): { [MotionState]: true? }
-	return pendingMotions
+	table.clear(motions)
+	count = 0
 end
 
 return {
+	motions = motions,
 	update = update,
 	step = step,
 	add = add,
 	remove = remove,
 	clear = clear,
-	get = get,
 }

@@ -6,19 +6,18 @@ type SpringState<Value = any> = types.SpringState<Value>
 local getValue = intermediate.getValue
 local recomputeValue = intermediate.recomputeValue
 
-local currentSprings: { [SpringState]: true? } = {}
-local pendingSprings: { [SpringState]: true? } = {}
+local springs: { SpringState } = {}
+local count = 0
 local connection: RBXScriptConnection?
 
-local function ensureCanMutate()
-	if currentSprings == pendingSprings then
-		pendingSprings = table.clone(currentSprings)
-	end
-end
-
 local function remove(state: SpringState)
-	ensureCanMutate()
-	pendingSprings[state] = nil
+	local index = table.find(springs, state)
+
+	if index then
+		springs[index] = springs[count]
+		springs[count] = nil
+		count -= 1
+	end
 end
 
 local function belowThreshold(value: number | vector, threshold: number): boolean
@@ -137,7 +136,6 @@ local function update<Value>(state: SpringState<Value>, dt: number): Value
 	local value = if not complete then recomputeValue(position) else getValue(goal)
 
 	velocity.dirty = true
-
 	state.complete = complete
 	state.fireChange(value, dt)
 
@@ -152,19 +150,18 @@ local function update<Value>(state: SpringState<Value>, dt: number): Value
 end
 
 local function step(deltaTime: number)
-	currentSprings = pendingSprings
-	for state in currentSprings do
-		update(state, deltaTime)
+	for index = count, 1, -1 do
+		update(springs[index], deltaTime)
 	end
 end
 
 local function add(state: SpringState)
-	if pendingSprings[state] then
+	if table.find(springs, state) then
 		return
 	end
 
-	ensureCanMutate()
-	pendingSprings[state] = true
+	table.insert(springs, state)
+	count += 1
 
 	if not game or connection then
 		return
@@ -175,7 +172,7 @@ local function add(state: SpringState)
 		step(deltaTime)
 		debug.profileend()
 
-		if connection and next(pendingSprings) == nil then
+		if connection and count == 0 then
 			connection:Disconnect()
 			connection = nil
 		end
@@ -183,19 +180,15 @@ local function add(state: SpringState)
 end
 
 local function clear()
-	pendingSprings = {}
-	currentSprings = pendingSprings
-end
-
-local function get(): { [SpringState]: true? }
-	return pendingSprings
+	table.clear(springs)
+	count = 0
 end
 
 return {
+	springs = springs,
 	update = update,
 	step = step,
 	add = add,
 	remove = remove,
 	clear = clear,
-	get = get,
 }
