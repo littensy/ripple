@@ -1,4 +1,3 @@
-local countAnimations = require("./helpers/countAnimations")
 local createMotion = require("../createMotion")
 local easing = require("../easing")
 local scheduler = require("../createMotion/scheduler")
@@ -163,19 +162,19 @@ describe("spring", function()
 		for index = 1, 10 do
 			springs[index] = createMotion(vector.zero, { start = true, spring = { precision = 0.1 } })
 		end
-		assert(countAnimations() == 0, "start with 0 connections")
+		assert(#scheduler.motions == 0, "start with 0 connections")
 
 		for _ = 1, 2 do
 			for _, spring in springs do
 				spring:setGoal(spring:getGoal() + vector.one)
 			end
-			assert(countAnimations() == #springs, "connect on update")
+			assert(#scheduler.motions == #springs, "connect on update")
 
 			scheduler.step(0.2)
-			assert(countAnimations() == #springs, "stay connected on partial step")
+			assert(#scheduler.motions == #springs, "stay connected on partial step")
 
 			scheduler.step(0.5)
-			assert(countAnimations() == 0, "disconnect on complete")
+			assert(#scheduler.motions == 0, "disconnect on complete")
 		end
 	end)
 
@@ -321,19 +320,19 @@ describe("tween", function()
 		for index = 1, 10 do
 			tweens[index] = createMotion(vector.zero, { start = true, tween = { duration = 1 } })
 		end
-		assert(countAnimations() == 0, "start with 0 connections")
+		assert(#scheduler.motions == 0, "start with 0 connections")
 
 		for _ = 1, 2 do
 			for _, tween in tweens do
 				tween:setGoal(tween:getGoal() + vector.one)
 			end
-			assert(countAnimations() == #tweens, "connect on update")
+			assert(#scheduler.motions == #tweens, "connect on update")
 
 			scheduler.step(0.5)
-			assert(countAnimations() == #tweens, "stay connected on partial step")
+			assert(#scheduler.motions == #tweens, "stay connected on partial step")
 
 			scheduler.step(0.5)
-			assert(countAnimations() == 0, "disconnect on complete")
+			assert(#scheduler.motions == 0, "disconnect on complete")
 		end
 	end)
 

@@ -1,4 +1,3 @@
-local countAnimations = require("./helpers/countAnimations")
 local createSpring = require("../createSpring")
 local scheduler = require("../createSpring/scheduler")
 local suite = require("../../../../test/suite")
@@ -99,19 +98,19 @@ test("should connect while active", function()
 	for index = 1, 10 do
 		springs[index] = createSpring(vector.zero, { start = true, precision = 0.1 })
 	end
-	assert(countAnimations() == 0, "start with 0 connections")
+	assert(#scheduler.springs == 0, "start with 0 connections")
 
 	for _ = 1, 2 do
 		for _, spring in springs do
 			spring:setGoal(spring:getGoal() + vector.one)
 		end
-		assert(countAnimations() == #springs, "connect on update")
+		assert(#scheduler.springs == #springs, "connect on update")
 
 		scheduler.step(0.2)
-		assert(countAnimations() == #springs, "stay connected on partial step")
+		assert(#scheduler.springs == #springs, "stay connected on partial step")
 
 		scheduler.step(0.5)
-		assert(countAnimations() == 0, "disconnect on complete")
+		assert(#scheduler.springs == 0, "disconnect on complete")
 	end
 end)
 

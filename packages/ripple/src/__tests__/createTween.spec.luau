@@ -1,4 +1,3 @@
-local countAnimations = require("./helpers/countAnimations")
 local createTween = require("../createTween")
 local easing = require("../easing")
 local scheduler = require("../createTween/scheduler")
@@ -121,19 +120,19 @@ test("should connect while active", function()
 	for index = 1, 10 do
 		tweens[index] = createTween(vector.zero, { start = true, duration = 1 })
 	end
-	assert(countAnimations() == 0, "start with 0 connections")
+	assert(#scheduler.tweens == 0, "start with 0 connections")
 
 	for _ = 1, 2 do
 		for _, tween in tweens do
 			tween:setGoal(tween:getGoal() + vector.one)
 		end
-		assert(countAnimations() == #tweens, "connect on update")
+		assert(#scheduler.tweens == #tweens, "connect on update")
 
 		scheduler.step(0.5)
-		assert(countAnimations() == #tweens, "stay connected on partial step")
+		assert(#scheduler.tweens == #tweens, "stay connected on partial step")
 
 		scheduler.step(0.5)
-		assert(countAnimations() == 0, "disconnect on complete")
+		assert(#scheduler.tweens == 0, "disconnect on complete")
 	end
 end)
 
