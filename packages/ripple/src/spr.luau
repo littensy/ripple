@@ -6,17 +6,16 @@ local spawn = require("./utils/spawn")
 local types = require("./types")
 
 type Animatable = types.Animatable
-type Spring<T = any> = createSpring.Spring<T>
-type SpringOptions<T = any> = createSpring.SpringOptions<T>
+type Spring = createSpring.Spring<Animatable>
+type SpringOptions = createSpring.SpringOptions<Animatable>
 
 type AnimatableObject = {} | Instance
+type SpringState = { [string]: Spring }
 
-type AnimatableObjectState<T = any> = {
-	springs: { [string]: Spring<T> },
-	onComplete: { () -> () }?,
-}
-
-local objects: { [AnimatableObject]: AnimatableObjectState } = {}
+local springStates: { [AnimatableObject]: SpringState? } = {}
+-- In cases where spr.completed is called on an object that is not animating,
+-- ensure that the callbacks do not prevent garbage collection.
+local completedCallbacks: { [AnimatableObject]: { () -> () }? } = setmetatable({} :: any, { __mode = "k" })
 
 local function assertPropertyType(object: AnimatableObject, property: string, newValue: unknown)
 	local success, value = pcall(function()
@@ -30,11 +29,16 @@ local function assertPropertyType(object: AnimatableObject, property: string, ne
 	end
 end
 
-local function removeState(object: AnimatableObject, state: AnimatableObjectState)
-	objects[object] = nil
+local function dispose(object: AnimatableObject)
+	springStates[object] = nil
 
-	if state.onComplete then
-		for _, callback in state.onComplete do
+	local callbacks = completedCallbacks[object]
+	if callbacks then
+		-- Remove the callback list before invoking callbacks to allow adding
+		-- new callbacks without affecting the current invocation.
+		completedCallbacks[object] = nil
+		-- Removals are not performed at this point, so we can iterate safely.
+		for _, callback in callbacks do
 			spawn(callback)
 		end
 	end
@@ -43,8 +47,8 @@ end
 local function createSpringForProperty(
 	object: any,
 	property: string,
-	state: AnimatableObjectState,
-	options: SpringOptions<Animatable>?
+	state: SpringState,
+	options: SpringOptions?
 ): Spring
 	local spring = createSpring(object[property], options)
 
@@ -54,108 +58,99 @@ local function createSpringForProperty(
 
 	spring:onComplete(function()
 		spring:stop()
-		state.springs[property] = nil
-
-		if not next(state.springs) then
-			removeState(object, state)
+		state[property] = nil
+		-- If this was the last spring to complete, remove the state and invoke
+		-- any completion callbacks.
+		if not next(state) then
+			dispose(object)
 		end
 	end)
 
 	spring:start()
-	state.springs[property] = spring
+	state[property] = spring
 
 	return spring
 end
 
 local function stop(object: AnimatableObject)
-	local state = objects[object]
+	local state = springStates[object]
 
-	if not state then
-		return
+	if state then
+		for _, spring in state do
+			spring:stop()
+		end
+
+		dispose(object)
 	end
-
-	for _, spring in state.springs do
-		spring:stop()
-	end
-
-	removeState(object, state)
 end
 
-local function target(
-	object: AnimatableObject,
-	options: SpringOptions<Animatable>?,
-	properties: { [string]: Animatable? }
-)
-	local state: AnimatableObjectState = objects[object] or { springs = {} }
+local function target(object: AnimatableObject, options: SpringOptions?, properties: { [string]: Animatable? })
+	local state: SpringState = springStates[object] or {}
+	local velocityChanged = options and (options.impulse or options.velocity)
 
 	for property, value in properties do
-		local spring = state.springs[property]
+		local spring = state[property]
 
 		assertPropertyType(object, property, value)
 
 		if spring then
-			spring:setGoal(value, options)
-		else
-			createSpringForProperty(object, property, state, options):setGoal(value)
+			spring:setGoal(value :: Animatable, options)
+		elseif value ~= (object :: any)[property] or velocityChanged then
+			-- Only create a new spring if the goal is different from the
+			-- current value, or if an impulse or velocity is specified.
+			createSpringForProperty(object, property, state, options):setGoal(value :: Animatable)
 		end
 	end
 
-	if next(state.springs) then
-		objects[object] = state
+	if next(state) then
+		springStates[object] = state
 	end
 end
 
-local function configure(object: AnimatableObject, options: SpringOptions<Animatable>, properties: { string }?)
-	local state: AnimatableObjectState = objects[object] or { springs = {} }
+local function update(object: AnimatableObject, options: SpringOptions, properties: { string })
+	local state: SpringState = springStates[object] or {}
+	local velocityChanged = options.impulse or options.velocity
 
-	if not properties then
-		for _, spring in state.springs do
+	for _, property in properties do
+		local spring = state[property]
+
+		if spring then
 			spring:configure(options)
+		elseif velocityChanged then
+			createSpringForProperty(object, property, state, options)
 		end
-	else
-		for _, property in properties do
-			local spring = state.springs[property]
+	end
 
-			if spring then
-				spring:configure(options)
-			elseif options.impulse or options.velocity then
-				createSpringForProperty(object, property, state, options)
-			end
-		end
-
-		if next(state.springs) then
-			objects[object] = state
-		end
+	if next(state) then
+		springStates[object] = state
 	end
 end
 
 local function completed(object: AnimatableObject, callback: () -> ()): () -> ()
-	local state: AnimatableObjectState = objects[object] or { springs = {} }
+	local callbacks = completedCallbacks[object] or {}
 
-	if objects[object] then
-		objects[object] = state
+	if not completedCallbacks[object] then
+		completedCallbacks[object] = callbacks
 	end
 
-	local listeners = state.onComplete or {}
-
-	if not state.onComplete then
-		state.onComplete = listeners
-	end
-
-	table.insert(listeners, callback)
+	table.insert(callbacks, callback)
 
 	return function()
-		-- Only mutate listeners if the object is animating
-		if objects[object] == state then
-			table.remove(listeners, table.find(listeners, callback) or 0)
+		-- We can ignore removals if this callback list is not in use.
+		if completedCallbacks[object] == callbacks then
+			local index = table.find(callbacks, callback)
+			if index then
+				table.remove(callbacks, index)
+			end
 		end
 	end
 end
 
 return {
-	objects = objects,
+	springStates = springStates,
+	completedCallbacks = completedCallbacks,
 	target = target,
+	update = update,
 	stop = stop,
-	configure = configure,
 	completed = completed,
 }

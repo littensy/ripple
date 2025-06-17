@@ -161,15 +161,16 @@ export const easing: {
 export declare namespace spr {
 	type PickAnimatable<T> = { [P in ExtractKeys<T, Animatable>]?: T[P] };
 
-	function target<T extends object, P extends PickAnimatable<T>>(
+	function target<T extends object, U extends PickAnimatable<T>>(
 		object: T,
-		options: SpringOptions<NoInfer<NonNullable<P[keyof P]>>> | undefined,
-		properties: P,
+		options: SpringOptions<U[keyof U] extends Animatable ? U[keyof U] : never> | undefined,
+		properties: U,
 	): void;
 
-	function configure<T extends object>(
+	function update<T extends object, K extends ExtractKeys<T, Animatable>>(
 		object: T,
-		optionsByProperty: { [P in ExtractKeys<T, Animatable>]?: SpringOptions<NonNullable<T[P]>> } | undefined,
+		options: SpringOptions<T[K] extends Animatable ? T[K] : never>,
+		properties: K[],
 	): void;
 
 	function completed(object: object, complete: () => void): () => void;
