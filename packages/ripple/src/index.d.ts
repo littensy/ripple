@@ -43,7 +43,7 @@ export type Easing =
 	| "cubicOut"
 	| "cubicInOut";
 
-interface SpringOptions<T extends Animatable = any> {
+export interface SpringOptions<T extends Animatable = any> {
 	start?: boolean;
 	tension?: number;
 	friction?: number;
@@ -57,7 +57,7 @@ interface SpringOptions<T extends Animatable = any> {
 	impulse?: T;
 }
 
-interface Spring<T extends Animatable = any> {
+export interface Spring<T extends Animatable = any> {
 	getPosition(): T;
 	getVelocity(): T;
 	getGoal(): T;
@@ -80,7 +80,7 @@ interface Spring<T extends Animatable = any> {
 	destroy(): void;
 }
 
-interface TweenOptions<T extends Animatable = any> {
+export interface TweenOptions<T extends Animatable = any> {
 	start?: boolean;
 	easing?: Easing;
 	duration?: number;
@@ -89,7 +89,7 @@ interface TweenOptions<T extends Animatable = any> {
 	position?: T;
 }
 
-interface Tween<T extends Animatable = any> {
+export interface Tween<T extends Animatable = any> {
 	getPosition(): T;
 	getFrom(): T;
 	getGoal(): T;
@@ -110,13 +110,13 @@ interface Tween<T extends Animatable = any> {
 	destroy(): void;
 }
 
-interface MotionOptions<T extends Animatable = any> {
+export interface MotionOptions<T extends Animatable = any> {
 	start?: boolean;
 	spring?: SpringOptions<T>;
 	tween?: TweenOptions<T>;
 }
 
-interface Motion<T extends Animatable = any> {
+export interface Motion<T extends Animatable = any> {
 	getPosition(): T;
 	getVelocity(): T;
 	getGoal(): T;
@@ -141,9 +141,15 @@ interface Motion<T extends Animatable = any> {
 
 export function createSpring<T extends Animatable>(initialValue: T, options?: SpringOptions<T>): Spring<T>;
 
+export function createSpring(initialValue: number, options?: SpringOptions<number>): Spring<number>;
+
 export function createTween<T extends Animatable>(initialValue: T, options?: TweenOptions<T>): Tween<T>;
 
+export function createTween(initialValue: number, options?: TweenOptions<number>): Tween<number>;
+
 export function createMotion<T extends Animatable>(initialValue: T, options?: MotionOptions<T>): Motion<T>;
+
+export function createMotion(initialValue: number, options?: MotionOptions<number>): Motion<number>;
 
 export const config: {
 	default: SpringOptions;
@@ -158,22 +164,20 @@ export const easing: {
 	[K in Easing]: (x: number) => number;
 };
 
-export declare namespace spr {
-	type PickAnimatable<T> = { [P in ExtractKeys<T, Animatable>]?: T[P] };
+export type PickAnimatable<T> = { [P in ExtractKeys<T, Animatable>]?: T[P] };
 
-	function target<T extends object, U extends PickAnimatable<T>>(
-		object: T,
-		options: SpringOptions<U[keyof U] extends Animatable ? U[keyof U] : never> | undefined,
-		properties: U,
-	): void;
+export function target<T extends object, U extends PickAnimatable<T>>(
+	object: T,
+	options: SpringOptions<U[keyof U] extends Animatable ? U[keyof U] : never> | undefined,
+	properties: U,
+): void;
 
-	function update<T extends object, K extends ExtractKeys<T, Animatable>>(
-		object: T,
-		options: SpringOptions<T[K] extends Animatable ? T[K] : never>,
-		properties: K[],
-	): void;
+export function update<T extends object, K extends ExtractKeys<T, Animatable>>(
+	object: T,
+	options: SpringOptions<T[K] extends Animatable ? T[K] : never>,
+	properties: K[],
+): void;
 
-	function completed(object: object, complete: () => void): () => void;
+export function completed(object: object, complete: () => void): () => void;
 
-	function stop(object: object): void;
-}
+export function stop(object: object): void;

@@ -21,8 +21,11 @@ export type TweenOptions<T = any> = createTween.TweenOptions<T>
 return {
 	config = config,
 	easing = easing,
-	spr = spr,
 	createMotion = createMotion,
 	createSpring = createSpring,
 	createTween = createTween,
+	target = spr.target,
+	update = spr.update,
+	stop = spr.stop,
+	completed = spr.completed,
 }
