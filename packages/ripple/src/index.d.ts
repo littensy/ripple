@@ -163,21 +163,3 @@ export const config: {
 export const easing: {
 	[K in Easing]: (x: number) => number;
 };
-
-export type PickAnimatable<T> = { [P in ExtractKeys<T, Animatable>]?: T[P] };
-
-export function target<T extends object, U extends PickAnimatable<T>>(
-	object: T,
-	options: SpringOptions<U[keyof U] extends Animatable ? U[keyof U] : never> | undefined,
-	properties: U,
-): void;
-
-export function update<T extends object, K extends ExtractKeys<T, Animatable>>(
-	object: T,
-	options: SpringOptions<T[K] extends Animatable ? T[K] : never>,
-	properties: K[],
-): void;
-
-export function completed(object: object, complete: () => void): () => void;
-
-export function stop(object: object): void;

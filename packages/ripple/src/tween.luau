@@ -1,13 +1,29 @@
 local easing = require("./easing")
+local interpolate = require("./utils/interpolate")
 local merge = require("./utils/merge")
-local scheduler = require("@self/scheduler")
+local schedule = require("./utils/schedule")
 local signal = require("./utils/signal")
-local types = require("@self/types")
+local types = require("./types")
 
 type Animatable = types.Animatable
 type Easing = easing.Easing
 
-export type TweenState<Value = any> = types.TweenState<Value>
+export type TweenState<Value = any> = {
+	position: Value,
+	from: Value,
+	goal: Value,
+	easingFunction: (number) -> number,
+	duration: number,
+	repeats: number,
+	reverses: boolean,
+	elapsed: number,
+	started: boolean,
+	complete: boolean,
+	onChange: signal.SubscribeSignal<(Value, number)>,
+	fireChange: signal.FireSignal<(Value, number)>,
+	onComplete: signal.SubscribeSignal<Value>,
+	fireComplete: signal.FireSignal<Value>,
+}
 
 export type TweenOptions<Value = any> = {
 	start: boolean?,
@@ -44,6 +60,43 @@ export type Tween<Value = any> = {
 
 local Tween = {} :: Tween<Animatable>
 (Tween :: any).__index = Tween
+
+local function getAlpha(progress: number, repeats: number, reverses: boolean): number
+	if repeats > 1 and progress >= 1 then
+		if reverses then
+			return math.abs((progress - 1) % 2 - 1)
+		elseif progress < repeats then
+			return progress % 1
+		end
+		return 1
+	end
+	return progress
+end
+
+local scheduler = schedule("Tween", function<T>(state: TweenState<T>, dt, remove): T
+	if state.complete then
+		remove(state)
+		return state.position
+	end
+
+	state.elapsed += dt
+
+	local progress = math.clamp(state.elapsed / state.duration, 0, state.repeats)
+	local alpha = getAlpha(progress, state.repeats, state.reverses)
+	local alphaEased = if alpha > 0 and alpha < 1 then state.easingFunction(alpha) else alpha
+	local value = interpolate(state.from, state.goal, alphaEased)
+
+	state.position = value
+	state.fireChange(value, dt)
+
+	if progress == state.repeats then
+		remove(state)
+		state.complete = true
+		state.fireComplete(value)
+	end
+
+	return value
+end)
 
 local function createTween<Value>(initialValue: Value, inputOptions: TweenOptions<Value>?): Tween<Value>
 	local options: TweenOptions<Value> = inputOptions or {}
@@ -179,4 +232,7 @@ function Tween:destroy()
 	self:stop()
 end
 
-return createTween
+return {
+	scheduler = scheduler,
+	createTween = createTween,
+}

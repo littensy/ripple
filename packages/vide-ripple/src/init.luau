@@ -15,7 +15,6 @@ export type TweenOptions<T = any> = Ripple.TweenOptions<T>
 return {
 	config = Ripple.config,
 	easing = Ripple.easing,
-	spr = Ripple.spr,
 	createMotion = Ripple.createMotion,
 	createSpring = Ripple.createSpring,
 	createTween = Ripple.createTween,

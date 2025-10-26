@@ -1,9 +1,8 @@
 local config = require("@self/config")
-local createMotion = require("@self/createMotion")
-local createSpring = require("@self/createSpring")
-local createTween = require("@self/createTween")
 local easing = require("@self/easing")
-local spr = require("@self/spr")
+local motion = require("@self/motion")
+local spring = require("@self/spring")
+local tween = require("@self/tween")
 local types = require("@self/types")
 
 export type Animatable = types.Animatable
@@ -11,21 +10,17 @@ export type AnimatableType = types.AnimatableType
 export type AnimatablePrimitive = types.AnimatablePrimitive
 export type Easing = easing.Easing
 
-export type Motion<T = any> = createMotion.Motion<T>
-export type MotionOptions<T = any> = createMotion.MotionOptions<T>
-export type Spring<T = any> = createSpring.Spring<T>
-export type SpringOptions<T = any> = createSpring.SpringOptions<T>
-export type Tween<T = any> = createTween.Tween<T>
-export type TweenOptions<T = any> = createTween.TweenOptions<T>
+export type Motion<T = any> = motion.Motion<T>
+export type MotionOptions<T = any> = motion.MotionOptions<T>
+export type Spring<T = any> = spring.Spring<T>
+export type SpringOptions<T = any> = spring.SpringOptions<T>
+export type Tween<T = any> = tween.Tween<T>
+export type TweenOptions<T = any> = tween.TweenOptions<T>
 
 return {
 	config = config,
 	easing = easing,
-	createMotion = createMotion,
-	createSpring = createSpring,
-	createTween = createTween,
-	target = spr.target,
-	update = spr.update,
-	stop = spr.stop,
-	completed = spr.completed,
+	createMotion = motion.createMotion,
+	createSpring = spring.createSpring,
+	createTween = tween.createTween,
 }

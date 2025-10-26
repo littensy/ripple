@@ -1,10 +1,11 @@
-local createMotion = require("../createMotion")
 local easing = require("../easing")
-local scheduler = require("../createMotion/scheduler")
+local motion = require("../motion")
 local suite = require("../../../../test/suite")
 
 local describe = suite.describe
 local test = suite.test
+local createMotion = motion.createMotion
+local scheduler = motion.scheduler
 
 test("should have expected api", function()
 	local motion = createMotion(0)
@@ -162,19 +163,19 @@ describe("spring", function()
 		for index = 1, 10 do
 			springs[index] = createMotion(vector.zero, { start = true, spring = { precision = 0.1 } })
 		end
-		assert(#scheduler.motions == 0, "start with 0 connections")
+		assert(#scheduler.states == 0, "start with 0 connections")
 
 		for _ = 1, 2 do
 			for _, spring in springs do
 				spring:setGoal(spring:getGoal() + vector.one)
 			end
-			assert(#scheduler.motions == #springs, "connect on update")
+			assert(#scheduler.states == #springs, "connect on update")
 
 			scheduler.step(0.2)
-			assert(#scheduler.motions == #springs, "stay connected on partial step")
+			assert(#scheduler.states == #springs, "stay connected on partial step")
 
 			scheduler.step(0.5)
-			assert(#scheduler.motions == 0, "disconnect on complete")
+			assert(#scheduler.states == 0, "disconnect on complete")
 		end
 	end)
 
@@ -320,19 +321,19 @@ describe("tween", function()
 		for index = 1, 10 do
 			tweens[index] = createMotion(vector.zero, { start = true, tween = { duration = 1 } })
 		end
-		assert(#scheduler.motions == 0, "start with 0 connections")
+		assert(#scheduler.states == 0, "start with 0 connections")
 
 		for _ = 1, 2 do
 			for _, tween in tweens do
 				tween:setGoal(tween:getGoal() + vector.one)
 			end
-			assert(#scheduler.motions == #tweens, "connect on update")
+			assert(#scheduler.states == #tweens, "connect on update")
 
 			scheduler.step(0.5)
-			assert(#scheduler.motions == #tweens, "stay connected on partial step")
+			assert(#scheduler.states == #tweens, "stay connected on partial step")
 
 			scheduler.step(0.5)
-			assert(#scheduler.motions == 0, "disconnect on complete")
+			assert(#scheduler.states == 0, "disconnect on complete")
 		end
 	end)
 

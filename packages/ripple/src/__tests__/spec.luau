@@ -1,15 +1,15 @@
 local suite = require("../../../../test/suite")
 
-suite.describe("createSpring", function()
-	require("./createSpring.spec")
+suite.describe("spring", function()
+	require("./spring.spec")
 end)
 
-suite.describe("createTween", function()
-	require("./createTween.spec")
+suite.describe("tween", function()
+	require("./tween.spec")
 end)
 
-suite.describe("createMotion", function()
-	require("./createMotion.spec")
+suite.describe("motion", function()
+	require("./motion.spec")
 end)
 
 suite.describe("utils", function()
@@ -20,10 +20,6 @@ end)
 
 suite.describe("easing", function()
 	require("./easing.spec")
-end)
-
-suite.describe("spr", function()
-	require("./spr.spec")
 end)
 
 return {}

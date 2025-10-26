@@ -1,16 +1,11 @@
---[[
-	Each benchmark runs a one-second tween animation that updates a property
-	a specified number of times, measuring the performance of stepping through
-	the animation.
-]]
-
 local bench = require("./bench")
 
 local ITERATIONS = 10000
 
 do
-	local createTween = require("../packages/ripple/src/createTween")
-	local scheduler = require("../packages/ripple/src/createTween/scheduler")
+	local tween = require("../packages/ripple/src/tween")
+	local createTween = tween.createTween
+	local scheduler = tween.scheduler
 
 	bench("ripple", function()
 		createTween(0, { start = true }):setGoal(1)

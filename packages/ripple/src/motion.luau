@@ -1,15 +1,32 @@
-local createSpring = require("./createSpring")
-local createTween = require("./createTween")
-local scheduler = require("@self/scheduler")
+local schedule = require("./utils/schedule")
 local signal = require("./utils/signal")
-local types = require("@self/types")
+local spring = require("./spring")
+local tween = require("./tween")
+local types = require("./types")
 
 type Animatable = types.Animatable
-type MotionLike<Value> = types.MotionLike<Value>
-type SpringOptions<Value = any> = createSpring.SpringOptions<Value>
-type TweenOptions<Value = any> = createTween.TweenOptions<Value>
+type SpringOptions<Value = any> = spring.SpringOptions<Value>
+type TweenOptions<Value = any> = tween.TweenOptions<Value>
 
-export type MotionState<Value> = types.MotionState<Value>
+export type MotionLike<Value> = {
+	step: (self: MotionLike<Value>, dt: number) -> Value,
+	idle: (self: MotionLike<Value>) -> boolean,
+	getPosition: (self: MotionLike<Value>) -> Value,
+	getGoal: (self: MotionLike<Value>) -> Value,
+	setPosition: (self: MotionLike<Value>, value: Value) -> (),
+	setGoal: (self: MotionLike<Value>, value: Value) -> (),
+}
+
+export type MotionState<Value> = {
+	spring: spring.Spring<Value>,
+	tween: tween.Tween<Value>,
+	current: MotionLike<Value>,
+	started: boolean,
+	complete: boolean,
+	onChange: signal.SubscribeSignal<(Value, number)>,
+	onComplete: signal.SubscribeSignal<Value>,
+	fireComplete: signal.FireSignal<Value>,
+}
 
 export type MotionOptions<Value = any> = {
 	start: boolean?,
@@ -49,6 +66,23 @@ export type Motion<Value> = {
 local Motion = {} :: Motion<Animatable>
 (Motion :: any).__index = Motion
 
+local scheduler = schedule("Motion", function<T>(state: MotionState<T>, deltaTime, remove): T
+	if state.complete then
+		remove(state)
+		return state.current:getPosition()
+	end
+
+	local position = state.current:step(deltaTime)
+
+	if state.current:idle() then
+		remove(state)
+		state.complete = true
+		state.fireComplete(position)
+	end
+
+	return position
+end)
+
 local function omitStartOption<T>(inputOptions: T): T
 	local options: any = inputOptions
 
@@ -63,16 +97,16 @@ end
 
 local function createMotion<Value>(initialValue: Value, inputOptions: MotionOptions<Value>?): Motion<Value>
 	local options: MotionOptions<Value> = inputOptions or {}
-	local spring = createSpring(initialValue, omitStartOption(options.spring))
-	local tween = createTween(initialValue, omitStartOption(options.tween))
-	local current: MotionLike<Value> = if not options.tween then spring else tween
+	local motionSpring = spring.createSpring(initialValue, omitStartOption(options.spring))
+	local motionTween = tween.createTween(initialValue, omitStartOption(options.tween))
+	local current: MotionLike<Value> = if not options.tween then motionSpring else motionTween
 
 	local onChange, fireChange = signal()
 	local onComplete, fireComplete = signal()
 
 	local state: MotionState<Value> = {
-		spring = spring,
-		tween = tween,
+		spring = motionSpring,
+		tween = motionTween,
 		current = current,
 		started = false,
 		complete = true,
@@ -89,14 +123,14 @@ local function createMotion<Value>(initialValue: Value, inputOptions: MotionOpti
 		self:start()
 	end
 
-	spring:onChange(function(value: Value, deltaTime: number)
-		if state.current == spring then
+	motionSpring:onChange(function(value: Value, deltaTime: number)
+		if state.current == motionSpring then
 			fireChange(value, deltaTime)
 		end
 	end)
 
-	tween:onChange(function(value: Value, deltaTime: number)
-		if state.current == tween then
+	motionTween:onChange(function(value: Value, deltaTime: number)
+		if state.current == motionTween then
 			fireChange(value, deltaTime)
 		end
 	end)
@@ -242,4 +276,7 @@ function Motion:destroy()
 	self:stop()
 end
 
-return createMotion
+return {
+	scheduler = scheduler,
+	createMotion = createMotion,
+}

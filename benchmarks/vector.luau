@@ -1,19 +1,11 @@
---[[
-	Each benchmark runs a prolonged spring animation on a 3D vector, measuring
-	the performance of stepping through the animation and converting the
-	internal representation to and from vectors.
-
-	For libraries that do not natively support vectors, the goal will be a
-	table with x, y, and z properties.
-]]
-
 local bench = require("./bench")
 
 local ITERATIONS = 10000
 
 do
-	local createSpring = require("../packages/ripple/src/createSpring")
-	local scheduler = require("../packages/ripple/src/createSpring/scheduler")
+	local spring = require("../packages/ripple/src/spring")
+	local createSpring = spring.createSpring
+	local scheduler = spring.scheduler
 
 	bench("ripple", function()
 		createSpring(vector.zero, { start = true, frequency = 1 / 10 }):setGoal(vector.one)
@@ -23,20 +15,6 @@ do
 		end
 
 		scheduler.clear()
-	end)
-end
-
-do
-	local spr = require("./spr/spr")
-
-	bench("spr", function()
-		spr.target({ value = vector.zero }, 1, 1 / 10, { value = vector.one })
-
-		for _ = 1, ITERATIONS do
-			spr.step(1 / ITERATIONS)
-		end
-
-		spr.clear()
 	end)
 end
 
@@ -73,8 +51,8 @@ do
 			spring(goal, 10)(vector.zero)
 
 			for _ = 1, ITERATIONS do
-				-- This step function runs at a variable frequency instead of
-				-- the 120hz fixed frequency normally used in Vide
+				-- This function has been modified to run at a variable
+				-- frequency instead of the 120 Hz fixed frequency
 				step(1 / ITERATIONS)
 			end
 

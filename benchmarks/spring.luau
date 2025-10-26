@@ -1,16 +1,11 @@
---[[
-	Each benchmark runs a prolonged spring animation that updates a property
-	a specified number of times, measuring the performance of stepping through
-	the animation.
-]]
-
 local bench = require("./bench")
 
 local ITERATIONS = 10000
 
 do
-	local createSpring = require("../packages/ripple/src/createSpring")
-	local scheduler = require("../packages/ripple/src/createSpring/scheduler")
+	local spring = require("../packages/ripple/src/spring")
+	local createSpring = spring.createSpring
+	local scheduler = spring.scheduler
 
 	bench("ripple", function()
 		createSpring(0, { start = true, frequency = 1 / 10 }):setGoal(1)
@@ -20,20 +15,6 @@ do
 		end
 
 		scheduler.clear()
-	end)
-end
-
-do
-	local spr = require("./spr/spr")
-
-	bench("spr", function()
-		spr.target({ value = 0 }, 1, 1 / 10, { value = 1 })
-
-		for _ = 1, ITERATIONS do
-			spr.step(1 / ITERATIONS)
-		end
-
-		spr.clear()
 	end)
 end
 
@@ -66,8 +47,8 @@ do
 			spring(goal, 10)(0)
 
 			for _ = 1, ITERATIONS do
-				-- This step function runs at a variable frequency instead of
-				-- the 120hz fixed frequency normally used in Vide
+				-- This function has been modified to run at a variable
+				-- frequency instead of the 120 Hz fixed frequency
 				step(1 / ITERATIONS)
 			end
 

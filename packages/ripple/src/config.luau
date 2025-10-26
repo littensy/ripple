@@ -1,6 +1,6 @@
-local createSpring = require("./createSpring")
+local spring = require("./spring")
 
-type SpringOptions = createSpring.SpringOptions
+type SpringOptions = spring.SpringOptions
 
 return {
 	default = { tension = 170, friction = 26 } :: SpringOptions,
@@ -9,4 +9,8 @@ return {
 	stiff = { tension = 210, friction = 20 } :: SpringOptions,
 	slow = { tension = 280, friction = 60 } :: SpringOptions,
 	molasses = { tension = 280, friction = 120 } :: SpringOptions,
+	figmaGentle = { tension = 100, friction = 15 } :: SpringOptions,
+	figmaQuick = { tension = 300, friction = 20 } :: SpringOptions,
+	figmaBouncy = { tension = 600, friction = 15 } :: SpringOptions,
+	figmaSlow = { tension = 80, friction = 20 } :: SpringOptions,
 }

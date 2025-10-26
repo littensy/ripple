@@ -1,9 +1,10 @@
-local createTween = require("../createTween")
 local easing = require("../easing")
-local scheduler = require("../createTween/scheduler")
 local suite = require("../../../../test/suite")
+local tween = require("../tween")
 
 local test = suite.test
+local createTween = tween.createTween
+local scheduler = tween.scheduler
 
 test("should have expected api", function()
 	local tween = createTween(0)
@@ -120,19 +121,19 @@ test("should connect while active", function()
 	for index = 1, 10 do
 		tweens[index] = createTween(vector.zero, { start = true, duration = 1 })
 	end
-	assert(#scheduler.tweens == 0, "start with 0 connections")
+	assert(#scheduler.states == 0, "start with 0 connections")
 
 	for _ = 1, 2 do
 		for _, tween in tweens do
 			tween:setGoal(tween:getGoal() + vector.one)
 		end
-		assert(#scheduler.tweens == #tweens, "connect on update")
+		assert(#scheduler.states == #tweens, "connect on update")
 
 		scheduler.step(0.5)
-		assert(#scheduler.tweens == #tweens, "stay connected on partial step")
+		assert(#scheduler.states == #tweens, "stay connected on partial step")
 
 		scheduler.step(0.5)
-		assert(#scheduler.tweens == 0, "disconnect on complete")
+		assert(#scheduler.states == 0, "disconnect on complete")
 	end
 end)
 

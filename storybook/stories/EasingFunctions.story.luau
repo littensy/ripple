@@ -28,33 +28,31 @@ local function EasingFunction(props: EasingFunctionProps)
 	})
 end
 
-local function EasingFunctions()
-	local children: { [string]: React.ReactNode } = {}
-
-	for name: Ripple.Easing in pairs(Ripple.easing) do
-		children[name] = React.createElement(EasingFunction, {
-			easing = name,
-			duration = 1,
-		})
-	end
-
-	return React.createElement("Frame", {
-		BackgroundTransparency = 1,
-		Size = UDim2.new(1, 0, 1, 0),
-	}, {
-		GridLayout = React.createElement("UIGridLayout", {
-			CellSize = UDim2.new(1 / 5, -8 * 5, 1 / 5, -8 * 5),
-			CellPadding = UDim2.fromOffset(8, 8),
-			HorizontalAlignment = Enum.HorizontalAlignment.Center,
-			VerticalAlignment = Enum.VerticalAlignment.Center,
-			FillDirection = Enum.FillDirection.Horizontal,
-		}),
-	}, children)
-end
-
 return {
 	name = "Easing Functions",
-	story = EasingFunctions,
+	story = function()
+		local children: { [string]: React.ReactNode } = {}
+
+		for name: Ripple.Easing in pairs(Ripple.easing) do
+			children[name] = React.createElement(EasingFunction, {
+				easing = name,
+				duration = 1,
+			})
+		end
+
+		return React.createElement("Frame", {
+			BackgroundTransparency = 1,
+			Size = UDim2.new(1, 0, 1, 0),
+		}, {
+			GridLayout = React.createElement("UIGridLayout", {
+				CellSize = UDim2.new(1 / 5, -8 * 5, 1 / 5, -8 * 5),
+				CellPadding = UDim2.fromOffset(8, 8),
+				HorizontalAlignment = Enum.HorizontalAlignment.Center,
+				VerticalAlignment = Enum.VerticalAlignment.Center,
+				FillDirection = Enum.FillDirection.Horizontal,
+			}),
+		}, children)
+	end,
 	react = React,
 	reactRoblox = ReactRoblox,
 }

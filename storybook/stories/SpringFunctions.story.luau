@@ -13,10 +13,6 @@ type SpringFunctionProps = {
 local configs: { [string]: Ripple.SpringOptions } = table.clone(Ripple.config)
 
 configs.empty = {}
-configs.figmaGentle = { tension = 100, friction = 15 }
-configs.figmaQuick = { tension = 300, friction = 20 }
-configs.figmaBouncy = { tension = 600, friction = 15 }
-configs.figmaSlow = { tension = 80, friction = 20 }
 
 local function SpringFunction(props: SpringFunctionProps)
 	local spring = React.useMemo(function()
@@ -38,33 +34,31 @@ local function SpringFunction(props: SpringFunctionProps)
 	})
 end
 
-local function SpringFunctions()
-	local children: { [string]: React.ReactNode } = {}
-
-	for name, options in configs do
-		children[name] = React.createElement(SpringFunction, {
-			name = name,
-			options = options,
-		})
-	end
-
-	return React.createElement("Frame", {
-		BackgroundTransparency = 1,
-		Size = UDim2.new(1, 0, 1, 0),
-	}, {
-		GridLayout = React.createElement("UIGridLayout", {
-			CellSize = UDim2.new(1 / 3, -8 * 3, 1 / 4, -8 * 4),
-			CellPadding = UDim2.fromOffset(8, 8),
-			HorizontalAlignment = Enum.HorizontalAlignment.Center,
-			VerticalAlignment = Enum.VerticalAlignment.Center,
-			FillDirection = Enum.FillDirection.Horizontal,
-		}),
-	}, children)
-end
-
 return {
 	name = "Spring Functions",
-	story = SpringFunctions,
+	story = function()
+		local children: { [string]: React.ReactNode } = {}
+
+		for name, options in configs do
+			children[name] = React.createElement(SpringFunction, {
+				name = name,
+				options = options,
+			})
+		end
+
+		return React.createElement("Frame", {
+			BackgroundTransparency = 1,
+			Size = UDim2.new(1, 0, 1, 0),
+		}, {
+			GridLayout = React.createElement("UIGridLayout", {
+				CellSize = UDim2.new(1 / 3, -8 * 3, 1 / 4, -8 * 4),
+				CellPadding = UDim2.fromOffset(8, 8),
+				HorizontalAlignment = Enum.HorizontalAlignment.Center,
+				VerticalAlignment = Enum.VerticalAlignment.Center,
+				FillDirection = Enum.FillDirection.Horizontal,
+			}),
+		}, children)
+	end,
 	react = React,
 	reactRoblox = ReactRoblox,
 }
