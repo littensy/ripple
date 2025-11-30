@@ -1,6 +1,6 @@
 {
 	"name": "@rbxts/react-ripple",
-	"version": "3.0.0-alpha.1",
+	"version": "3.0.0",
 	"description": "React bindings for Ripple spring animation",
 	"license": "MIT",
 	"main": "src/init.luau",

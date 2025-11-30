@@ -8,21 +8,15 @@ importers:
 
   .:
     devDependencies:
-      '@rbxts-js/react':
-        specifier: 17.1.20-ts.1
-        version: 17.1.20-ts.1
-      '@rbxts-js/react-roblox':
-        specifier: 17.1.20-ts.1
-        version: 17.1.20-ts.1
       '@rbxts/compiler-types':
         specifier: 3.0.0-types.0
         version: 3.0.0-types.0
       '@rbxts/react':
-        specifier: 17.3.0-alpha.1
-        version: 17.3.0-alpha.1
+        specifier: ^17.3.7-ts.1
+        version: 17.3.7-ts.1
       '@rbxts/react-roblox':
-        specifier: 17.3.0-alpha.1
-        version: 17.3.0-alpha.1(@rbxts/react@17.3.0-alpha.1)
+        specifier: ^17.3.7-ts.1
+        version: 17.3.7-ts.1(@rbxts/react@17.3.7-ts.1)
       '@rbxts/types':
         specifier: ^1.0.858
         version: 1.0.858
@@ -150,26 +144,29 @@ packages:
   '@rbxts-js/number@1.2.3-ts.1':
     resolution: {integrity: sha512-tPdt2s7fEBSxImVFBUvuSMtBKIvaZUCtlOjBl58Y0+GKB15VPXFIRW/5biVruXPnv9d4sDE3mh986ZxxN4UQ5w==}
 
-  '@rbxts-js/react-reconciler@17.1.20-ts.1':
-    resolution: {integrity: sha512-t4vY4nHeM+Scrs+9FbgNsuhK0QR6lg3SNWUhjbzvptNP+IA4+4F8TkHQghR2SSTxQDhegU02BTR7NBpk+AQcUw==}
+  '@rbxts-js/react-globals@17.3.7-ts.1':
+    resolution: {integrity: sha512-vwMHsc3Oy2MDAw2M212nQJ8A7nEG5O/lyXDyMGzYJp4832awhrf34YCkU4dxBE4sdMDcoWykhmuPjmzwrcS9Eg==}
 
-  '@rbxts-js/react-roblox@17.1.20-ts.1':
-    resolution: {integrity: sha512-Jv0mq+9txXptgsJ6MDWHgCTwsohaon9HhmllkUe29zkaMwE+di4cHqzF1tgV8VHYGG/LQoitXDddK03CA3L+2g==}
+  '@rbxts-js/react-reconciler@17.3.7-ts.1':
+    resolution: {integrity: sha512-MxKU48i1gv4djcgHTq3geMvl6MzXPW85FO+itLg0YCvqT3WgE3jsMAc0nneOFi5Mwd5tqybQY6UFF1SbQtBopA==}
 
-  '@rbxts-js/react@17.1.20-ts.1':
-    resolution: {integrity: sha512-u/dNRTNj5AaVPuqJLza7FEJ24lyRfJ0CdjflbIS8JiUS1iXiO7yZeHQWwPk6V3oHuAOckv6tA4FN/Eju2rPMrQ==}
+  '@rbxts-js/react-roblox@17.3.7-ts.1':
+    resolution: {integrity: sha512-xiJQXmJAho/mStcWYC7AXFqgUqW78whUMacaNeODMimQXgoVqaIfo0sEhLtLtS/N3qZRs1KR64nsNG/0n1r/NQ==}
+
+  '@rbxts-js/react@17.3.7-ts.1':
+    resolution: {integrity: sha512-nRHYoBzk9DSbOvk281jmN5EM3TlmKv2jOzLgSIGtmNMuwZKi9yEjjxdluS1wHmjSvus1YiPHhBUwrKnbu01Obg==}
 
   '@rbxts-js/roblox-lua-promise@3.5.0-ts.2':
     resolution: {integrity: sha512-H8fxKVJkRnM60yTZ/riO4X43GZD/MViFm+ftCzzAALkAhE4vSaBDNv9E7IUjZZoWi21bG6vZ8mGIiYfavaljvw==}
 
-  '@rbxts-js/safe-flags@17.1.20-ts.1':
-    resolution: {integrity: sha512-k+16jmCP63LT8sNfhLoytUrp3UB+CGHH7s54BFUAHte+zCANK3wfAKXbpT36NqnUfRqgKDM8grO4lWp6awuacQ==}
+  '@rbxts-js/safe-flags@17.3.7-ts.1':
+    resolution: {integrity: sha512-aQ/5aQ/wQO5npifAbTEpR3jQRMeyGsVc91AQEyhBW461lPv6ZEg+Ad2HJFSzg4eeK2mb8Z9WyIMBrb01Jt+GnQ==}
 
-  '@rbxts-js/scheduler@17.1.20-ts.1':
-    resolution: {integrity: sha512-RoXs6bAW3LIB6HL/voMilR2hjcGAtutaVsr0yumu0hUYVFY2FwIkbOVepsdYWDrYhVqsk5zrj8CcVGgUxDldGg==}
+  '@rbxts-js/scheduler@17.3.7-ts.1':
+    resolution: {integrity: sha512-WCgGQqH9/+A5oJd6HpxMj7Vp1VGqhycnJK0CZTsJl/Ceyf/VH/vif8fo1FrBWkxYEgz/7y0q3LOeRj8ArhyDWQ==}
 
-  '@rbxts-js/shared@17.1.20-ts.1':
-    resolution: {integrity: sha512-/3K1BnWV519+any6JMWniIDx1rtq20H6RVgJStSCj4XofrM63kzju0EzRQg1af4lnXCfZNZBusRW8IGQ14xuZQ==}
+  '@rbxts-js/shared@17.3.7-ts.1':
+    resolution: {integrity: sha512-B/OCkRmbR6ho1yuf0M0hQIb78coDY//2XdmNBaX2XCN5pKa7dquiX6ufk4dizJ/OMBoy9br/cnxqcI0PLvla3w==}
 
   '@rbxts-js/string@1.2.3-ts.1':
     resolution: {integrity: sha512-Je/WKgZbXF/sAHEsQPuns5n4rWzux327zjr0KRf9Gy62ieUzl2FRZZHjVYce3xdMtHif2JstIf/J3p513TUtRg==}
@@ -183,10 +180,10 @@ packages:
   '@rbxts/compiler-types@3.0.0-types.0':
     resolution: {integrity: sha512-VGOHJPoL7+56NTatMGqQj3K7xWuzEV+aP4QD5vZiHu+bcff3kiTmtoadaF6NkJrmwfFAvbsd4Dg764ZjWNceag==}
 
-  '@rbxts/react-roblox@17.3.0-alpha.1':
-    resolution: {integrity: sha512-P6vL3+LFC7YZxFGfx3hpVdd4bPBqOkJkDpr0aRpHmVj0OVoVCPiaPXe1qCPp5MciBRb4MQXauJCeiVVs4CvwJg==}
+  '@rbxts/react-roblox@17.3.7-ts.1':
+    resolution: {integrity: sha512-lsH3lP+X0JUS/6Fg5MJfP8OjMn7bjxapbg3r1ajrpvwZGPGU1WOFcFDS/xMMk/2RK/GNYRmkduNM8pQ9vHw54Q==}
     peerDependencies:
-      '@rbxts/react': ^17.3.0-alpha.1
+      '@rbxts/react': ^17.3.7-ts.1
 
   '@rbxts/react-vendor@17.2.3':
     resolution: {integrity: sha512-dWCiVelvTK6h920geaFH/OQ5zoWHyhyqyfH51hKx2/iVZ6OiiyNVJ5UqEIkJMG4HsJ8JnkTORizV3+MtQ41BtA==}
@@ -194,8 +191,8 @@ packages:
   '@rbxts/react@17.2.3':
     resolution: {integrity: sha512-IoOB8e2W8MxT0MKWFf0Ls0vT61ImYL6ctHQgz5+oazma6z8bqFtJjgPxOuy6jmMSuyfBe7rYp/muou0kIjZT+Q==}
 
-  '@rbxts/react@17.3.0-alpha.1':
-    resolution: {integrity: sha512-l2KYYxSj5pOKA2/QelbQRiqQjbI6SRMv8mrmIjc7xpAzuw728aumJ6V6Ol0lrQO/Qt5LVQ8En2L+6C6Lt4sLqA==}
+  '@rbxts/react@17.3.7-ts.1':
+    resolution: {integrity: sha512-/jqZ2TvyLSAPwC30h95loUmy4XN2PwPhv6fBARJKtZfyozFx2RuxC9FiQSjpEZ2uOOPzr60It0MBUf94D+tsMg==}
 
   '@rbxts/types@1.0.858':
     resolution: {integrity: sha512-fGgTAnU3Yq86vozA7DoGrdwp5ZRI4xpLwG9WPBqVZciB1lGDpnu3vydZ2SNzzSNlLMD32cwfYpkKTAW+b6PgGA==}
@@ -1016,42 +1013,51 @@ snapshots:
 
   '@rbxts-js/number@1.2.3-ts.1': {}
 
-  '@rbxts-js/react-reconciler@17.1.20-ts.1':
+  '@rbxts-js/react-globals@17.3.7-ts.1':
+    dependencies:
+      '@rbxts-js/safe-flags': 17.3.7-ts.1
+
+  '@rbxts-js/react-reconciler@17.3.7-ts.1':
     dependencies:
       '@rbxts-js/luau-polyfill': 1.2.3-ts.1
-      '@rbxts-js/react': 17.1.20-ts.1
+      '@rbxts-js/react': 17.3.7-ts.1
+      '@rbxts-js/react-globals': 17.3.7-ts.1
       '@rbxts-js/roblox-lua-promise': 3.5.0-ts.2
-      '@rbxts-js/safe-flags': 17.1.20-ts.1
-      '@rbxts-js/scheduler': 17.1.20-ts.1
-      '@rbxts-js/shared': 17.1.20-ts.1
+      '@rbxts-js/safe-flags': 17.3.7-ts.1
+      '@rbxts-js/scheduler': 17.3.7-ts.1
+      '@rbxts-js/shared': 17.3.7-ts.1
 
-  '@rbxts-js/react-roblox@17.1.20-ts.1':
+  '@rbxts-js/react-roblox@17.3.7-ts.1':
     dependencies:
       '@rbxts-js/luau-polyfill': 1.2.3-ts.1
-      '@rbxts-js/react': 17.1.20-ts.1
-      '@rbxts-js/react-reconciler': 17.1.20-ts.1
-      '@rbxts-js/scheduler': 17.1.20-ts.1
-      '@rbxts-js/shared': 17.1.20-ts.1
+      '@rbxts-js/react': 17.3.7-ts.1
+      '@rbxts-js/react-globals': 17.3.7-ts.1
+      '@rbxts-js/react-reconciler': 17.3.7-ts.1
+      '@rbxts-js/scheduler': 17.3.7-ts.1
+      '@rbxts-js/shared': 17.3.7-ts.1
 
-  '@rbxts-js/react@17.1.20-ts.1':
+  '@rbxts-js/react@17.3.7-ts.1':
     dependencies:
       '@rbxts-js/luau-polyfill': 1.2.3-ts.1
-      '@rbxts-js/shared': 17.1.20-ts.1
+      '@rbxts-js/react-globals': 17.3.7-ts.1
+      '@rbxts-js/shared': 17.3.7-ts.1
 
   '@rbxts-js/roblox-lua-promise@3.5.0-ts.2': {}
 
-  '@rbxts-js/safe-flags@17.1.20-ts.1': {}
+  '@rbxts-js/safe-flags@17.3.7-ts.1': {}
 
-  '@rbxts-js/scheduler@17.1.20-ts.1':
+  '@rbxts-js/scheduler@17.3.7-ts.1':
     dependencies:
       '@rbxts-js/luau-polyfill': 1.2.3-ts.1
-      '@rbxts-js/safe-flags': 17.1.20-ts.1
-      '@rbxts-js/shared': 17.1.20-ts.1
+      '@rbxts-js/react-globals': 17.3.7-ts.1
+      '@rbxts-js/safe-flags': 17.3.7-ts.1
+      '@rbxts-js/shared': 17.3.7-ts.1
 
-  '@rbxts-js/shared@17.1.20-ts.1':
+  '@rbxts-js/shared@17.3.7-ts.1':
     dependencies:
       '@rbxts-js/luau-polyfill': 1.2.3-ts.1
-      '@rbxts-js/safe-flags': 17.1.20-ts.1
+      '@rbxts-js/react-globals': 17.3.7-ts.1
+      '@rbxts-js/safe-flags': 17.3.7-ts.1
 
   '@rbxts-js/string@1.2.3-ts.1':
     dependencies:
@@ -1066,10 +1072,10 @@ snapshots:
 
   '@rbxts/compiler-types@3.0.0-types.0': {}
 
-  '@rbxts/react-roblox@17.3.0-alpha.1(@rbxts/react@17.3.0-alpha.1)':
+  '@rbxts/react-roblox@17.3.7-ts.1(@rbxts/react@17.3.7-ts.1)':
     dependencies:
-      '@rbxts-js/react-roblox': 17.1.20-ts.1
-      '@rbxts/react': 17.3.0-alpha.1
+      '@rbxts-js/react-roblox': 17.3.7-ts.1
+      '@rbxts/react': 17.3.7-ts.1
 
   '@rbxts/react-vendor@17.2.3': {}
 
@@ -1077,9 +1083,9 @@ snapshots:
     dependencies:
       '@rbxts/react-vendor': 17.2.3
 
-  '@rbxts/react@17.3.0-alpha.1':
+  '@rbxts/react@17.3.7-ts.1':
     dependencies:
-      '@rbxts-js/react': 17.1.20-ts.1
+      '@rbxts-js/react': 17.3.7-ts.1
 
   '@rbxts/types@1.0.858': {}
 

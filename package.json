@@ -9,11 +9,9 @@
 		"publish:wally": "pnpm -r --workspace-concurrency 1 publish:wally"
 	},
 	"devDependencies": {
-		"@rbxts-js/react": "17.1.20-ts.1",
-		"@rbxts-js/react-roblox": "17.1.20-ts.1",
 		"@rbxts/compiler-types": "3.0.0-types.0",
-		"@rbxts/react": "17.3.0-alpha.1",
-		"@rbxts/react-roblox": "17.3.0-alpha.1",
+		"@rbxts/react": "^17.3.7-ts.1",
+		"@rbxts/react-roblox": "^17.3.7-ts.1",
 		"@rbxts/types": "^1.0.858",
 		"@rbxts/vide": "^0.5.7",
 		"@typescript-eslint/eslint-plugin": "^8.34.0",
@@ -26,5 +24,5 @@
 		"roblox-ts": "^3.0.0",
 		"typescript": "^5.8.3"
 	},
-	"packageManager": "pnpm@10.19.0"
+	"packageManager": "pnpm@10.24.0"
 }
