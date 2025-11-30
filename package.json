@@ -1,47 +1,28 @@
 {
-	"name": "@rbxts/ripple",
-	"version": "0.9.3",
-	"description": "A motion library for Roblox",
-	"main": "src/init.luau",
+	"private": true,
 	"scripts": {
-		"test": "sh scripts/test.sh",
-		"analyze": "sh scripts/analyze.sh"
-	},
-	"keywords": [
-		"roblox",
-		"motion",
-		"animation",
-		"rbxts"
-	],
-	"author": "littensy",
-	"license": "MIT",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/littensy/ripple.git"
-	},
-	"bugs": {
-		"url": "https://github.com/littensy/ripple/issues"
-	},
-	"types": "src/index.d.ts",
-	"files": [
-		"src",
-		"!**/*.tsbuildinfo",
-		"!**/*.spec.luau"
-	],
-	"publishConfig": {
-		"access": "public"
+		"build": "sh bin/build.sh",
+		"check": "sh bin/check.sh",
+		"bench": "sh bin/bench.sh",
+		"test": "lute test/spec.server.luau",
+		"publish:npm": "pnpm publish -r --access public",
+		"publish:wally": "pnpm -r --workspace-concurrency 1 publish:wally"
 	},
 	"devDependencies": {
-		"@rbxts/compiler-types": "2.3.0-types.1",
-		"@rbxts/types": "^1.0.789",
-		"@typescript-eslint/eslint-plugin": "^5.62.0",
-		"@typescript-eslint/parser": "^5.62.0",
-		"eslint": "^8.57.0",
-		"eslint-config-prettier": "^8.10.0",
-		"eslint-plugin-prettier": "^4.2.1",
-		"eslint-plugin-roblox-ts": "^0.0.35",
-		"prettier": "^2.8.8",
-		"roblox-ts": "^2.3.0",
-		"typescript": "^5.5.3"
-	}
+		"@rbxts/compiler-types": "3.0.0-types.0",
+		"@rbxts/react": "^17.3.7-ts.1",
+		"@rbxts/react-roblox": "^17.3.7-ts.1",
+		"@rbxts/types": "^1.0.858",
+		"@rbxts/vide": "^0.5.7",
+		"@typescript-eslint/eslint-plugin": "^8.34.0",
+		"@typescript-eslint/parser": "^8.34.0",
+		"eslint": "^8.57.1",
+		"eslint-config-prettier": "^9.1.0",
+		"eslint-plugin-prettier": "^5.4.1",
+		"eslint-plugin-roblox-ts": "^0.0.36",
+		"prettier": "^3.5.3",
+		"roblox-ts": "^3.0.0",
+		"typescript": "^5.8.3"
+	},
+	"packageManager": "pnpm@10.24.0"
 }

@@ -1,0 +1,9 @@
+{
+	"name": "Packages",
+	"tree": {
+		"$className": "Folder",
+		"Ripple": { "$path": "packages/ripple/src" },
+		"ReactRipple": { "$path": "packages/react-ripple/src" },
+		"VideRipple": { "$path": "packages/vide-ripple/src" }
+	}
+}

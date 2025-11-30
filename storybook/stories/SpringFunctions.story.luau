@@ -1,0 +1,64 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Graph = require(script.Parent.Parent.components.Graph)
+local React = require(ReplicatedStorage["@rbxts-js"].React)
+local ReactRoblox = require(ReplicatedStorage["@rbxts-js"].ReactRoblox)
+local Ripple = require(ReplicatedStorage.packages.ripple.src)
+
+type SpringFunctionProps = {
+	name: string,
+	options: Ripple.SpringOptions,
+}
+
+local configs: { [string]: Ripple.SpringOptions } = table.clone(Ripple.config)
+
+configs.empty = {}
+
+local function SpringFunction(props: SpringFunctionProps)
+	local spring = React.useMemo(function()
+		local source = Ripple.createSpring(1, props.options)
+		source:setGoal(0)
+		return source
+	end, { props.options })
+
+	return React.createElement(Graph, {
+		name = props.name,
+		precision = 0.001,
+		showRuntime = true,
+		step = function(dt)
+			return spring:step(dt)
+		end,
+		idle = function()
+			return spring:idle()
+		end,
+	})
+end
+
+return {
+	name = "Spring Functions",
+	story = function()
+		local children: { [string]: React.ReactNode } = {}
+
+		for name, options in configs do
+			children[name] = React.createElement(SpringFunction, {
+				name = name,
+				options = options,
+			})
+		end
+
+		return React.createElement("Frame", {
+			BackgroundTransparency = 1,
+			Size = UDim2.new(1, 0, 1, 0),
+		}, {
+			GridLayout = React.createElement("UIGridLayout", {
+				CellSize = UDim2.new(1 / 3, -8 * 3, 1 / 4, -8 * 4),
+				CellPadding = UDim2.fromOffset(8, 8),
+				HorizontalAlignment = Enum.HorizontalAlignment.Center,
+				VerticalAlignment = Enum.VerticalAlignment.Center,
+				FillDirection = Enum.FillDirection.Horizontal,
+			}),
+		}, children)
+	end,
+	react = React,
+	reactRoblox = ReactRoblox,
+}

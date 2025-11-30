@@ -1,1 +1,5 @@
-std = "roblox+testez"
+std = "selene_defs"
+exclude = ["**/node_modules/**"]
+
+[rules]
+shadowing = "allow"

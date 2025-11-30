@@ -1,0 +1,30 @@
+{
+	"name": "@rbxts/vide-ripple",
+	"version": "0.10.0",
+	"description": "Vide bindings for Ripple spring animation",
+	"license": "MIT",
+	"main": "src/init.luau",
+	"types": "src/index.d.ts",
+	"files": [
+		"src",
+		"*.luau",
+		"!wally.toml",
+		"!wally.lock",
+		"!default.project.json",
+		"!**/__tests__"
+	],
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/littensy/ripple.git"
+	},
+	"scripts": {
+		"prepare": "cp ../../LICENSE.md . && cp ../../README.md .",
+		"publish:wally": "wally publish"
+	},
+	"dependencies": {
+		"@rbxts/ripple": "workspace:*"
+	},
+	"peerDependencies": {
+		"@rbxts/vide": "*"
+	}
+}

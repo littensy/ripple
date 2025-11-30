@@ -1,19 +1,20 @@
 # Dependencies
-/node_modules
-/Packages
-/DevPackages
+node_modules
 
-# Project output
-/out
-/include
-*.tsbuildinfo
+# Project files
+/packages/**/wally.lock
+/packages/*/README.md
+/packages/*/LICENSE.md
+build
 *.rbxl
 *.rbxm
+*.tgz
 sourcemap.json
 roblox.d.luau
 types.d.luau
 
 # Misc
-/.vscode
 .DS_Store
-*.code-workspace
+profile.out
+profile.svg
+__pycache__

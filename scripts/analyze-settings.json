@@ -1,5 +1,0 @@
-{
-	"luau-lsp.fflags.override": {
-		"LuauTinyControlFlowAnalysis": "true"
-	}
-}
