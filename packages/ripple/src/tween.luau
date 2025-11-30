@@ -62,6 +62,10 @@ local Tween = {} :: Tween<Animatable>
 (Tween :: any).__index = Tween
 
 local function getAlpha(progress: number, repeats: number, reverses: boolean): number
+	if repeats < 0 then
+		repeats = math.huge
+	end
+
 	if repeats > 1 and progress >= 1 then
 		if reverses then
 			return math.abs((progress - 1) % 2 - 1)
@@ -70,6 +74,7 @@ local function getAlpha(progress: number, repeats: number, reverses: boolean): n
 		end
 		return 1
 	end
+
 	return progress
 end
 
