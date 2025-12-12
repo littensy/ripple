@@ -144,20 +144,20 @@ local function recomputeValue<T>(intermediate: Intermediate<T>): T
 end
 
 local function setValue<T>(intermediate: Intermediate<T>, value: T): boolean
-    if type(value) == "table" then
-        value = merge(getValue(intermediate), value)
-    end
+	if type(value) == "table" then
+		value = merge(getValue(intermediate), value)
+	end
 
-    local currentValue = getValue(intermediate)
+	local currentValue = getValue(intermediate)
 
-    if currentValue ~= value then
-        intermediate.value = value
-        intermediate.encode(intermediate.components, value)
-        intermediate.dirty = nil
-        return true
-    else
-        return false
-    end
+	if currentValue ~= value then
+		intermediate.value = value
+		intermediate.encode(intermediate.components, value)
+		intermediate.dirty = nil
+		return true
+	end
+
+	return false
 end
 
 local function addValue<T>(intermediate: Intermediate<T>, value: T)
