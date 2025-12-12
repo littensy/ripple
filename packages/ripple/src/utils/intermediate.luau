@@ -148,15 +148,16 @@ local function setValue<T>(intermediate: Intermediate<T>, value: T): boolean
 		value = merge(getValue(intermediate), value)
 	end
 
-	intermediate.dirty = nil
+	local currentValue = getValue(intermediate)
 
-	if intermediate.value ~= value then
+	if currentValue ~= value then
 		intermediate.value = value
 		intermediate.encode(intermediate.components, value)
-		return true
-	else
+		intermediate.dirty = nil
 		return true
 	end
+
+	return false
 end
 
 local function addValue<T>(intermediate: Intermediate<T>, value: T)
