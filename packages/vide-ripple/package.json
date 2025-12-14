@@ -1,6 +1,6 @@
 {
 	"name": "@rbxts/vide-ripple",
-	"version": "0.10.0",
+	"version": "0.10.1",
 	"description": "Vide bindings for Ripple spring animation",
 	"license": "MIT",
 	"main": "src/init.luau",
@@ -22,7 +22,7 @@
 		"publish:wally": "wally publish"
 	},
 	"dependencies": {
-		"@rbxts/ripple": "workspace:*"
+		"@rbxts/ripple": "workspace:^"
 	},
 	"peerDependencies": {
 		"@rbxts/vide": "*"

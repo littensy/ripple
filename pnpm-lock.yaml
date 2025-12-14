@@ -57,7 +57,7 @@ importers:
         specifier: '*'
         version: 17.2.3
       '@rbxts/ripple':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../ripple
 
   packages/ripple: {}
@@ -65,7 +65,7 @@ importers:
   packages/vide-ripple:
     dependencies:
       '@rbxts/ripple':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../ripple
       '@rbxts/vide':
         specifier: '*'
