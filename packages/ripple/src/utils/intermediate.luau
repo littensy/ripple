@@ -112,28 +112,24 @@ local function create<T>(value: T): Intermediate<T>
 end
 
 local function copy<T>(intermediate: Intermediate<T>): Intermediate<T>
-	local result = table.clone(intermediate)
-	result.components = table.clone(intermediate.components)
-	return result
+	return {
+		components = table.clone(intermediate.components),
+		value = intermediate.value,
+		encode = intermediate.encode,
+		decode = intermediate.decode,
+	}
 end
 
 local function zero<T>(intermediate: Intermediate<T>): Intermediate<T>
 	local components = intermediate.components
+
 	for key in components do
 		components[key] *= 0 :: any
 	end
-	intermediate.dirty = true
-	return intermediate
-end
 
-local function getValue<T>(intermediate: Intermediate<T>): T
-	if intermediate.dirty then
-		local value = intermediate.decode(intermediate.components)
-		intermediate.value = value
-		intermediate.dirty = nil
-		return value
-	end
-	return intermediate.value
+	intermediate.dirty = true
+
+	return intermediate
 end
 
 local function recomputeValue<T>(intermediate: Intermediate<T>): T
@@ -143,47 +139,55 @@ local function recomputeValue<T>(intermediate: Intermediate<T>): T
 	return value
 end
 
-local function setValue<T>(intermediate: Intermediate<T>, value: T): boolean
-	if type(value) == "table" then
-		value = merge(getValue(intermediate), value)
-	end
+local function getValue<T>(intermediate: Intermediate<T>): T
+	return if intermediate.dirty then recomputeValue(intermediate) else intermediate.value
+end
 
+local function setValue<T>(intermediate: Intermediate<T>, value: T): boolean
 	local currentValue = getValue(intermediate)
 
-	if currentValue ~= value then
-		intermediate.value = value
-		intermediate.encode(intermediate.components, value)
-		intermediate.dirty = nil
-		return true
+	if type(value) == "table" then
+		value = merge(currentValue, value)
 	end
 
-	return false
+	if value == currentValue then
+		return false
+	end
+
+	intermediate.encode(intermediate.components, value)
+	intermediate.value = value
+	intermediate.dirty = nil
+
+	return true
 end
 
 local function addValue<T>(intermediate: Intermediate<T>, value: T)
 	local components: Components = {}
+
 	intermediate.encode(components, value)
+
 	for key, component in components do
 		intermediate.components[key] += component :: any
 	end
+
 	intermediate.dirty = true
 end
 
 local function assign<T>(intermediate: Intermediate<T>, source: Intermediate<T>)
-	local destination = intermediate.components
 	for key, component in source.components do
-		destination[key] = component
+		intermediate.components[key] = component
 	end
+
 	intermediate.value = getValue(source)
 	intermediate.dirty = nil
 end
 
 local function lerp<T>(intermediate: Intermediate<T>, from: Intermediate<T>, to: Intermediate<T>, alpha: number)
-	local components = intermediate.components
 	for key, b in to.components do
 		local a = from.components[key] :: any
-		components[key] = a + (b - a) * alpha
+		intermediate.components[key] = a + (b - a) * alpha
 	end
+
 	intermediate.dirty = true
 end
 

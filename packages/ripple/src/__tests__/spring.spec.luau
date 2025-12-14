@@ -168,4 +168,12 @@ test("should fire change with full state", function()
 	assert(table.concat(state) == "212", "did not fire change with position merge")
 end)
 
+test("should update velocity intermediate", function()
+	local spring = createSpring(0)
+	spring:setVelocity(10)
+	spring:step(0.1)
+	spring:setVelocity(10)
+	assert(spring:getVelocity() == 10, "velocity intermediate not updated")
+end)
+
 return {}

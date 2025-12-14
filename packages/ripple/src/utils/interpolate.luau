@@ -28,18 +28,19 @@ local function interpolate(from: any, to: any, alpha: number): Animatable
 
 		for key, b in to do
 			local a = from[key]
+
 			if not a then
 				continue
 			end
 
 			local value = a + (b - a) * alpha
-			if result[key] == value then
-				continue
-			elseif result == from then
-				result = table.clone(from)
-			end
 
-			result[key] = value
+			if result[key] ~= value then
+				if result == from then
+					result = table.clone(from)
+				end
+				result[key] = value
+			end
 		end
 
 		return result
