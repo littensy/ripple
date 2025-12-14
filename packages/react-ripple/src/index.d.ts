@@ -8,14 +8,14 @@ type NonStrict<T extends Animatable> = T extends number ? number : T;
 export function useSpring<T extends Animatable>(
 	initialValue: T,
 	initialOptions?: SpringOptions<T>,
-): LuaTuple<[binding: Binding<T>, spring: Spring<NonStrict<T>>]>;
+): LuaTuple<[binding: Binding<NonStrict<T>>, spring: Spring<NonStrict<T>>]>;
 
 export function useTween<T extends Animatable>(
 	initialValue: T,
 	initialOptions?: TweenOptions<T>,
-): LuaTuple<[binding: Binding<T>, tween: Tween<NonStrict<T>>]>;
+): LuaTuple<[binding: Binding<NonStrict<T>>, tween: Tween<NonStrict<T>>]>;
 
 export function useMotion<T extends Animatable>(
 	initialValue: T,
 	initialOptions?: MotionOptions<T>,
-): LuaTuple<[binding: Binding<T>, motion: Motion<NonStrict<T>>]>;
+): LuaTuple<[binding: Binding<NonStrict<T>>, motion: Motion<NonStrict<T>>]>;
