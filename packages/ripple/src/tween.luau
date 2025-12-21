@@ -1,7 +1,7 @@
 local easing = require("./easing")
 local interpolate = require("./utils/interpolate")
 local merge = require("./utils/merge")
-local schedule = require("./utils/schedule")
+local scheduler = require("./utils/scheduler")
 local signal = require("./utils/signal")
 local types = require("./types")
 
@@ -78,7 +78,7 @@ local function getAlpha(progress: number, repeats: number, reverses: boolean): n
 	return progress
 end
 
-local scheduler = schedule("Tween", function<T>(state: TweenState<T>, dt, remove): T
+local tweenScheduler = scheduler("Tween", function<T>(state: TweenState<T>, dt, remove): T
 	if state.complete then
 		remove(state)
 		return state.position
@@ -87,6 +87,11 @@ local scheduler = schedule("Tween", function<T>(state: TweenState<T>, dt, remove
 	state.elapsed += dt
 
 	local progress = math.clamp(state.elapsed / state.duration, 0, state.repeats)
+
+	if progress ~= progress then
+		progress = state.repeats
+	end
+
 	local alpha = getAlpha(progress, state.repeats, state.reverses)
 	local alphaEased = if alpha > 0 and alpha < 1 then state.easingFunction(alpha) else alpha
 	local value = interpolate(state.from, state.goal, alphaEased)
@@ -148,7 +153,7 @@ function Tween:resumeFromCurrentPosition()
 	state.from = state.position
 
 	if state.started then
-		scheduler.add(state)
+		tweenScheduler.add(state)
 	end
 end
 
@@ -156,13 +161,13 @@ function Tween:start()
 	self.state.started = true
 
 	if not self.state.complete then
-		scheduler.add(self.state)
+		tweenScheduler.add(self.state)
 	end
 end
 
 function Tween:stop()
 	self.state.started = false
-	scheduler.remove(self.state)
+	tweenScheduler.remove(self.state)
 end
 
 function Tween:idle(): boolean
@@ -170,7 +175,7 @@ function Tween:idle(): boolean
 end
 
 function Tween:step(dt: number): Animatable
-	return scheduler.update(self.state, dt)
+	return tweenScheduler.update(self.state, dt)
 end
 
 function Tween:configure(options: TweenOptions)
@@ -238,6 +243,6 @@ function Tween:destroy()
 end
 
 return {
-	scheduler = scheduler,
+	scheduler = tweenScheduler,
 	createTween = createTween,
 }

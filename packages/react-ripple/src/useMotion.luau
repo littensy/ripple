@@ -8,26 +8,27 @@ type MotionOptions<T> = Ripple.MotionOptions<T>
 
 local function useMotion<T>(initialValue: T, initialOptions: MotionOptions<T>?): (Binding<T>, Motion<T>)
 	local value, setValue = React.useBinding(initialValue)
-	local motionRef = React.useRef((nil :: any) :: Motion<T>)
+	local motion = React.useRef((nil :: any) :: Motion<T>)
 
-	if not motionRef.current then
-		motionRef.current = Ripple.createMotion(initialValue, initialOptions)
+	if not motion.current then
+		motion.current = Ripple.createMotion(initialValue, initialOptions)
 	end
 
 	React.useEffect(function()
-		local disconnect = motionRef.current:onChange(setValue)
-
-		if not initialOptions or initialOptions.start ~= false then
-			motionRef.current:start()
+		if not (initialOptions and initialOptions.start == false) then
+			motion.current:start()
 		end
 
+		local disconnect = motion.current:onChange(setValue)
+
 		return function()
-			motionRef.current:stop()
 			disconnect()
+			motion.current:stop()
+			motion.current = nil :: never
 		end
 	end, {})
 
-	return value, motionRef.current
+	return value, motion.current
 end
 
 return useMotion

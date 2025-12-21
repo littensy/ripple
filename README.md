@@ -183,6 +183,59 @@ motion:spring(0)
 
 ---
 
+## Examples
+
+### React Button
+
+```luau
+local function Button()
+	local binding, spring = useSpring(0, config.stiff)
+
+	return React.createElement("TextButton", {
+		[React.Change.GuiState] = function(rbx: TextButton)
+			if rbx.GuiState == Enum.GuiState.Hover then
+				spring:setGoal(20)
+			elseif rbx.GuiState == Enum.GuiState.Press then
+				spring:setGoal(-20, { impulse = -100 })
+			else
+				spring:setGoal(0)
+			end
+		end,
+		Text = "Button",
+		Size = binding:map(function(offset)
+			return UDim2.fromOffset(100 + offset, 50 + offset)
+		end),
+	})
+end
+```
+
+### Vide Button
+
+```luau
+local function Button()
+	local getValue, spring = useSpring(0, config.stiff)
+
+	return create "TextButton" {
+		Text = "Button",
+		Size = function()
+			return UDim2.fromOffset(100 + getValue(), 50 + getValue())
+		end,
+
+		changed("GuiState", function(state: Enum.GuiState)
+			if state == Enum.GuiState.Hover then
+				spring:setGoal(20)
+			elseif state == Enum.GuiState.Press then
+				spring:setGoal(-20, { impulse = -100 })
+			else
+				spring:setGoal(0)
+			end
+		end),
+	}
+end
+```
+
+---
+
 <p align="center">
 Ripple is licensed under the <a href="LICENSE.md">MIT License</a>.
 </p>

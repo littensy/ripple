@@ -1,5 +1,5 @@
 local intermediate = require("./utils/intermediate")
-local schedule = require("./utils/schedule")
+local scheduler = require("./utils/scheduler")
 local signal = require("./utils/signal")
 local types = require("./types")
 
@@ -81,7 +81,7 @@ local function belowThreshold(value: number | vector, threshold: number): boolea
 	end
 end
 
-local scheduler = schedule("Spring", function<T>(state: SpringState<T>, dt, remove): T
+local springScheduler = scheduler("Spring", function<T>(state: SpringState<T>, dt, remove): T
 	if state.complete then
 		remove(state)
 		return getValue(state.position)
@@ -241,7 +241,7 @@ function Spring:scheduleUpdate()
 	self.state.complete = false
 
 	if self.state.started then
-		scheduler.add(self.state)
+		springScheduler.add(self.state)
 	end
 end
 
@@ -249,13 +249,13 @@ function Spring:start()
 	self.state.started = true
 
 	if not self.state.complete then
-		scheduler.add(self.state)
+		springScheduler.add(self.state)
 	end
 end
 
 function Spring:stop()
 	self.state.started = false
-	scheduler.remove(self.state)
+	springScheduler.remove(self.state)
 end
 
 function Spring:idle(): boolean
@@ -263,7 +263,7 @@ function Spring:idle(): boolean
 end
 
 function Spring:step(dt: number): Animatable
-	return scheduler.update(self.state, dt)
+	return springScheduler.update(self.state, dt)
 end
 
 function Spring:configure(options: SpringOptions)
@@ -354,6 +354,6 @@ function Spring:destroy()
 end
 
 return {
-	scheduler = scheduler,
+	scheduler = springScheduler,
 	createSpring = createSpring,
 }

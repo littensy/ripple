@@ -1,7 +1,5 @@
 local easing = require("../easing")
-local suite = require("../../../../test/suite")
-
-local test = suite.test
+local test = require("../../../../tests/test")
 
 test("should have correct start and end", function()
 	for name, easingFunction in pairs(easing) do

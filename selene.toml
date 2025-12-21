@@ -1,5 +1,6 @@
-std = "selene_defs"
+std = "roblox"
 exclude = ["**/node_modules/**"]
 
 [rules]
 shadowing = "allow"
+incorrect_standard_library_use = "allow"

@@ -1,9 +1,7 @@
 local easing = require("../easing")
 local motion = require("../motion")
-local suite = require("../../../../test/suite")
+local test = require("../../../../tests/test")
 
-local describe = suite.describe
-local test = suite.test
 local createMotion = motion.createMotion
 local scheduler = motion.scheduler
 
@@ -92,7 +90,7 @@ test("should swap from tween to spring", function()
 	assert(motion:getVelocity() == vector.zero, "velocity should be zero after completion")
 end)
 
-describe("spring", function()
+test.describe("spring", function()
 	test("should get properties", function()
 		local spring = createMotion(vector.one)
 
@@ -233,7 +231,7 @@ describe("spring", function()
 	end)
 end)
 
-describe("tween", function()
+test.describe("tween", function()
 	test("should get properties", function()
 		local tween = createMotion(vector.one, { tween = {} })
 

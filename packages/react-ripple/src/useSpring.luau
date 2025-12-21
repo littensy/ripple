@@ -8,26 +8,27 @@ type SpringOptions<T> = Ripple.SpringOptions<T>
 
 local function useSpring<T>(initialValue: T, initialOptions: SpringOptions<T>?): (Binding<T>, Spring<T>)
 	local value, setValue = React.useBinding(initialValue)
-	local springRef = React.useRef((nil :: any) :: Spring<T>)
+	local spring = React.useRef((nil :: any) :: Spring<T>)
 
-	if not springRef.current then
-		springRef.current = Ripple.createSpring(initialValue, initialOptions)
+	if not spring.current then
+		spring.current = Ripple.createSpring(initialValue, initialOptions)
 	end
 
 	React.useEffect(function()
-		local disconnect = springRef.current:onChange(setValue)
-
-		if not initialOptions or initialOptions.start ~= false then
-			springRef.current:start()
+		if not (initialOptions and initialOptions.start == false) then
+			spring.current:start()
 		end
 
+		local disconnect = spring.current:onChange(setValue)
+
 		return function()
-			springRef.current:stop()
 			disconnect()
+			spring.current:stop()
+			spring.current = nil :: never
 		end
 	end, {})
 
-	return value, springRef.current
+	return value, spring.current
 end
 
 return useSpring

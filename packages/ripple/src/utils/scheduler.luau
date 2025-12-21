@@ -7,7 +7,7 @@ export type Scheduler<State> = {
 	clear: () -> (),
 }
 
-local function schedule<State>(
+local function scheduler<State>(
 	label: string,
 	updater: (state: State, time: number, remove: (State) -> ()) -> any
 ): Scheduler<State>
@@ -74,4 +74,4 @@ local function schedule<State>(
 	}
 end
 
-return schedule
+return scheduler

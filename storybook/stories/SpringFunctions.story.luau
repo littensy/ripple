@@ -34,31 +34,36 @@ local function SpringFunction(props: SpringFunctionProps)
 	})
 end
 
-return {
-	name = "Spring Functions",
-	story = function()
-		local children: { [string]: React.ReactNode } = {}
+local function Story()
+	local children: { [string]: React.ReactNode } = {}
 
-		for name, options in configs do
-			children[name] = React.createElement(SpringFunction, {
-				name = name,
-				options = options,
-			})
-		end
+	for name, options in configs do
+		children[name] = React.createElement(SpringFunction, {
+			name = name,
+			options = options,
+		})
+	end
 
-		return React.createElement("Frame", {
-			BackgroundTransparency = 1,
-			Size = UDim2.new(1, 0, 1, 0),
-		}, {
-			GridLayout = React.createElement("UIGridLayout", {
-				CellSize = UDim2.new(1 / 3, -8 * 3, 1 / 4, -8 * 4),
-				CellPadding = UDim2.fromOffset(8, 8),
-				HorizontalAlignment = Enum.HorizontalAlignment.Center,
-				VerticalAlignment = Enum.VerticalAlignment.Center,
-				FillDirection = Enum.FillDirection.Horizontal,
-			}),
-		}, children)
-	end,
-	react = React,
-	reactRoblox = ReactRoblox,
-}
+	return React.createElement("Frame", {
+		BackgroundTransparency = 1,
+		Size = UDim2.new(1, 0, 1, 0),
+	}, {
+		GridLayout = React.createElement("UIGridLayout", {
+			CellSize = UDim2.new(1 / 3, -8 * 3, 1 / 4, -8 * 4),
+			CellPadding = UDim2.fromOffset(8, 8),
+			HorizontalAlignment = Enum.HorizontalAlignment.Center,
+			VerticalAlignment = Enum.VerticalAlignment.Center,
+			FillDirection = Enum.FillDirection.Horizontal,
+		}),
+	}, children)
+end
+
+return function(container: Instance)
+	local root = ReactRoblox.createRoot(container)
+
+	root:render(React.createElement(Story))
+
+	return function()
+		root:unmount()
+	end
+end

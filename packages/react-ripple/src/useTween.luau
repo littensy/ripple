@@ -8,26 +8,27 @@ type TweenOptions<T> = Ripple.TweenOptions<T>
 
 local function useTween<T>(initialValue: T, initialOptions: TweenOptions<T>?): (Binding<T>, Tween<T>)
 	local value, setValue = React.useBinding(initialValue)
-	local tweenRef = React.useRef((nil :: any) :: Tween<T>)
+	local tween = React.useRef((nil :: any) :: Tween<T>)
 
-	if not tweenRef.current then
-		tweenRef.current = Ripple.createTween(initialValue, initialOptions)
+	if not tween.current then
+		tween.current = Ripple.createTween(initialValue, initialOptions)
 	end
 
 	React.useEffect(function()
-		local disconnect = tweenRef.current:onChange(setValue)
-
-		if not initialOptions or initialOptions.start ~= false then
-			tweenRef.current:start()
+		if not (initialOptions and initialOptions.start == false) then
+			tween.current:start()
 		end
 
+		local disconnect = tween.current:onChange(setValue)
+
 		return function()
-			tweenRef.current:stop()
 			disconnect()
+			tween.current:stop()
+			tween.current = nil :: never
 		end
 	end, {})
 
-	return value, tweenRef.current
+	return value, tween.current
 end
 
 return useTween

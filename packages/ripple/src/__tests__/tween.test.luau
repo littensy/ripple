@@ -1,8 +1,7 @@
 local easing = require("../easing")
-local suite = require("../../../../test/suite")
+local test = require("../../../../tests/test")
 local tween = require("../tween")
 
-local test = suite.test
 local createTween = tween.createTween
 local scheduler = tween.scheduler
 
@@ -256,6 +255,13 @@ test("should fire change with full state", function()
 
 	tween:setPosition({ [1] = 2, [3] = 2 })
 	assert(table.concat(state) == "212", "did not fire change with position merge")
+end)
+
+test("should not be nan when step and duration are zero", function()
+	local tween = createTween(0, { duration = 0 })
+	tween:setGoal(1)
+	tween:step(0)
+	assert(tween:getPosition() == tween:getPosition(), "position is nan on zero step")
 end)
 
 return {}

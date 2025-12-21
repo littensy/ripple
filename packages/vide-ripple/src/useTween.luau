@@ -7,16 +7,20 @@ type TweenOptions<T> = Ripple.TweenOptions<T>
 
 local function useTween<T>(initialValue: T, initialOptions: TweenOptions<T>?): (() -> T, Tween<T>)
 	local tween = Ripple.createTween(initialValue, initialOptions)
-	local getter = Vide.source(initialValue)
+	local value = Vide.source(initialValue)
 
-	if not initialOptions or initialOptions.start ~= false then
+	if not (initialOptions and initialOptions.start == false) then
 		tween:start()
 	end
 
-	Vide.cleanup(tween:onChange(getter))
-	Vide.cleanup(tween)
+	local disconnect = tween:onChange(value)
 
-	return getter, tween
+	Vide.cleanup(function()
+		disconnect()
+		tween:stop()
+	end)
+
+	return value, tween
 end
 
 return useTween

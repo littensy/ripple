@@ -21,6 +21,9 @@ return {
 	config = config,
 	easing = easing,
 	createMotion = motion.createMotion,
+	motionScheduler = motion.scheduler,
 	createSpring = spring.createSpring,
+	springScheduler = spring.scheduler,
 	createTween = tween.createTween,
+	tweenScheduler = tween.scheduler,
 }

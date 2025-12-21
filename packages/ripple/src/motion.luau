@@ -1,4 +1,4 @@
-local schedule = require("./utils/schedule")
+local scheduler = require("./utils/scheduler")
 local signal = require("./utils/signal")
 local spring = require("./spring")
 local tween = require("./tween")
@@ -66,7 +66,7 @@ export type Motion<Value> = {
 local Motion = {} :: Motion<Animatable>
 (Motion :: any).__index = Motion
 
-local scheduler = schedule("Motion", function<T>(state: MotionState<T>, deltaTime, remove): T
+local motionScheduler = scheduler("Motion", function<T>(state: MotionState<T>, deltaTime, remove): T
 	if state.complete then
 		remove(state)
 		return state.current:getPosition()
@@ -142,7 +142,7 @@ function Motion:scheduleUpdate()
 	self.state.complete = false
 
 	if self.state.started then
-		scheduler.add(self.state)
+		motionScheduler.add(self.state)
 	end
 end
 
@@ -169,13 +169,13 @@ function Motion:start()
 	self.state.started = true
 
 	if not self.state.complete then
-		scheduler.add(self.state)
+		motionScheduler.add(self.state)
 	end
 end
 
 function Motion:stop()
 	self.state.started = false
-	scheduler.remove(self.state)
+	motionScheduler.remove(self.state)
 end
 
 function Motion:idle(): boolean
@@ -183,7 +183,7 @@ function Motion:idle(): boolean
 end
 
 function Motion:step(dt: number): Animatable
-	return scheduler.update(self.state, dt)
+	return motionScheduler.update(self.state, dt)
 end
 
 function Motion:configure(options: MotionOptions)
@@ -277,6 +277,6 @@ function Motion:destroy()
 end
 
 return {
-	scheduler = scheduler,
+	scheduler = motionScheduler,
 	createMotion = createMotion,
 }

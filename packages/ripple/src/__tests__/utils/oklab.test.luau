@@ -1,7 +1,5 @@
 local oklab = require("../../utils/oklab")
-local suite = require("../../../../../test/suite")
-
-local test = suite.test
+local test = require("../../../../../tests/test")
 
 local function testColors(callback: (vector) -> ())
 	for r = 0, 4 do

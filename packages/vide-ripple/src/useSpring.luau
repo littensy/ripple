@@ -7,16 +7,20 @@ type SpringOptions<T> = Ripple.SpringOptions<T>
 
 local function useSpring<T>(initialValue: T, initialOptions: SpringOptions<T>?): (() -> T, Spring<T>)
 	local spring = Ripple.createSpring(initialValue, initialOptions)
-	local getter = Vide.source(initialValue)
+	local value = Vide.source(initialValue)
 
-	if not initialOptions or initialOptions.start ~= false then
+	if not (initialOptions and initialOptions.start == false) then
 		spring:start()
 	end
 
-	Vide.cleanup(spring:onChange(getter))
-	Vide.cleanup(spring)
+	local disconnect = spring:onChange(value)
 
-	return getter, spring
+	Vide.cleanup(function()
+		disconnect()
+		spring:stop()
+	end)
+
+	return value, spring
 end
 
 return useSpring

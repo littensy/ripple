@@ -1,7 +1,6 @@
 local spring = require("../spring")
-local suite = require("../../../../test/suite")
+local test = require("../../../../tests/test")
 
-local test = suite.test
 local createSpring = spring.createSpring
 local scheduler = spring.scheduler
 
