@@ -3,7 +3,7 @@ local types = require("../types")
 
 type Animatable = types.Animatable
 
-local function interpolate(from: any, to: any, alpha: number): Animatable
+local function interpolate<T>(from: any, to: any, alpha: number): any
 	local kind = typeof(from)
 
 	if kind == "number" or kind == "vector" or kind == "Vector3" or kind == "Vector2" then
@@ -11,7 +11,9 @@ local function interpolate(from: any, to: any, alpha: number): Animatable
 	elseif kind == "Color3" then
 		local a = oklab.fromSRGB(vector.create(from.R, from.G, from.B))
 		local b = oklab.fromSRGB(vector.create(to.R, to.G, to.B))
-		return oklab.toSRGB(a + (b - a) * alpha)
+		local v = vector.max(oklab.toSRGB(a + (b - a) * alpha), vector.zero)
+
+		return Color3.new(v.x, v.y, v.z)
 	elseif kind == "UDim2" or kind == "CFrame" then
 		return from:Lerp(to, alpha)
 	elseif kind == "UDim" then
