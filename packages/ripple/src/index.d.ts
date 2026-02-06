@@ -139,17 +139,17 @@ export interface Motion<T extends Animatable = any> {
 	destroy(): void;
 }
 
-export function createSpring<T extends Animatable>(initialValue: T, options?: SpringOptions<T>): Spring<T>;
-
 export function createSpring(initialValue: number, options?: SpringOptions<number>): Spring<number>;
 
-export function createTween<T extends Animatable>(initialValue: T, options?: TweenOptions<T>): Tween<T>;
+export function createSpring<T extends Animatable>(initialValue: T, options?: SpringOptions<T>): Spring<T>;
 
 export function createTween(initialValue: number, options?: TweenOptions<number>): Tween<number>;
 
-export function createMotion<T extends Animatable>(initialValue: T, options?: MotionOptions<T>): Motion<T>;
+export function createTween<T extends Animatable>(initialValue: T, options?: TweenOptions<T>): Tween<T>;
 
 export function createMotion(initialValue: number, options?: MotionOptions<number>): Motion<number>;
+
+export function createMotion<T extends Animatable>(initialValue: T, options?: MotionOptions<T>): Motion<T>;
 
 export const config: {
 	default: SpringOptions;
