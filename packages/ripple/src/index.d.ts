@@ -158,6 +158,10 @@ export const config: {
 	stiff: SpringOptions;
 	slow: SpringOptions;
 	molasses: SpringOptions;
+	figmaGentle: SpringOptions;
+	figmaQuick: SpringOptions;
+	figmaBouncy: SpringOptions;
+	figmaSlow: SpringOptions;
 };
 
 export const easing: {
