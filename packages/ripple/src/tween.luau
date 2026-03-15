@@ -67,12 +67,7 @@ local function getAlpha(progress: number, repeats: number, reverses: boolean): n
 	end
 
 	if repeats > 1 and progress >= 1 then
-		if reverses then
-			return math.abs((progress - 1) % 2 - 1)
-		elseif progress < repeats then
-			return progress % 1
-		end
-		return 1
+		return if reverses then math.abs((progress - 1) % 2 - 1) elseif progress < repeats then progress % 1 else 1
 	end
 
 	return progress
@@ -88,7 +83,7 @@ local tweenScheduler = scheduler("Tween", function<T>(state: TweenState<T>, dt, 
 
 	local progress = math.clamp(state.elapsed / state.duration, 0, state.repeats)
 
-	if progress ~= progress then
+	if math.isnan(progress) then
 		progress = state.repeats
 	end
 
