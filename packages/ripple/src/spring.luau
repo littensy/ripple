@@ -185,20 +185,29 @@ local springScheduler = scheduler("Spring", function<T>(state: SpringState<T>, d
 		end
 	end
 
-	local value = if not complete then recomputeValue(position) else getValue(goal)
-
-	velocity.dirty = true
-	state.complete = complete
-	state.fireChange(value, dt)
-
 	if complete then
-		remove(state)
-		intermediate.assign(position, goal)
-		intermediate.zero(velocity)
-		state.fireComplete(value)
-	end
+		local value = getValue(goal)
 
-	return value
+		remove(state)
+
+		intermediate.setValueFast(position, goal, value)
+		intermediate.zero(velocity)
+
+		state.complete = true
+		state.fireChange(value, dt)
+		state.fireComplete(value)
+
+		return value
+	else
+		-- Only set dirty in the non-complete case since zeroing the velocity
+		-- in the complete case already marks it as dirty
+		velocity.dirty = true
+		-- Force recompute the position since it was mutated in-place and can
+		-- be assumed to be dirty without setting the dirty flag
+		local value = recomputeValue(position)
+		state.fireChange(value, dt)
+		return value
+	end
 end)
 
 local function createSpring<Value>(initialValue: Value, inputOptions: SpringOptions<Value>?): Spring<Value>

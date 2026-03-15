@@ -161,6 +161,15 @@ local function setValue<T>(intermediate: Intermediate<T>, value: T): boolean
 	return true
 end
 
+local function setValueFast<T>(intermediate: Intermediate<T>, encoded: Intermediate<T>, decoded: T)
+	for key, component in encoded.components do
+		intermediate.components[key] = component
+	end
+
+	intermediate.value = decoded
+	intermediate.dirty = nil
+end
+
 local function addValue<T>(intermediate: Intermediate<T>, value: T)
 	local components: Components = {}
 
@@ -173,32 +182,13 @@ local function addValue<T>(intermediate: Intermediate<T>, value: T)
 	intermediate.dirty = true
 end
 
-local function assign<T>(intermediate: Intermediate<T>, source: Intermediate<T>)
-	for key, component in source.components do
-		intermediate.components[key] = component
-	end
-
-	intermediate.value = getValue(source)
-	intermediate.dirty = nil
-end
-
-local function lerp<T>(intermediate: Intermediate<T>, from: Intermediate<T>, to: Intermediate<T>, alpha: number)
-	for key, b in to.components do
-		local a = from.components[key] :: any
-		intermediate.components[key] = a + (b - a) * alpha
-	end
-
-	intermediate.dirty = true
-end
-
 return {
 	create = create,
 	copy = copy,
 	zero = zero,
 	setValue = setValue,
+	setValueFast = setValueFast,
 	addValue = addValue,
 	getValue = getValue,
 	recomputeValue = recomputeValue,
-	assign = assign,
-	lerp = lerp,
 }
