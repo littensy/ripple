@@ -23,9 +23,12 @@ local analyze = process.run({
 
 fs.remove("roblox.d.luau")
 
-local selene = process.run({ "selene", "packages", "tests", "benchmarks" }, { stdio = "inherit" })
+local selene = process.run({ "selene", "packages", "tests", "benchmarks", "storybook" }, { stdio = "inherit" })
 
-local stylua = process.run({ "stylua", "--check", "packages", "tests", "benchmarks" }, { stdio = "inherit" })
+local stylua = process.run(
+	{ "stylua", "--check", "packages", "tests", "benchmarks", "storybook" },
+	{ stdio = "inherit" }
+)
 
 local eslint = process.run({ "pnpm", "eslint", "packages" }, { stdio = "inherit" })
 

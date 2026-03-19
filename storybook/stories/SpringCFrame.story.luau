@@ -25,7 +25,7 @@ local function Story()
 	return React.createElement("ViewportFrame", {
 		CurrentCamera = cameraBinding,
 		BackgroundTransparency = 1,
-		Size = UDim2.new(1, 0, 1, 0),
+		Size = UDim2.fromScale(1, 1),
 	}, {
 		Camera = React.createElement("Camera", {
 			ref = setCamera,

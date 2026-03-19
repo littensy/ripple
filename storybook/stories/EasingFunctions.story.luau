@@ -40,7 +40,7 @@ local function Story()
 
 	return React.createElement("Frame", {
 		BackgroundTransparency = 1,
-		Size = UDim2.new(1, 0, 1, 0),
+		Size = UDim2.fromScale(1, 1),
 	}, {
 		GridLayout = React.createElement("UIGridLayout", {
 			CellSize = UDim2.new(1 / 5, -8 * 5, 1 / 5, -8 * 5),

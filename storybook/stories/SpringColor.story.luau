@@ -27,7 +27,7 @@ local function Story()
 
 	return React.createElement("Frame", {
 		BackgroundColor3 = Color3.new(1, 1, 1),
-		Size = UDim2.new(1, 0, 1, 0),
+		Size = UDim2.fromScale(1, 1),
 	}, {
 		React.createElement("UIGradient", {
 			Color = ColorSequence.new(keypoints),
