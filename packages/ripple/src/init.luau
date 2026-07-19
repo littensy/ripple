@@ -3,6 +3,7 @@ local easing = require("@self/easing")
 local motion = require("@self/motion")
 local spring = require("@self/spring")
 local tween = require("@self/tween")
+local bezier = require("@self/bezier")
 local types = require("@self/types")
 
 export type Animatable = types.Animatable
@@ -26,4 +27,6 @@ return {
 	springScheduler = spring.scheduler,
 	createTween = tween.createTween,
 	tweenScheduler = tween.scheduler,
+	createBezier = bezier.createBezier,
+	bezierScheduler = bezier.scheduler,
 }
