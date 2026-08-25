@@ -27,7 +27,11 @@ local function scheduler<State>(
 
 	local function step(deltaTime: number)
 		for index = count, 1, -1 do
-			updater(states[index], deltaTime, remove)
+			local state = states[index]
+
+			if state ~= nil then
+				updater(state, deltaTime, remove)
+			end
 		end
 	end
 

@@ -175,4 +175,24 @@ test("should update velocity intermediate", function()
 	assert(spring:getVelocity() == 10, "velocity intermediate not updated")
 end)
 
+test("should not crash when a completion handler removes another motion", function()
+	local a = createSpring(0, { start = true, precision = 0.1 })
+	local b = createSpring(0, { start = true, precision = 0.1 })
+	local c = createSpring(0, { start = true, precision = 0.1 })
+
+	a:setGoal(1)
+	b:setGoal(1)
+	c:setGoal(1)
+	assert(#scheduler.states == 3, "three motions scheduled")
+
+	-- completing the tail motion stops a lower-indexed one mid-step, so the
+	-- downward swap-remove nils a slot the loop has not reached yet
+	c:onComplete(function()
+		a:stop()
+	end)
+
+	scheduler.step(1)
+	assert(#scheduler.states == 0, "all motions removed after step")
+end)
+
 return {}
